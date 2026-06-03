@@ -1,0 +1,42 @@
+<svg width="720" height="210" viewBox="0 0 720 210" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style></defs>
+  <rect width="720" height="210" fill="#0d1117" rx="12"/>
+  <text x="360" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">외부 단편화 vs 내부 단편화</text>
+
+  <!-- External fragmentation -->
+  <text x="24" y="48" fill="#f85149" font-size="11" font-weight="700">외부 단편화 (페이징 이전)</text>
+  <rect x="20" y="56" width="100" height="36" rx="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1"/>
+  <text x="70" y="79" text-anchor="middle" fill="#8b949e" font-size="10">프로세스A 5KB</text>
+  <rect x="126" y="56" width="48" height="36" rx="4" fill="#2d2208" stroke="#484f58" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="150" y="79" text-anchor="middle" fill="#484f58" font-size="10">빈 2KB</text>
+  <rect x="180" y="56" width="130" height="36" rx="4" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+  <text x="245" y="79" text-anchor="middle" fill="#8b949e" font-size="10">프로세스B 6.5KB</text>
+  <rect x="316" y="56" width="24" height="36" rx="4" fill="#2d2208" stroke="#484f58" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="328" y="79" text-anchor="middle" fill="#484f58" font-size="9">1KB</text>
+  <rect x="346" y="56" width="90" height="36" rx="4" fill="#2a1f3a" stroke="#bc8cff" stroke-width="1"/>
+  <text x="391" y="79" text-anchor="middle" fill="#8b949e" font-size="10">프로세스C 4.5KB</text>
+
+  <text x="460" y="68" fill="#484f58" font-size="11">빈 공간 합계: 3KB</text>
+  <text x="460" y="84" fill="#f85149" font-size="11">새 프로세스 3KB → 입장 불가</text>
+  <text x="460" y="98" fill="#484f58" font-size="10">(연속된 빈 공간이 없음)</text>
+
+  <!-- Divider -->
+  <line x1="20" y1="112" x2="700" y2="112" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Internal fragmentation -->
+  <text x="24" y="132" fill="#d29922" font-size="11" font-weight="700">내부 단편화 (페이징)</text>
+  <text x="24" y="150" fill="#484f58" font-size="10">프로세스가 4.1KB 필요 → 4KB 페이지 2개 할당</text>
+
+  <!-- Page 1 (full) -->
+  <rect x="20" y="158" width="160" height="36" rx="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1"/>
+  <text x="100" y="181" text-anchor="middle" fill="#58a6ff" font-size="10">페이지 1 — 4KB 사용</text>
+
+  <!-- Page 2 (mostly wasted) -->
+  <rect x="186" y="158" width="160" height="36" rx="4" fill="#161b22" stroke="#6e7681" stroke-width="1"/>
+  <rect x="186" y="158" width="4" height="36" rx="2" fill="#1c3a5e"/>
+  <text x="266" y="181" text-anchor="middle" fill="#484f58" font-size="10">페이지 2 — 0.1KB 사용 / 3.9KB 낭비</text>
+
+  <text x="400" y="168" fill="#484f58" font-size="11">낭비 최대치 = 페이지 크기 - 1바이트</text>
+  <text x="400" y="184" fill="#d29922" font-size="11">예측 가능하고 한정적</text>
+</svg>

@@ -1,0 +1,60 @@
+<svg width="620" height="285" viewBox="0 0 620 285" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>text { font-family: 'Trebuchet MS', Arial, sans-serif; }</style>
+  </defs>
+
+  <rect width="620" height="285" fill="#0d1117" rx="12"/>
+  <text x="310" y="20" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="700">우선순위 역전 발생 과정</text>
+
+  <!-- Time axis -->
+  <line x1="85" y1="255" x2="595" y2="255" stroke="#30363d" stroke-width="1.5"/>
+  <text x="602" y="259" fill="#6e7681" font-size="9">time →</text>
+
+  <!-- Thread labels -->
+  <text x="78" y="79" text-anchor="end" fill="#f85149" font-size="11" font-weight="700">High</text>
+  <text x="78" y="149" text-anchor="end" fill="#d29922" font-size="11" font-weight="700">Medium</text>
+  <text x="78" y="219" text-anchor="end" fill="#58a6ff" font-size="11" font-weight="700">Low</text>
+
+  <!-- Horizontal guide lines -->
+  <line x1="85" y1="70" x2="595" y2="70" stroke="#161b22" stroke-width="1"/>
+  <line x1="85" y1="140" x2="595" y2="140" stroke="#161b22" stroke-width="1"/>
+  <line x1="85" y1="210" x2="595" y2="210" stroke="#161b22" stroke-width="1"/>
+
+  <!-- Low: 실행중 (락 보유) -->
+  <rect x="85" y="198" width="140" height="24" rx="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="155" y="214" text-anchor="middle" fill="#58a6ff" font-size="10">실행 중 (락 보유)</text>
+
+  <!-- High: 도착, 락 대기 -->
+  <rect x="145" y="58" width="80" height="24" rx="4" fill="#2d0f0f" stroke="#f85149" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="185" y="74" text-anchor="middle" fill="#f85149" font-size="9">락 대기 중...</text>
+
+  <!-- Medium: 도착, Low 선점 -->
+  <rect x="225" y="128" width="170" height="24" rx="4" fill="#2d1f00" stroke="#d29922" stroke-width="1.5"/>
+  <text x="310" y="144" text-anchor="middle" fill="#d29922" font-size="10">실행 중 (락 불필요)</text>
+
+  <!-- Low: 선점됨 -->
+  <rect x="225" y="198" width="170" height="24" rx="4" fill="#161b22" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="310" y="214" text-anchor="middle" fill="#484f58" font-size="9">선점 — 대기</text>
+
+  <!-- High: 여전히 대기 -->
+  <rect x="225" y="58" width="170" height="24" rx="4" fill="#2d0f0f" stroke="#f85149" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="310" y="74" text-anchor="middle" fill="#f85149" font-size="9">락 대기 중...</text>
+
+  <!-- Low: 재개, 락 반납 -->
+  <rect x="395" y="198" width="130" height="24" rx="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="460" y="214" text-anchor="middle" fill="#58a6ff" font-size="9">재개 → 락 반납</text>
+
+  <!-- High: 실행 -->
+  <rect x="525" y="58" width="70" height="24" rx="4" fill="#0d2818" stroke="#3fb950" stroke-width="2"/>
+  <text x="560" y="74" text-anchor="middle" fill="#3fb950" font-size="9">실행!</text>
+
+  <!-- Vertical markers -->
+  <line x1="145" y1="42" x2="145" y2="252" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="145" y="40" text-anchor="middle" fill="#6e7681" font-size="8">High 도착</text>
+
+  <line x1="225" y1="42" x2="225" y2="252" stroke="#30363d" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="225" y="40" text-anchor="middle" fill="#6e7681" font-size="8">Medium 도착</text>
+
+  <!-- Bottom annotation -->
+  <text x="310" y="273" text-anchor="middle" fill="#f85149" font-size="10">High가 제일 높은 우선순위인데 Medium보다 늦게 실행됨</text>
+</svg>

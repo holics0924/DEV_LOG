@@ -1,0 +1,50 @@
+<svg width="680" height="220" viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  <marker id="arrG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+  </marker>
+  <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+  </marker>
+  <marker id="arrY" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#e3b341"/>
+  </marker></defs>
+  <rect width="680" height="220" fill="#0d1117" rx="12"/>
+  <text x="340" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">파이프 — 커널 버퍼를 통한 단방향 통신</text>
+
+  <!-- Process A -->
+  <rect x="20" y="50" width="160" height="60" rx="10" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="100" y="76" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">프로세스 A</text>
+  <text x="100" y="96" text-anchor="middle" fill="#8b949e" font-size="11" font-family="monospace">write("done")</text>
+
+  <!-- Kernel buffer -->
+  <rect x="240" y="42" width="200" height="76" rx="10" fill="#161b22" stroke="#bc8cff" stroke-width="2"/>
+  <text x="340" y="68" text-anchor="middle" fill="#bc8cff" font-size="12" font-weight="700">커널 버퍼</text>
+  <rect x="260" y="76" width="160" height="28" rx="6" fill="#1f2937" stroke="#374151" stroke-width="1"/>
+  <text x="340" y="95" text-anchor="middle" fill="#e6edf3" font-size="13" font-family="monospace">"done"</text>
+  <text x="340" y="108" text-anchor="middle" fill="#6e7681" font-size="10">OS가 관리</text>
+
+  <!-- Process B -->
+  <rect x="500" y="50" width="160" height="60" rx="10" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="580" y="76" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">프로세스 B</text>
+  <text x="580" y="96" text-anchor="middle" fill="#8b949e" font-size="11" font-family="monospace">read()</text>
+
+  <!-- Arrows -->
+  <line x1="182" y1="80" x2="238" y2="80" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrG)"/>
+  <text x="210" y="73" text-anchor="middle" fill="#6e7681" font-size="9">시스템 콜</text>
+  <line x1="442" y1="80" x2="498" y2="80" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrB)"/>
+  <text x="470" y="73" text-anchor="middle" fill="#6e7681" font-size="9">데이터 전달</text>
+
+  <!-- Sleep state -->
+  <rect x="500" y="136" width="160" height="44" rx="10" fill="#161b22" stroke="#f0883e" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="580" y="157" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="600">버퍼 비어있으면</text>
+  <text x="580" y="173" text-anchor="middle" fill="#f0883e" font-size="11">B를 sleep 처리</text>
+
+  <!-- Wake arrow -->
+  <path d="M 340 120 Q 340 180 498 170" fill="none" stroke="#e3b341" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrY)"/>
+  <text x="330" y="175" text-anchor="end" fill="#e3b341" font-size="10">A가 write하면</text>
+  <text x="330" y="188" text-anchor="end" fill="#e3b341" font-size="10">OS가 B 깨움</text>
+
+  <text x="340" y="208" text-anchor="middle" fill="#6e7681" font-size="10">단방향 / 부모-자식 관계 / B는 데이터 올 때까지 CPU 0%</text>
+</svg>

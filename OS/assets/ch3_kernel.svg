@@ -1,0 +1,33 @@
+<svg width="400" height="240" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#6e7681"/>
+  </marker></defs>
+  <rect width="400" height="240" fill="#0d1117" rx="12"/>
+  <text x="200" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">커널과 시스템 콜</text>
+
+  <!-- User program -->
+  <rect x="60" y="36" width="280" height="44" rx="10" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="200" y="56" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">일반 프로그램 (유저 모드)</text>
+  <text x="200" y="72" text-anchor="middle" fill="#6e7681" font-size="10">하드웨어 직접 접근 불가</text>
+
+  <!-- System call arrow -->
+  <line x1="200" y1="82" x2="200" y2="102" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="215" y="97" fill="#e3b341" font-size="10">시스템 콜 (요청)</text>
+
+  <!-- Kernel -->
+  <rect x="60" y="104" width="280" height="44" rx="10" fill="#2a1f3a" stroke="#bc8cff" stroke-width="2"/>
+  <text x="200" y="124" text-anchor="middle" fill="#bc8cff" font-size="12" font-weight="700">커널 (Kernel)</text>
+  <text x="200" y="140" text-anchor="middle" fill="#6e7681" font-size="10">하드웨어 직접 접근 가능</text>
+
+  <!-- Kernel to hardware arrow -->
+  <line x1="200" y1="150" x2="200" y2="170" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Hardware -->
+  <rect x="60" y="172" width="280" height="44" rx="10" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="200" y="192" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">CPU  /  메모리  /  디스크  /  네트워크</text>
+  <text x="200" y="208" text-anchor="middle" fill="#6e7681" font-size="10">하드웨어</text>
+
+  <text x="200" y="232" text-anchor="middle" fill="#6e7681" font-size="10">print("hello") → 커널에 출력 요청 → 커널이 하드웨어 제어</text>
+</svg>

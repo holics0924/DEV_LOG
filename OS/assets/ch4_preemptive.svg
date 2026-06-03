@@ -1,0 +1,72 @@
+<svg width="680" height="220" viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style></defs>
+  <rect width="680" height="220" fill="#0d1117" rx="12"/>
+
+  <!-- Non-preemptive label -->
+  <text x="20" y="30" fill="#f0883e" font-size="12" font-weight="700">비선점 (FCFS)</text>
+
+  <!-- Non-preemptive timeline -->
+  <rect x="40" y="38" width="480" height="36" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="280" y="62" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="700">P1 (24ms)</text>
+  <rect x="520" y="38" width="60" height="36" rx="6" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="550" y="62" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">P2</text>
+  <rect x="580" y="38" width="60" height="36" rx="6" fill="#3a2210" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="610" y="62" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="700">P3</text>
+
+  <text x="530" y="56" fill="#6e7681" font-size="10">← P1 끝나야 실행</text>
+
+  <!-- Timeline 1 -->
+  <line x1="40" y1="84" x2="642" y2="84" stroke="#30363d" stroke-width="1"/>
+  <line x1="40" y1="80" x2="40" y2="88" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="40" y="100" text-anchor="middle" fill="#8b949e" font-size="10">0</text>
+  <line x1="520" y1="80" x2="520" y2="88" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="520" y="100" text-anchor="middle" fill="#8b949e" font-size="10">24</text>
+  <line x1="640" y1="80" x2="640" y2="88" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="640" y="100" text-anchor="middle" fill="#8b949e" font-size="10">30ms</text>
+
+  <!-- Divider -->
+  <line x1="20" y1="115" x2="660" y2="115" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Preemptive label -->
+  <text x="20" y="135" fill="#3fb950" font-size="12" font-weight="700">선점 (Round Robin, quantum=4ms)</text>
+
+  <!-- RR blocks: P1(0-4), P2(4-7), P3(7-10), P1*6(10-30) -->
+  <!-- scale: 20px/ms, left=40 -->
+  <rect x="40" y="142" width="80" height="36" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="166" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">P1</text>
+
+  <rect x="120" y="142" width="60" height="36" rx="6" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="150" y="166" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">P2</text>
+
+  <rect x="180" y="142" width="60" height="36" rx="6" fill="#3a2210" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="210" y="166" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="700">P3</text>
+
+  <rect x="240" y="142" width="80" height="36" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="280" y="166" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">P1</text>
+
+  <rect x="320" y="142" width="80" height="36" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="360" y="166" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">P1</text>
+
+  <rect x="400" y="142" width="80" height="36" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="440" y="166" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">P1</text>
+
+  <rect x="480" y="142" width="80" height="36" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="520" y="166" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">P1</text>
+
+  <rect x="560" y="142" width="80" height="36" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="600" y="166" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">P1</text>
+
+  <!-- Timeline 2 -->
+  <line x1="40" y1="188" x2="642" y2="188" stroke="#30363d" stroke-width="1"/>
+  <line x1="40" y1="184" x2="40" y2="192" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="40" y="204" text-anchor="middle" fill="#8b949e" font-size="10">0</text>
+  <line x1="120" y1="184" x2="120" y2="192" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="120" y="204" text-anchor="middle" fill="#8b949e" font-size="10">4</text>
+  <line x1="180" y1="184" x2="180" y2="192" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="180" y="204" text-anchor="middle" fill="#8b949e" font-size="10">7</text>
+  <line x1="240" y1="184" x2="240" y2="192" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="240" y="204" text-anchor="middle" fill="#8b949e" font-size="10">10</text>
+  <line x1="640" y1="184" x2="640" y2="192" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="640" y="204" text-anchor="middle" fill="#8b949e" font-size="10">30ms</text>
+</svg>

@@ -1,0 +1,63 @@
+<svg width="620" height="300" viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>text { font-family: 'Trebuchet MS', Arial, sans-serif; }</style>
+    <marker id="arrB" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#58a6ff"/></marker>
+    <marker id="arrG" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+    <marker id="arrGr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6e7681"/></marker>
+  </defs>
+
+  <rect width="620" height="300" fill="#0d1117" rx="12"/>
+  <text x="310" y="20" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="700">Copy-on-Write</text>
+
+  <!-- Divider -->
+  <line x1="310" y1="28" x2="310" y2="285" stroke="#30363d" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- LEFT: fork() 직후 -->
+  <text x="155" y="38" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700">fork() 직후 — 물리 메모리 공유</text>
+
+  <rect x="20" y="52" width="120" height="30" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="71" text-anchor="middle" fill="#58a6ff" font-size="10">부모 페이지 테이블</text>
+
+  <rect x="155" y="52" width="120" height="30" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="215" y="71" text-anchor="middle" fill="#58a6ff" font-size="10">자식 페이지 테이블</text>
+
+  <!-- Shared physical frame -->
+  <rect x="80" y="155" width="130" height="34" rx="7" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="145" y="170" text-anchor="middle" fill="#e6edf3" font-size="10">물리 프레임</text>
+  <text x="145" y="183" text-anchor="middle" fill="#6e7681" font-size="9">읽기 전용 공유</text>
+
+  <!-- Arrows both → same frame -->
+  <line x1="100" y1="82" x2="125" y2="153" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrB)"/>
+  <line x1="215" y1="82" x2="175" y2="153" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrB)"/>
+
+  <text x="145" y="222" text-anchor="middle" fill="#3fb950" font-size="11">복사 없음 ✓</text>
+  <text x="145" y="238" text-anchor="middle" fill="#6e7681" font-size="9">쓰기 전까지 물리 메모리 절약</text>
+
+  <!-- RIGHT: 쓰기 발생 시 -->
+  <text x="465" y="38" text-anchor="middle" fill="#f85149" font-size="10" font-weight="700">자식이 쓰기 시도 → 폴트 발생</text>
+
+  <rect x="320" y="52" width="120" height="30" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="380" y="71" text-anchor="middle" fill="#58a6ff" font-size="10">부모 페이지 테이블</text>
+
+  <rect x="460" y="52" width="120" height="30" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="520" y="71" text-anchor="middle" fill="#58a6ff" font-size="10">자식 페이지 테이블</text>
+
+  <!-- Original frame (parent) -->
+  <rect x="315" y="155" width="120" height="34" rx="7" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="375" y="170" text-anchor="middle" fill="#e6edf3" font-size="10">원본 프레임</text>
+  <text x="375" y="183" text-anchor="middle" fill="#6e7681" font-size="9">부모 전용</text>
+
+  <!-- New frame (child copy) -->
+  <rect x="460" y="155" width="120" height="34" rx="7" fill="#0d2818" stroke="#3fb950" stroke-width="2"/>
+  <text x="520" y="170" text-anchor="middle" fill="#3fb950" font-size="10">복사된 프레임</text>
+  <text x="520" y="183" text-anchor="middle" fill="#3fb950" font-size="9">자식 전용</text>
+
+  <!-- Parent → original -->
+  <line x1="375" y1="82" x2="368" y2="153" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrB)"/>
+
+  <!-- Child → new copy -->
+  <line x1="520" y1="82" x2="520" y2="153" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrG)"/>
+
+  <text x="465" y="222" text-anchor="middle" fill="#f85149" font-size="10">해당 페이지만 복사</text>
+  <text x="465" y="238" text-anchor="middle" fill="#6e7681" font-size="9">건드리지 않은 페이지는 여전히 공유</text>
+</svg>

@@ -1,0 +1,62 @@
+<svg width="680" height="300" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#6e7681"/>
+    </marker>
+    <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arrY" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#e3b341"/>
+    </marker>
+  </defs>
+  <rect width="680" height="300" fill="#0d1117" rx="12"/>
+
+  <!-- 프로세스 제출 -->
+  <rect x="270" y="20" width="140" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="340" y="43" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">프로세스 제출</text>
+
+  <!-- arrow down -->
+  <line x1="340" y1="58" x2="340" y2="78" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- ready queue -->
+  <rect x="250" y="80" width="180" height="36" rx="8" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="340" y="103" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="600">ready queue</text>
+
+  <!-- arrow down -->
+  <line x1="340" y1="118" x2="340" y2="138" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- CPU 실행 -->
+  <rect x="250" y="140" width="180" height="36" rx="8" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="340" y="163" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="600">CPU 실행</text>
+
+  <!-- arrow down -->
+  <line x1="340" y1="178" x2="340" y2="198" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 완료 -->
+  <rect x="270" y="200" width="140" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="340" y="223" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">완료</text>
+
+  <!-- 대기 시간 label -->
+  <line x1="220" y1="98" x2="190" y2="98" stroke="#58a6ff" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="185" y="102" text-anchor="end" fill="#58a6ff" font-size="11" font-weight="600">대기 시간</text>
+  <text x="185" y="116" text-anchor="end" fill="#6e7681" font-size="10">Waiting Time</text>
+
+  <!-- 응답 시간 label -->
+  <line x1="432" y1="158" x2="470" y2="158" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="475" y="154" text-anchor="start" fill="#3fb950" font-size="11" font-weight="600">응답 시간</text>
+  <text x="475" y="168" text-anchor="start" fill="#6e7681" font-size="10">Response Time</text>
+
+  <!-- 반환 시간 bracket -->
+  <line x1="110" y1="38" x2="110" y2="218" stroke="#e3b341" stroke-width="1.5"/>
+  <line x1="110" y1="38" x2="250" y2="38" stroke="#e3b341" stroke-width="1"/>
+  <line x1="110" y1="218" x2="250" y2="218" stroke="#e3b341" stroke-width="1"/>
+  <text x="100" y="135" text-anchor="middle" fill="#e3b341" font-size="11" font-weight="600" transform="rotate(-90 100 128)">반환 시간 (Turnaround)</text>
+
+  <text x="340" y="276" text-anchor="middle" fill="#6e7681" font-size="11">스케줄링 성능 지표</text>
+</svg>

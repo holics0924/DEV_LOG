@@ -1,0 +1,28 @@
+<svg width="720" height="190" viewBox="0 0 720 190" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style></defs>
+  <rect width="720" height="190" fill="#0d1117" rx="12"/>
+  <text x="360" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">가상 주소 구조 (32비트 / 4KB 페이지)</text>
+
+  <!-- Address example -->
+  <text x="360" y="54" text-anchor="middle" fill="#e6edf3" font-size="15" font-family="monospace" font-weight="700">0x 0000 3ABC</text>
+
+  <!-- VPN block -->
+  <rect x="50" y="68" width="380" height="52" rx="6" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="240" y="90" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">상위 20비트 — VPN</text>
+  <text x="240" y="110" text-anchor="middle" fill="#8b949e" font-size="12" font-family="monospace">0x00003  →  3번 페이지</text>
+
+  <!-- Offset block -->
+  <rect x="440" y="68" width="230" height="52" rx="6" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="555" y="90" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">하위 12비트 — offset</text>
+  <text x="555" y="110" text-anchor="middle" fill="#8b949e" font-size="12" font-family="monospace">0xABC  →  페이지 내 위치</text>
+
+  <!-- Divider -->
+  <line x1="430" y1="63" x2="430" y2="125" stroke="#6e7681" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+  <!-- Explanations -->
+  <text x="240" y="148" text-anchor="middle" fill="#6e7681" font-size="11">"몇 번째 페이지?"  →  페이지 테이블 인덱스</text>
+  <text x="555" y="148" text-anchor="middle" fill="#6e7681" font-size="11">"페이지 안 어디?"  →  변환 후에도 유지</text>
+
+  <text x="360" y="175" text-anchor="middle" fill="#484f58" font-size="11">4KB = 2¹²  →  offset 12비트 / 나머지 20비트가 VPN</text>
+</svg>

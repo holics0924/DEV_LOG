@@ -1,0 +1,46 @@
+<svg width="680" height="200" viewBox="0 0 680 200" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#6e7681"/>
+  </marker></defs>
+  <rect width="680" height="200" fill="#0d1117" rx="12"/>
+  <text x="340" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">컨텍스트 스위칭</text>
+
+  <!-- Process A running -->
+  <rect x="20" y="38" width="140" height="40" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="90" y="63" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">프로세스 A 실행</text>
+
+  <line x1="90" y1="80" x2="90" y2="100" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="100" y="95" fill="#e3b341" font-size="10">인터럽트 발생</text>
+
+  <!-- Save A -->
+  <rect x="20" y="102" width="140" height="40" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="90" y="124" text-anchor="middle" fill="#e6edf3" font-size="11">A 상태 → PCB_A</text>
+  <text x="90" y="138" text-anchor="middle" fill="#6e7681" font-size="10">저장</text>
+
+  <line x1="162" y1="122" x2="338" y2="122" stroke="#6e7681" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+
+  <!-- Restore B -->
+  <rect x="340" y="102" width="140" height="40" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="410" y="124" text-anchor="middle" fill="#e6edf3" font-size="11">PCB_B → B 상태</text>
+  <text x="410" y="138" text-anchor="middle" fill="#6e7681" font-size="10">복원</text>
+
+  <line x1="410" y1="100" x2="410" y2="80" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Process B running -->
+  <rect x="340" y="38" width="140" height="40" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="410" y="63" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">프로세스 B 실행</text>
+
+  <!-- OS box -->
+  <rect x="240" y="85" width="100" height="32" rx="8" fill="#2a1f3a" stroke="#bc8cff" stroke-width="1.5"/>
+  <text x="290" y="105" text-anchor="middle" fill="#bc8cff" font-size="11" font-weight="700">OS 스케줄러</text>
+
+  <!-- TLB flush note -->
+  <rect x="520" y="60" width="148" height="52" rx="8" fill="#3a2210" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="594" y="80" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="700">프로세스 전환 시</text>
+  <text x="594" y="96" text-anchor="middle" fill="#f0883e" font-size="10">TLB 플러시 발생</text>
+  <text x="594" y="108" text-anchor="middle" fill="#6e7681" font-size="10">→ 캐시 미스 연속</text>
+
+  <text x="340" y="178" text-anchor="middle" fill="#6e7681" font-size="10">스레드 전환: 스택 포인터만 교체 → TLB 유지 → 더 빠름</text>
+</svg>

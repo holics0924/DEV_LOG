@@ -1,0 +1,52 @@
+<svg width="680" height="240" viewBox="0 0 680 240" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#6e7681"/>
+  </marker>
+  <marker id="arrB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+  </marker></defs>
+  <rect width="680" height="240" fill="#0d1117" rx="12"/>
+  <text x="340" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">메시지 큐 — 타입별 비동기 통신</text>
+
+  <!-- Senders -->
+  <rect x="20" y="50" width="120" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="73" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">인코딩 프로세스</text>
+  <rect x="20" y="100" width="120" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="123" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">썸네일 프로세스</text>
+  <rect x="20" y="150" width="120" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="173" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">자막 프로세스</text>
+
+  <!-- Queue -->
+  <rect x="180" y="36" width="300" height="168" rx="10" fill="#161b22" stroke="#bc8cff" stroke-width="2"/>
+  <text x="330" y="58" text-anchor="middle" fill="#bc8cff" font-size="12" font-weight="700">메시지 큐 (커널 관리)</text>
+
+  <rect x="196" y="66" width="268" height="28" rx="6" fill="#2a1f1f" stroke="#f0883e" stroke-width="1"/>
+  <text x="260" y="85" fill="#f0883e" font-size="11" font-weight="600">[타입2]</text>
+  <text x="340" y="85" fill="#8b949e" font-size="11">"error: 인코딩 실패"</text>
+
+  <rect x="196" y="102" width="268" height="28" rx="6" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+  <text x="260" y="121" fill="#3fb950" font-size="11" font-weight="600">[타입1]</text>
+  <text x="340" y="121" fill="#8b949e" font-size="11">"done: 썸네일 완료"</text>
+
+  <rect x="196" y="138" width="268" height="28" rx="6" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+  <text x="260" y="157" fill="#3fb950" font-size="11" font-weight="600">[타입1]</text>
+  <text x="340" y="157" fill="#8b949e" font-size="11">"done: 자막 완료"</text>
+
+  <text x="330" y="194" text-anchor="middle" fill="#6e7681" font-size="9">← 먼저 들어온 순서</text>
+
+  <!-- Arrows from senders to queue -->
+  <line x1="142" y1="68" x2="178" y2="80" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="142" y1="118" x2="178" y2="118" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="142" y1="168" x2="178" y2="152" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Receiver -->
+  <rect x="540" y="96" width="120" height="50" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="600" y="118" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">메인 서버</text>
+  <text x="600" y="134" text-anchor="middle" fill="#6e7681" font-size="9">타입 골라서 꺼냄</text>
+
+  <line x1="482" y1="121" x2="538" y2="121" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrB)"/>
+
+  <text x="340" y="218" text-anchor="middle" fill="#6e7681" font-size="10">비동기 / 타입별 선택 수신 / N:N 통신 가능</text>
+</svg>

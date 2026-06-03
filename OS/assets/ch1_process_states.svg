@@ -1,0 +1,56 @@
+<svg width="680" height="310" viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>text { font-family: 'Trebuchet MS', Arial, sans-serif; }</style>
+    <marker id="arr"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#6e7681"/></marker>
+    <marker id="arrB" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#58a6ff"/></marker>
+    <marker id="arrG" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+    <marker id="arrY" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#d29922"/></marker>
+  </defs>
+
+  <rect width="680" height="310" fill="#0d1117" rx="12"/>
+  <text x="340" y="22" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="700">프로세스 상태 전이 (5-State Model)</text>
+
+  <!-- New -->
+  <rect x="30" y="125" width="90" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="75" y="148" text-anchor="middle" fill="#8b949e" font-size="12" font-weight="600">New</text>
+
+  <!-- Ready -->
+  <rect x="190" y="125" width="90" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="2"/>
+  <text x="235" y="148" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">Ready</text>
+
+  <!-- Running -->
+  <rect x="365" y="125" width="100" height="36" rx="8" fill="#0d2818" stroke="#3fb950" stroke-width="2"/>
+  <text x="415" y="148" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">Running</text>
+
+  <!-- Waiting -->
+  <rect x="365" y="240" width="100" height="36" rx="8" fill="#2d1f00" stroke="#d29922" stroke-width="1.5"/>
+  <text x="415" y="263" text-anchor="middle" fill="#d29922" font-size="12" font-weight="600">Waiting</text>
+
+  <!-- Terminated -->
+  <rect x="565" y="125" width="100" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="615" y="148" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="600">Terminated</text>
+
+  <!-- New → Ready -->
+  <line x1="122" y1="143" x2="187" y2="143" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="155" y="136" text-anchor="middle" fill="#6e7681" font-size="9">admitted</text>
+
+  <!-- Ready → Running (dispatch) -->
+  <line x1="282" y1="138" x2="362" y2="138" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrB)"/>
+  <text x="322" y="131" text-anchor="middle" fill="#58a6ff" font-size="9" font-weight="700">dispatch</text>
+
+  <!-- Running → Ready (interrupt/timeout) -->
+  <line x1="365" y1="152" x2="283" y2="152" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="324" y="167" text-anchor="middle" fill="#6e7681" font-size="9">interrupt / timeout</text>
+
+  <!-- Running → Waiting (I/O request) -->
+  <line x1="415" y1="161" x2="415" y2="237" stroke="#d29922" stroke-width="1.5" marker-end="url(#arrY)"/>
+  <text x="432" y="203" fill="#d29922" font-size="9">I/O 요청</text>
+
+  <!-- Waiting → Ready (I/O complete) -->
+  <path d="M 367 258 Q 235 295 235 164" fill="none" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="235" y="295" text-anchor="middle" fill="#6e7681" font-size="9">I/O 완료</text>
+
+  <!-- Running → Terminated -->
+  <line x1="465" y1="143" x2="562" y2="143" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="513" y="136" text-anchor="middle" fill="#6e7681" font-size="9">exit</text>
+</svg>

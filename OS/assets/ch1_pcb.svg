@@ -1,0 +1,23 @@
+<svg width="360" height="280" viewBox="0 0 360 280" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style></defs>
+  <rect width="360" height="280" fill="#0d1117" rx="12"/>
+  <text x="180" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">PCB (Process Control Block)</text>
+
+  <rect x="60" y="36" width="240" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="2"/>
+  <text x="180" y="59" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">PID  — 프로세스 식별자</text>
+
+  <rect x="60" y="80" width="240" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="180" y="103" text-anchor="middle" fill="#e6edf3" font-size="12">프로그램 카운터</text>
+
+  <rect x="60" y="124" width="240" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="180" y="147" text-anchor="middle" fill="#e6edf3" font-size="12">레지스터 값 스냅샷</text>
+
+  <rect x="60" y="168" width="240" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="180" y="191" text-anchor="middle" fill="#e6edf3" font-size="12">페이지 테이블 포인터</text>
+
+  <rect x="60" y="212" width="240" height="36" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="180" y="235" text-anchor="middle" fill="#e6edf3" font-size="12">스케줄링 정보 / I/O 상태</text>
+
+  <text x="180" y="265" text-anchor="middle" fill="#6e7681" font-size="10">프로세스당 하나 — 커널 메모리에 저장</text>
+</svg>
