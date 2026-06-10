@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Race Condition</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+    h1{font-size:1.15rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:22px}
+    .mode-bar{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+    .mode-btn{padding:8px 18px;border:1px solid var(--bd);border-radius:7px;background:var(--s1);color:#94a3b8;font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .12s}
+    .mode-btn:hover{background:#334155;color:var(--tx)}
+    .mode-btn.on{background:#172554;border-color:var(--bl);color:#93c5fd}
+    .mode-btn.race-on{background:#450a0a;border-color:var(--rd);color:#fca5a5}
+
+    /* 메인 시각화 */
+    .arena{display:grid;grid-template-columns:1fr 120px 1fr;gap:16px;margin-bottom:20px;align-items:start}
+
+    .thread-box{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px;min-height:200px}
+    .thread-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+    .t1 .thread-title{color:#60a5fa}
+    .t2 .thread-title{color:#34d399}
+
+    .op-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;margin-bottom:6px;border:1px solid transparent;transition:all .2s;font-size:0.85rem}
+    .op-row .tag{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;width:52px;flex-shrink:0;text-align:center;padding:2px 6px;border-radius:4px}
+    .op-row .code{font-family:monospace;font-size:0.8rem;color:#94a3b8;flex:1}
+    .op-row.idle{background:none}
+    .op-row.done{background:#0d2818;border-color:#064e3b;opacity:.6}
+    .op-row.t1-active{background:#172554;border-color:#3b82f6;box-shadow:0 0 12px #3b82f633}
+    .op-row.t2-active{background:#052e16;border-color:#10b981;box-shadow:0 0 12px #10b98133}
+    .op-row.warn{background:#450a0a;border-color:#ef4444;box-shadow:0 0 14px #ef444433}
+    .tag.load{background:#1e3a5f;color:#60a5fa}
+    .tag.add{background:#2d1b69;color:#a78bfa}
+    .tag.store{background:#064e3b;color:#34d399}
+
+    .reg-box{margin-top:14px;background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:10px 12px;font-family:monospace;font-size:0.82rem}
+    .reg-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);margin-bottom:4px}
+    .reg-val{font-size:1rem;font-weight:700;color:#f1f5f9;transition:color .3s}
+    .reg-val.changed{color:#f59e0b}
+
+    /* 공유 메모리 */
+    .mem-box{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px;text-align:center;position:relative;top:40px}
+    .mem-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:8px}
+    .mem-val{font-size:2rem;font-weight:900;color:#f1f5f9;transition:all .3s;font-family:monospace}
+    .mem-val.ok{color:#34d399}
+    .mem-val.bad{color:#ef4444}
+    .mem-name{font-size:0.72rem;color:var(--mu);margin-top:4px;font-family:monospace}
+
+    /* 설명 카드 */
+    .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+    .step-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+    .step-desc{font-size:0.9rem;color:#cbd5e1;line-height:1.6}
+    .step-desc .warn-text{color:#fca5a5;font-weight:700}
+    .step-desc .ok-text{color:#34d399;font-weight:700}
+
+    .result-box{padding:12px 16px;border-radius:8px;font-size:0.9rem;font-weight:700;text-align:center;margin-bottom:14px}
+    .result-box.correct{background:#052e16;border:1px solid #059669;color:#34d399}
+    .result-box.wrong{background:#450a0a;border:1px solid #dc2626;color:#fca5a5}
+
+    .controls{display:flex;gap:9px;flex-wrap:wrap}
+    button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:0.85rem;font-weight:700;font-family:inherit;transition:all .12s}
+    #btnNext{background:var(--bl);color:#fff;flex:1}
+    #btnNext:hover:not(:disabled){background:#2563eb}
+    #btnNext:disabled{background:#1e3a5f;color:#334155;cursor:not-allowed}
+    #btnAuto{background:var(--s1);color:#94a3b8;border:1px solid var(--bd);flex:1}
+    #btnAuto:hover{background:#334155}
+    #btnAuto.on{background:#064e3b;color:#34d399;border-color:#059669}
+    #btnReset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+    #btnReset:hover{background:#334155}
+
+    .sim-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-top:14px}
+    .sim-title{font-size:0.78rem;font-weight:700;color:var(--mu);margin-bottom:10px}
+    .sim-bars{display:flex;gap:8px;align-items:center;font-size:0.82rem}
+    .sim-bar-wrap{flex:1}
+    .sim-bar{height:10px;border-radius:5px;transition:width .4s}
+    .sim-bar-label{font-size:0.75rem;margin-top:4px;color:var(--mu)}
+  </style>
+</head>
+<body>
+
+<h1>Race Condition — count += 1</h1>
+<p class="sub">두 스레드가 동시에 count += 1을 실행하면 무슨 일이 생기나</p>
+
+<div class="mode-bar">
+  <button class="mode-btn on"     id="btnSafe">안전 — 순차 실행</button>
+  <button class="mode-btn"        id="btnRace">경쟁 조건 — 인터리빙</button>
+</div>
+
+<div class="arena">
+  <div class="thread-box t1" id="t1box">
+    <div class="thread-title">Thread 1</div>
+    <div class="op-row idle" id="t1-load">
+      <span class="tag load">LOAD</span>
+      <span class="code">reg1 = count</span>
+    </div>
+    <div class="op-row idle" id="t1-add">
+      <span class="tag add">ADD</span>
+      <span class="code">reg1 = reg1 + 1</span>
+    </div>
+    <div class="op-row idle" id="t1-store">
+      <span class="tag store">STORE</span>
+      <span class="code">count = reg1</span>
+    </div>
+    <div class="reg-box">
+      <div class="reg-label">CPU 레지스터</div>
+      <div class="reg-val" id="reg1">—</div>
+      <div style="font-size:.7rem;color:var(--mu);margin-top:2px">reg1</div>
+    </div>
+  </div>
+
+  <div class="mem-box">
+    <div class="mem-label">공유 메모리</div>
+    <div class="mem-val" id="memVal">0</div>
+    <div class="mem-name">count</div>
+  </div>
+
+  <div class="thread-box t2" id="t2box">
+    <div class="thread-title">Thread 2</div>
+    <div class="op-row idle" id="t2-load">
+      <span class="tag load">LOAD</span>
+      <span class="code">reg2 = count</span>
+    </div>
+    <div class="op-row idle" id="t2-add">
+      <span class="tag add">ADD</span>
+      <span class="code">reg2 = reg2 + 1</span>
+    </div>
+    <div class="op-row idle" id="t2-store">
+      <span class="tag store">STORE</span>
+      <span class="code">count = reg2</span>
+    </div>
+    <div class="reg-box">
+      <div class="reg-label">CPU 레지스터</div>
+      <div class="reg-val" id="reg2">—</div>
+      <div style="font-size:.7rem;color:var(--mu);margin-top:2px">reg2</div>
+    </div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">초기 상태</div>
+  <div class="step-desc"  id="stepDesc">count = 0. 두 스레드가 각각 count += 1을 실행한다. 올바른 결과는 count = 2이어야 한다.</div>
+</div>
+
+<div id="resultBox" style="display:none" class="result-box"></div>
+
+<div class="controls">
+  <button id="btnReset">↺</button>
+  <button id="btnAuto">▶ 자동</button>
+  <button id="btnNext">다음 단계 →</button>
+</div>
+
+<div class="sim-box">
+  <div class="sim-title">⚡ 비결정성 시뮬레이션 — 1000번 실행 시 결과 분포</div>
+  <div style="font-size:0.78rem;color:var(--mu);margin-bottom:10px">경쟁 조건에서는 실행할 때마다 결과가 달라질 수 있다</div>
+  <div class="sim-bars" id="simBars">
+    <button onclick="runSim()" style="padding:7px 14px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#94a3b8;font-size:0.8rem;cursor:pointer;font-family:inherit">1000번 실행</button>
+  </div>
+</div>
+
+<script>
+const SAFE = [
+  {id:'t1-load', label:'Step 1 / 6', desc:'Thread 1: count(0)을 CPU 레지스터(reg1)로 읽어온다. 아직 count는 변하지 않는다.',
+   reg1:0, reg2:null, count:0, warn:false},
+  {id:'t1-add',  label:'Step 2 / 6', desc:'Thread 1: reg1 = reg1 + 1 → reg1 = 1. 아직 메모리(count)에는 쓰지 않았다.',
+   reg1:1, reg2:null, count:0, warn:false},
+  {id:'t1-store',label:'Step 3 / 6', desc:'Thread 1: count = reg1 → count = 1. 결과를 메모리에 씀. Thread 1 완료.',
+   reg1:1, reg2:null, count:1, warn:false},
+  {id:'t2-load', label:'Step 4 / 6', desc:'Thread 2: count(1)을 reg2로 읽어온다. Thread 1이 이미 1을 써놨다.',
+   reg1:1, reg2:1, count:1, warn:false},
+  {id:'t2-add',  label:'Step 5 / 6', desc:'Thread 2: reg2 = reg2 + 1 → reg2 = 2.',
+   reg1:1, reg2:2, count:1, warn:false},
+  {id:'t2-store',label:'Step 6 / 6 ✓', desc:'Thread 2: count = reg2 → count = 2. 두 스레드가 각각 +1 해서 최종 count = 2. 올바른 결과.',
+   reg1:1, reg2:2, count:2, warn:false, done:true, correct:true},
+];
+
+const RACE = [
+  {id:'t1-load', label:'Step 1 / 6', desc:'Thread 1: count(0)을 reg1로 읽어온다. count = 0.',
+   reg1:0, reg2:null, count:0, warn:false},
+  {id:'t2-load', label:'Step 2 / 6 ⚠️', desc:'<span class="warn-text">Thread 2가 Thread 1이 STORE 하기 전에 count를 읽는다.</span> reg2 = 0. 두 스레드 모두 같은 값 0을 읽었다!',
+   reg1:0, reg2:0, count:0, warn:true},
+  {id:'t1-add',  label:'Step 3 / 6', desc:'Thread 1: reg1 = 0 + 1 → reg1 = 1.',
+   reg1:1, reg2:0, count:0, warn:false},
+  {id:'t1-store',label:'Step 4 / 6', desc:'Thread 1: count = reg1 → count = 1. Thread 1 완료.',
+   reg1:1, reg2:0, count:1, warn:false},
+  {id:'t2-add',  label:'Step 5 / 6', desc:'Thread 2: reg2 = 0 + 1 → reg2 = 1. (0을 기반으로 계산 중)',
+   reg1:1, reg2:1, count:1, warn:false},
+  {id:'t2-store',label:'Step 6 / 6 ✗', desc:'<span class="warn-text">Thread 2: count = reg2 → count = 1. Thread 1의 결과(1)를 덮어씌웠다!</span> 두 번 +1 했는데 count = 1. 1번의 연산이 유실됐다.',
+   reg1:1, reg2:1, count:1, warn:true, done:true, correct:false},
+];
+
+let mode = 'safe';
+let steps = SAFE;
+let cur = -1;
+let timer = null;
+const doneOps = new Set();
+
+function setMode(m) {
+  mode = m;
+  steps = m === 'safe' ? SAFE : RACE;
+  document.getElementById('btnSafe').className = 'mode-btn' + (m==='safe' ? ' on' : '');
+  document.getElementById('btnRace').className = 'mode-btn' + (m==='race' ? ' race-on' : '');
+  reset();
+}
+
+function reset() {
+  stopAuto();
+  cur = -1;
+  doneOps.clear();
+  ['t1-load','t1-add','t1-store','t2-load','t2-add','t2-store'].forEach(id => {
+    document.getElementById(id).className = 'op-row idle';
+  });
+  setReg('reg1', null);
+  setReg('reg2', null);
+  setCount(0, null);
+  document.getElementById('stepLabel').textContent = '초기 상태';
+  document.getElementById('stepDesc').innerHTML = mode==='safe'
+    ? 'count = 0. 순차 실행 — Thread 1이 완전히 끝난 후 Thread 2가 시작한다. 올바른 결과는 count = 2.'
+    : 'count = 0. 인터리빙 실행 — 두 스레드의 명령어가 뒤섞인다. 어떤 일이 벌어지는지 따라가 보자.';
+  const rb = document.getElementById('resultBox');
+  rb.style.display = 'none';
+  document.getElementById('btnNext').disabled = false;
+}
+
+function setReg(id, val) {
+  const el = document.getElementById(id);
+  el.textContent = val === null ? '—' : val;
+  el.className = 'reg-val' + (val !== null ? ' changed' : '');
+  setTimeout(() => el.className = 'reg-val', 400);
+}
+
+function setCount(val, prev) {
+  const el = document.getElementById('memVal');
+  el.textContent = val;
+  if (prev !== null && val !== prev) {
+    el.style.transform = 'scale(1.3)';
+    setTimeout(() => el.style.transform = 'scale(1)', 250);
+  }
+}
+
+function next() {
+  if (cur >= steps.length - 1) return;
+  cur++;
+  const s = steps[cur];
+
+  // 이전 active 해제
+  ['t1-load','t1-add','t1-store','t2-load','t2-add','t2-store'].forEach(id => {
+    if (!doneOps.has(id)) document.getElementById(id).className = 'op-row idle';
+  });
+
+  // 현재 active
+  const el = document.getElementById(s.id);
+  el.className = 'op-row ' + (s.warn ? 'warn' : (s.id.startsWith('t1') ? 't1-active' : 't2-active'));
+
+  // 이전 단계들 done 처리
+  for (let i=0;i<cur;i++) {
+    const prev = steps[i];
+    if (prev.id !== s.id) {
+      doneOps.add(prev.id);
+      document.getElementById(prev.id).className = 'op-row done';
+    }
+  }
+
+  setReg('reg1', s.reg1);
+  setReg('reg2', s.reg2);
+  const prevCount = cur > 0 ? steps[cur-1].count : 0;
+  setCount(s.count, prevCount);
+
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').innerHTML = s.desc;
+
+  const rb = document.getElementById('resultBox');
+  if (s.done) {
+    document.getElementById('btnNext').disabled = true;
+    rb.style.display = 'block';
+    if (s.correct) {
+      rb.className = 'result-box correct';
+      rb.textContent = `✓  최종 count = ${s.count}  —  올바른 결과 (두 스레드 각각 +1 = 2)`;
+      document.getElementById('memVal').className = 'mem-val ok';
+    } else {
+      rb.className = 'result-box wrong';
+      rb.textContent = `✗  최종 count = ${s.count}  —  잘못된 결과! 두 번 +1 했는데 1번만 반영됨`;
+      document.getElementById('memVal').className = 'mem-val bad';
+    }
+    stopAuto();
+  }
+}
+
+function stopAuto() {
+  if (timer) { clearInterval(timer); timer = null; }
+  const btn = document.getElementById('btnAuto');
+  btn.textContent = '▶ 자동'; btn.classList.remove('on');
+}
+
+document.getElementById('btnNext').addEventListener('click', next);
+document.getElementById('btnReset').addEventListener('click', reset);
+document.getElementById('btnSafe').addEventListener('click', () => setMode('safe'));
+document.getElementById('btnRace').addEventListener('click', () => setMode('race'));
+document.getElementById('btnAuto').addEventListener('click', () => {
+  if (timer) { stopAuto(); return; }
+  document.getElementById('btnAuto').textContent = '⏸ 정지';
+  document.getElementById('btnAuto').classList.add('on');
+  timer = setInterval(() => {
+    if (cur >= steps.length - 1) { stopAuto(); return; }
+    next();
+  }, 1400);
+});
+
+function runSim() {
+  // 경쟁 조건 1000번 시뮬
+  let correct = 0, wrong = 0;
+  for (let i=0; i<1000; i++) {
+    // 랜덤 인터리빙: 각 스레드의 3단계(LOAD/ADD/STORE)를 섞음
+    // 항상 LOAD→ADD→STORE 순서는 지키되, 두 스레드 간 순서를 랜덤으로
+    const order = Math.random() < 0.5 ? 'race' : 'safe';
+    let r1=0, r2=0, count=0;
+    if (order === 'safe') {
+      r1=count; r1++; count=r1;
+      r2=count; r2++; count=r2;
+    } else {
+      // T1 LOAD 먼저, T2 LOAD 다음, T1 ADD/STORE, T2 ADD/STORE
+      r1=count; r2=count;
+      r1++; count=r1;
+      r2++; count=r2;
+    }
+    if (count === 2) correct++; else wrong++;
+  }
+  const bars = document.getElementById('simBars');
+  bars.innerHTML = `
+    <div style="flex:1">
+      <div style="font-size:0.8rem;color:#34d399;margin-bottom:4px">count=2 (정상) — ${correct}회</div>
+      <div style="background:#052e16;border-radius:5px;height:12px;overflow:hidden">
+        <div style="background:#34d399;width:${correct/10}%;height:100%;border-radius:5px"></div>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:0.8rem;color:#ef4444;margin-bottom:4px">count=1 (유실) — ${wrong}회</div>
+      <div style="background:#450a0a;border-radius:5px;height:12px;overflow:hidden">
+        <div style="background:#ef4444;width:${wrong/10}%;height:100%;border-radius:5px"></div>
+      </div>
+    </div>
+    <button onclick="runSim()" style="padding:7px 14px;background:#1e293b;border:1px solid #334155;border-radius:6px;color:#94a3b8;font-size:0.8rem;cursor:pointer;font-family:inherit">다시 실행</button>
+  `;
+}
+</script>
+</body>
+</html>

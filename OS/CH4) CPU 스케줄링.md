@@ -1,3 +1,8 @@
+---
+layout: default
+title: "CH4) CPU 스케줄링"
+permalink: /OS/ch4-cpu-scheduling/
+---
 # CPU 스케줄링
 
 # CPU는 한 번에 하나만 실행한다
@@ -166,6 +171,32 @@ time quantum 설정이 핵심이다.
 ```
 
 보통 10~100ms 사이로 설정한다. 전체 프로세스의 80%가 quantum 안에 끝나는 값이 경험적으로 적당하다고 알려져 있다.
+
+<br>
+
+<br>
+
+<br>
+
+---
+
+<br>
+
+<br>
+
+<br>
+
+# 직접 비교해보자
+
+알고리즘을 바꿔가며 같은 프로세스 세트로 Gantt 차트와 평균 대기 시간을 비교해볼 수 있다.
+
+<iframe
+  src="/DEV_LOG/OS/assets/demo_cpu_scheduling.html"
+  width="100%"
+  height="760"
+  frameborder="0"
+  style="border-radius:10px;border:1px solid #334155;display:block;">
+</iframe>
 
 <br>
 

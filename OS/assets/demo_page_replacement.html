@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LRU vs FIFO 페이지 교체</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:960px;margin:0 auto}
+    h1{font-size:1.15rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:22px}
+
+    .config{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+    .cfg-group{display:flex;flex-direction:column;gap:5px}
+    .cfg-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)}
+    .cfg-input{background:var(--bg);border:1px solid var(--bd);border-radius:6px;color:var(--tx);padding:6px 10px;font-family:monospace;font-size:0.88rem;width:280px}
+    .cfg-input:focus{outline:none;border-color:var(--bl)}
+    .frames-input{width:64px}
+    .btn-run{padding:9px 22px;background:var(--bl);color:#fff;border:none;border-radius:7px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit}
+    .btn-run:hover{background:#2563eb}
+
+    .belady-note{background:#2d1b0a;border:1px solid #92400e;border-radius:8px;padding:10px 14px;font-size:0.8rem;color:#fcd34d;margin-bottom:16px;display:none}
+
+    /* 결과 테이블 */
+    .results{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+    @media(max-width:640px){.results{grid-template-columns:1fr}}
+
+    .algo-panel{background:var(--s1);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+    .algo-header{padding:12px 16px;font-size:0.8rem;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+    .fifo-header{background:#172554;color:#60a5fa;border-bottom:1px solid var(--bd)}
+    .lru-header{background:#052e16;color:#34d399;border-bottom:1px solid var(--bd)}
+    .fault-badge{font-size:0.72rem;padding:3px 9px;border-radius:20px;font-weight:700}
+    .fifo-badge{background:#1e3a5f;color:#93c5fd}
+    .lru-badge{background:#064e3b;color:#6ee7b7}
+
+    .ref-row{display:flex;overflow-x:auto;padding:10px 12px;gap:4px;border-bottom:1px solid var(--bd)}
+    .ref-cell{min-width:36px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-size:0.82rem;font-family:monospace;font-weight:700;flex-shrink:0;transition:all .2s}
+    .ref-cell.hit{background:#052e16;color:#34d399;border:1px solid #059669}
+    .ref-cell.miss{background:#450a0a;color:#fca5a5;border:1px solid #dc2626}
+    .ref-cell.idle{background:var(--bg);color:#475569;border:1px solid #1e293b}
+    .ref-cell.cur{box-shadow:0 0 0 2px #f59e0b;color:#f1f5f9}
+
+    .frames-area{padding:10px 12px;overflow-x:auto}
+    .frame-row{display:flex;gap:4px;margin-bottom:3px}
+    .frame-cell{min-width:36px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-size:0.78rem;font-family:monospace;font-weight:700;flex-shrink:0;border:1px solid transparent;transition:all .2s}
+    .frame-cell.occupied{background:var(--s2);color:#cbd5e1;border-color:var(--bd)}
+    .frame-cell.new-page{background:#052e16;color:#34d399;border-color:#059669;box-shadow:0 0 8px #34d39933}
+    .frame-cell.evicted{background:#450a0a;color:#fca5a5;border-color:#dc2626}
+    .frame-cell.empty{background:none;border-color:#1e293b}
+    .frame-cell.hit-frame{background:#172554;color:#93c5fd;border-color:#3b82f6}
+
+    .step-info{background:var(--s2);padding:8px 12px;font-size:0.78rem;color:var(--mu)}
+
+    /* 통계 */
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+    @media(max-width:640px){.stats{grid-template-columns:1fr}}
+    .stat-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;text-align:center}
+    .stat-algo{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+    .stat-num{font-size:2rem;font-weight:900;font-family:monospace}
+    .stat-label{font-size:0.75rem;color:var(--mu);margin-top:2px}
+    .fifo-stat .stat-algo{color:#60a5fa}
+    .lru-stat .stat-algo{color:#34d399}
+    .winner{border-color:#059669;background:#052e16}
+    .loser{border-color:#dc2626;background:#450a0a}
+  </style>
+</head>
+<body>
+
+<h1>LRU vs FIFO 페이지 교체 알고리즘</h1>
+<p class="sub">같은 참조열로 두 알고리즘을 나란히 비교하고, Belady's Anomaly를 직접 확인해봐</p>
+
+<div class="config">
+  <div class="cfg-group">
+    <div class="cfg-label">참조열 (공백 구분)</div>
+    <input id="refInput" class="cfg-input" value="1 2 3 4 1 2 5 1 2 3 4 5">
+  </div>
+  <div class="cfg-group">
+    <div class="cfg-label">프레임 수</div>
+    <input id="frameInput" class="cfg-input frames-input" type="number" min="1" max="8" value="3">
+  </div>
+  <button class="btn-run" onclick="run()">▶ 비교 실행</button>
+</div>
+
+<div class="belady-note" id="beladyNote">
+  ⚠️ Belady's Anomaly 감지! FIFO에서 프레임을 늘렸는데 폴트가 오히려 증가했다. LRU는 이 현상이 없다.
+</div>
+
+<div class="results" id="results" style="display:none">
+  <div class="algo-panel" id="fifoPanel">
+    <div class="algo-header fifo-header">
+      <span>FIFO</span>
+      <span class="fault-badge fifo-badge" id="fifoFaultBadge"></span>
+    </div>
+    <div class="ref-row" id="fifoRefRow"></div>
+    <div class="frames-area" id="fifoFrames"></div>
+    <div class="step-info" id="fifoInfo">프레임 상태 (각 열 = 해당 참조 시점)</div>
+  </div>
+  <div class="algo-panel" id="lruPanel">
+    <div class="algo-header lru-header">
+      <span>LRU</span>
+      <span class="fault-badge lru-badge" id="lruFaultBadge"></span>
+    </div>
+    <div class="ref-row" id="lruRefRow"></div>
+    <div class="frames-area" id="lruFrames"></div>
+    <div class="step-info" id="lruInfo">프레임 상태 (각 열 = 해당 참조 시점)</div>
+  </div>
+</div>
+
+<div class="stats" id="statsArea" style="display:none">
+  <div class="stat-box fifo-stat" id="fifoStat">
+    <div class="stat-algo">FIFO</div>
+    <div class="stat-num" id="fifoStatNum">—</div>
+    <div class="stat-label">페이지 폴트</div>
+  </div>
+  <div class="stat-box lru-stat" id="lruStat">
+    <div class="stat-algo">LRU</div>
+    <div class="stat-num" id="lruStatNum">—</div>
+    <div class="stat-label">페이지 폴트</div>
+  </div>
+</div>
+
+<script>
+function parsRef() {
+  return document.getElementById('refInput').value.trim().split(/\s+/).map(Number).filter(n=>!isNaN(n)&&n>0);
+}
+
+function runFIFO(refs, F) {
+  const steps=[], queue=[];
+  for (const p of refs) {
+    const hit = queue.includes(p);
+    let evicted = null, newPage = null;
+    if (!hit) {
+      if (queue.length===F) evicted = queue.shift();
+      queue.push(p);
+      newPage = p;
+    }
+    steps.push({page:p, hit, frames:[...queue], evicted, newPage});
+  }
+  return steps;
+}
+
+function runLRU(refs, F) {
+  const steps=[], mem=[];
+  for (const p of refs) {
+    const hit = mem.includes(p);
+    let evicted=null, newPage=null;
+    if (hit) {
+      mem.splice(mem.indexOf(p),1);
+      mem.push(p);
+    } else {
+      if (mem.length===F) evicted=mem.shift();
+      mem.push(p);
+      newPage=p;
+    }
+    steps.push({page:p, hit, frames:[...mem], evicted, newPage});
+  }
+  return steps;
+}
+
+function renderPanel(steps, F, refRowId, framesId, faultBadgeId, infoId) {
+  const refs = steps.map(s=>s.page);
+  const faults = steps.filter(s=>!s.hit).length;
+
+  document.getElementById(faultBadgeId).textContent = `폴트 ${faults}회`;
+
+  // 참조열
+  const refRow = document.getElementById(refRowId);
+  refRow.innerHTML = steps.map((s,i)=>`
+    <div class="ref-cell ${s.hit?'hit':'miss'}" title="${s.hit?'HIT':'MISS'}">
+      ${s.page}
+    </div>`).join('');
+
+  // 프레임 상태 (행 = 프레임 슬롯, 열 = 시점)
+  const framesEl = document.getElementById(framesId);
+  const rows = [];
+  for (let f=0; f<F; f++) {
+    const cells = steps.map(s => {
+      const page = s.frames[f];
+      if (page === undefined) return `<div class="frame-cell empty"></div>`;
+      const isNew = !s.hit && s.frames[s.frames.length-1]===page && s.newPage===page;
+      return `<div class="frame-cell ${isNew?'new-page':'occupied'}">${page}</div>`;
+    }).join('');
+    rows.push(`<div class="frame-row">${cells}</div>`);
+  }
+  framesEl.innerHTML = rows.join('');
+
+  document.getElementById(infoId).textContent =
+    `폴트: ${faults}회  |  히트: ${steps.length-faults}회  |  히트율: ${((steps.length-faults)/steps.length*100).toFixed(1)}%`;
+}
+
+function run() {
+  const refs = parsRef();
+  const F    = Math.max(1, Math.min(8, parseInt(document.getElementById('frameInput').value)||3));
+  if (!refs.length) return;
+
+  const fifoSteps = runFIFO(refs, F);
+  const lruSteps  = runLRU(refs, F);
+
+  document.getElementById('results').style.display='grid';
+  document.getElementById('statsArea').style.display='grid';
+
+  renderPanel(fifoSteps, F, 'fifoRefRow', 'fifoFrames', 'fifoFaultBadge', 'fifoInfo');
+  renderPanel(lruSteps,  F, 'lruRefRow',  'lruFrames',  'lruFaultBadge',  'lruInfo');
+
+  const fifoF = fifoSteps.filter(s=>!s.hit).length;
+  const lruF  = lruSteps.filter(s=>!s.hit).length;
+
+  document.getElementById('fifoStatNum').textContent = fifoF;
+  document.getElementById('lruStatNum').textContent  = lruF;
+
+  // 승패 스타일
+  const fifoStat = document.getElementById('fifoStat');
+  const lruStat  = document.getElementById('lruStat');
+  fifoStat.className = 'stat-box fifo-stat ' + (fifoF<=lruF?'winner':'loser');
+  lruStat.className  = 'stat-box lru-stat  ' + (lruF<=fifoF?'winner':'loser');
+
+  // Belady's anomaly 체크
+  let belady = false;
+  if (F > 1) {
+    const fifoF2 = runFIFO(refs, F-1).filter(s=>!s.hit).length;
+    if (fifoF > fifoF2) belady = true;
+  }
+  const note = document.getElementById('beladyNote');
+  note.style.display = belady ? 'block' : 'none';
+}
+
+run();
+</script>
+</body>
+</html>

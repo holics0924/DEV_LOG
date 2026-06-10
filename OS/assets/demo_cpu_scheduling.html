@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPU 스케줄링 시뮬레이터</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f172a;
+      --s1:       #1e293b;
+      --s2:       #162032;
+      --bd:       #334155;
+      --tx:       #e2e8f0;
+      --muted:    #64748b;
+      --blue:     #3b82f6;
+      --red:      #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--tx);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 28px 20px 48px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    h1  { font-size: 1.2rem; color: #cbd5e1; margin-bottom: 3px; }
+    .sub { font-size: 0.78rem; color: var(--muted); margin-bottom: 22px; }
+
+    .label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 9px;
+    }
+
+    /* ── 알고리즘 탭 ── */
+    .algo-bar { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+    .algo-btn {
+      padding: 7px 15px;
+      border: 1px solid var(--bd);
+      border-radius: 7px;
+      background: var(--s1);
+      color: #94a3b8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+    .algo-btn:hover { background: #334155; color: var(--tx); }
+    .algo-btn.on { background: #172554; border-color: var(--blue); color: #93c5fd; }
+
+    .param-row {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .param-row input {
+      width: 58px;
+      padding: 5px 8px;
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      color: var(--tx);
+      font-family: monospace;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+    .param-row input:focus { outline: none; border-color: var(--blue); }
+
+    /* ── 테이블 ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    th {
+      background: var(--s1);
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--bd);
+    }
+    td { padding: 7px 12px; border-bottom: 1px solid #1a2738; }
+    tbody tr:nth-child(odd)  { background: var(--s2); }
+    tbody tr:nth-child(even) { background: #192638; }
+    td input[type=number] {
+      width: 58px;
+      padding: 5px 7px;
+      background: var(--bg);
+      border: 1px solid var(--bd);
+      border-radius: 5px;
+      color: var(--tx);
+      font-family: monospace;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+    td input[type=number]:focus { outline: none; border-color: var(--blue); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px; height: 30px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+    .btn-del {
+      background: none;
+      border: 1px solid #334155;
+      color: #475569;
+      padding: 4px 11px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: inherit;
+      transition: all 0.12s;
+    }
+    .btn-del:hover { border-color: var(--red); color: var(--red); }
+
+    #btnAdd {
+      width: 100%;
+      padding: 9px;
+      margin: 10px 0 20px;
+      background: var(--s1);
+      border: 1px dashed var(--bd);
+      border-radius: 7px;
+      color: #475569;
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    #btnAdd:hover { background: #334155; color: var(--tx); border-style: solid; }
+
+    #btnRun {
+      width: 100%;
+      padding: 12px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-bottom: 26px;
+      transition: background 0.12s;
+    }
+    #btnRun:hover { background: #2563eb; }
+
+    /* ── 결과 ── */
+    .result-block {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      overflow-x: auto;
+    }
+    .result-block canvas { display: block; }
+
+    #statsWrap { overflow: hidden; }
+    .tr { text-align: right; }
+    .avg td { background: #172554 !important; color: #93c5fd; font-weight: 700; border-top: 1px solid var(--bd); }
+
+    .err {
+      background: #450a0a;
+      border: 1px solid var(--red);
+      color: #fca5a5;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      margin-bottom: 14px;
+    }
+    .hidden { display: none; }
+
+    .prio-th { color: #a78bfa; }
+    .prio-td { color: #c4b5fd; }
+  </style>
+</head>
+<body>
+
+<h1>CPU 스케줄링 시뮬레이터</h1>
+<p class="sub">프로세스를 직접 추가하고, 알고리즘을 바꿔가며 Gantt 차트와 평균 대기 시간을 비교해봐</p>
+
+<div class="label">알고리즘</div>
+<div class="algo-bar">
+  <button class="algo-btn on" data-a="FCFS">FCFS</button>
+  <button class="algo-btn"    data-a="SJF">SJF</button>
+  <button class="algo-btn"    data-a="SRTF">SRTF</button>
+  <button class="algo-btn"    data-a="RR">Round Robin</button>
+  <button class="algo-btn"    data-a="PRI">Priority</button>
+</div>
+<div class="param-row" id="paramRow"></div>
+
+<div class="label">프로세스</div>
+<div id="errMsg" class="err hidden"></div>
+<table id="tbl">
+  <thead>
+    <tr>
+      <th>PID</th>
+      <th>도착 시간</th>
+      <th>실행 시간</th>
+      <th id="prioTh" class="prio-th hidden">우선순위 <span style="font-weight:400;color:#64748b">(낮을수록 높음)</span></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+<button id="btnAdd">＋ 프로세스 추가</button>
+
+<button id="btnRun">▶ 시뮬레이션 실행</button>
+
+<div id="ganttBlock" class="result-block hidden">
+  <div class="label" id="ganttTitle"></div>
+  <canvas id="gc"></canvas>
+</div>
+
+<div id="statsBlock" class="result-block hidden" style="padding:0;overflow-x:auto;">
+  <table id="statsTbl">
+    <thead>
+      <tr>
+        <th>PID</th>
+        <th class="tr">도착</th>
+        <th class="tr">실행</th>
+        <th class="tr">시작</th>
+        <th class="tr">완료</th>
+        <th class="tr">응답 시간</th>
+        <th class="tr">대기 시간</th>
+        <th class="tr">반환 시간</th>
+      </tr>
+    </thead>
+    <tbody id="statsBody"></tbody>
+  </table>
+</div>
+
+<script>
+/* ─────────── 팔레트 ─────────── */
+const PAL = ['#3b82f6','#10b981','#f59e0b','#ef4444',
+             '#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+
+/* ─────────── 상태 ─────────── */
+let algo = 'FCFS', q = 2, uid = 1;
+let procs = [];
+
+/* ─────────── 초기 데이터 ─────────── */
+[[0,8,3],[1,4,1],[2,9,4],[3,5,2]].forEach(([a,b,p]) => addProc(a,b,p));
+
+/* ─────────── 알고리즘 전환 ─────────── */
+document.querySelectorAll('.algo-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.algo-btn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    algo = btn.dataset.a;
+    refreshParam();
+    refreshPrioCols();
+  });
+});
+
+function refreshParam() {
+  const row = document.getElementById('paramRow');
+  if (algo === 'RR') {
+    row.innerHTML = `<span>Quantum:</span>
+      <input id="qInput" type="number" min="1" max="20" value="${q}">
+      <span style="font-size:0.75rem;color:#475569">타임 슬라이스 크기</span>`;
+    document.getElementById('qInput').addEventListener('input', e => {
+      q = Math.max(1, parseInt(e.target.value) || 1);
+    });
+  } else if (algo === 'SRTF') {
+    row.innerHTML = `<span style="font-size:0.75rem">SJF 선점형 — 더 짧은 잔여 시간 프로세스 도착 시 즉시 교체</span>`;
+  } else if (algo === 'PRI') {
+    row.innerHTML = `<span style="font-size:0.75rem;color:#a78bfa">선점형 우선순위 — 높은 우선순위(낮은 숫자) 프로세스 도착 시 즉시 교체</span>`;
+  } else {
+    row.innerHTML = '';
+  }
+}
+
+function refreshPrioCols() {
+  const show = algo === 'PRI';
+  document.getElementById('prioTh').classList.toggle('hidden', !show);
+  document.querySelectorAll('.ptd').forEach(td => td.classList.toggle('hidden', !show));
+}
+
+/* ─────────── 프로세스 관리 ─────────── */
+function addProc(arrival = 0, burst = 5, priority = 1) {
+  const id = uid++;
+  procs.push({ id, arrival, burst, priority, color: PAL[(id-1) % PAL.length] });
+  renderTable();
+}
+
+function delProc(id) {
+  procs = procs.filter(p => p.id !== id);
+  renderTable();
+}
+
+function renderTable() {
+  const showP = algo === 'PRI';
+  document.getElementById('tbody').innerHTML = procs.map(p => `
+    <tr data-id="${p.id}">
+      <td><div class="badge" style="background:${p.color}22;color:${p.color};border:1px solid ${p.color}55">P${p.id}</div></td>
+      <td><input type="number" min="0" max="99" value="${p.arrival}" onchange="upd(${p.id},'arrival',this.value)"></td>
+      <td><input type="number" min="1" max="99" value="${p.burst}"   onchange="upd(${p.id},'burst',this.value)"></td>
+      <td class="ptd prio-td ${showP?'':'hidden'}">
+        <input type="number" min="1" max="10" value="${p.priority}" onchange="upd(${p.id},'priority',this.value)">
+      </td>
+      <td><button class="btn-del" onclick="delProc(${p.id})">삭제</button></td>
+    </tr>`).join('');
+}
+
+function upd(id, field, val) {
+  const p = procs.find(p => p.id === id);
+  if (p) p[field] = Math.max(field === 'burst' ? 1 : 0, parseInt(val) || 0);
+}
+
+document.getElementById('btnAdd').addEventListener('click', () => {
+  addProc(procs.length ? Math.max(...procs.map(p => p.arrival)) : 0, 5, procs.length + 1);
+});
+
+/* ═══════════ 알고리즘 구현 ═══════════ */
+
+function fcfs(ps) {
+  const sorted = [...ps].sort((a,b) => a.arrival - b.arrival || a.id - b.id);
+  let t = 0; const G = [], I = {};
+  for (const p of sorted) {
+    if (t < p.arrival) { G.push({pid:null,s:t,e:p.arrival}); t = p.arrival; }
+    I[p.id] = { fr: t, end: t + p.burst };
+    G.push({pid:p.id, s:t, e:t+p.burst});
+    t += p.burst;
+  }
+  return {G,I};
+}
+
+function sjf(ps) {
+  let t = 0; const done = new Set(), G = [], I = {};
+  while (done.size < ps.length) {
+    const av = ps.filter(p => !done.has(p.id) && p.arrival <= t);
+    if (!av.length) {
+      const nx = ps.filter(p => !done.has(p.id)).sort((a,b)=>a.arrival-b.arrival)[0];
+      G.push({pid:null,s:t,e:nx.arrival}); t = nx.arrival; continue;
+    }
+    const p = av.sort((a,b) => a.burst-b.burst || a.arrival-b.arrival)[0];
+    I[p.id] = {fr:t, end:t+p.burst};
+    G.push({pid:p.id,s:t,e:t+p.burst}); t += p.burst; done.add(p.id);
+  }
+  return {G,I};
+}
+
+function preemptive(ps, pickFn) {
+  const rem = ps.map(p => ({...p, rem: p.burst, fr: -1}));
+  let t = 0; const G = [], I = {};
+  const total = ps.reduce((s,p)=>s+p.burst,0) + Math.max(...ps.map(p=>p.arrival));
+  let guard = 0;
+  while (rem.some(p=>p.rem>0) && guard++<total*3+20) {
+    const av = rem.filter(p => p.rem>0 && p.arrival<=t);
+    if (!av.length) {
+      const nx = rem.filter(p=>p.rem>0).sort((a,b)=>a.arrival-b.arrival)[0];
+      const ie = nx.arrival;
+      if (G.length && G[G.length-1].pid===null) G[G.length-1].e = ie;
+      else G.push({pid:null,s:t,e:ie});
+      t = ie; continue;
+    }
+    const p = pickFn(av);
+    if (p.fr===-1) p.fr = t;
+    const nxArr = rem.filter(r=>r.rem>0&&r.arrival>t).map(r=>r.arrival).sort((a,b)=>a-b)[0]??Infinity;
+    const runT = Math.min(t + p.rem, nxArr) - t;
+    if (G.length && G[G.length-1].pid===p.id) G[G.length-1].e += runT;
+    else G.push({pid:p.id, s:t, e:t+runT});
+    p.rem -= runT; t += runT;
+    if (p.rem===0) I[p.id] = {fr:p.fr, end:t};
+  }
+  return {G,I};
+}
+
+function srtf(ps) {
+  return preemptive(ps, av => av.sort((a,b)=>a.rem-b.rem||a.arrival-b.arrival)[0]);
+}
+
+function priority(ps) {
+  return preemptive(ps, av => av.sort((a,b)=>a.priority-b.priority||a.arrival-b.arrival)[0]);
+}
+
+function rr(ps, quantum) {
+  const rem = ps.map(p=>({...p,rem:p.burst,fr:-1}));
+  const queue=[], inQ=new Set(), done=new Set(), G=[], I={};
+  let t=0;
+  const enq = (time) => {
+    rem.filter(r=>!done.has(r.id)&&!inQ.has(r.id)&&r.arrival<=time)
+       .sort((a,b)=>a.arrival-b.arrival||a.id-b.id)
+       .forEach(r=>{queue.push(r.id);inQ.add(r.id);});
+  };
+  enq(0);
+  const maxT = Math.max(...ps.map(p=>p.arrival)) + ps.reduce((s,p)=>s+p.burst,0);
+  let guard = 0;
+  while (done.size < ps.length && guard++ < maxT*3+20) {
+    if (!queue.length) {
+      const nx = rem.filter(r=>!done.has(r.id)).sort((a,b)=>a.arrival-b.arrival)[0];
+      if (!nx) break;
+      G.push({pid:null,s:t,e:nx.arrival}); t=nx.arrival; enq(t); continue;
+    }
+    const pid = queue.shift(); inQ.delete(pid);
+    const p = rem.find(r=>r.id===pid);
+    if (!p||done.has(p.id)) continue;
+    if (p.fr===-1) p.fr=t;
+    const rt = Math.min(quantum, p.rem);
+    G.push({pid:p.id,s:t,e:t+rt});
+    const prev=t; t+=rt; p.rem-=rt;
+    enq(t);
+    if (p.rem>0) { queue.push(p.id); inQ.add(p.id); }
+    else { done.add(p.id); I[p.id]={fr:p.fr,end:t}; }
+  }
+  return {G,I};
+}
+
+/* ═══════════ 실행 ═══════════ */
+
+document.getElementById('btnRun').addEventListener('click', () => {
+  const err = document.getElementById('errMsg');
+  if (!procs.length) {
+    err.textContent = '프로세스를 최소 1개 이상 추가해주세요.'; err.classList.remove('hidden'); return;
+  }
+  err.classList.add('hidden');
+
+  // 현재 입력값 반영
+  document.querySelectorAll('#tbody tr').forEach(row => {
+    const id = parseInt(row.dataset.id);
+    const ins = row.querySelectorAll('input');
+    const p = procs.find(p=>p.id===id);
+    if (!p||ins.length<2) return;
+    p.arrival  = Math.max(0, parseInt(ins[0].value)||0);
+    p.burst    = Math.max(1, parseInt(ins[1].value)||1);
+    if (ins[2] && algo==='PRI') p.priority = parseInt(ins[2].value)||1;
+  });
+
+  let res;
+  if      (algo==='FCFS') res = fcfs(procs);
+  else if (algo==='SJF')  res = sjf(procs);
+  else if (algo==='SRTF') res = srtf(procs);
+  else if (algo==='RR')   res = rr(procs, q);
+  else                    res = priority(procs);
+
+  drawGantt(res.G);
+  drawStats(res.I);
+});
+
+/* ═══════════ Gantt 차트 ═══════════ */
+
+function drawGantt(G) {
+  const block = document.getElementById('ganttBlock');
+  block.classList.remove('hidden');
+  const NAMES = {FCFS:'FCFS',SJF:'SJF (비선점)',SRTF:'SRTF (SJF 선점형)',RR:`Round Robin  Q = ${q}`,PRI:'Priority (선점형)'};
+  document.getElementById('ganttTitle').textContent = `Gantt 차트 — ${NAMES[algo]}`;
+
+  const totalT = G[G.length-1].e;
+  const M=16, BH=46, AX=26;
+  const minU = 20;
+  const uw = Math.max(minU, Math.floor((800-M*2)/totalT));
+  const cw = uw*totalT + M*2;
+  const ch = BH + AX + M*2;
+
+  const cv = document.getElementById('gc');
+  cv.width = cw; cv.height = ch;
+  const ctx = cv.getContext('2d');
+
+  ctx.fillStyle='#1e293b'; ctx.fillRect(0,0,cw,ch);
+
+  // 그리드
+  ctx.strokeStyle='#0f172a'; ctx.lineWidth=1;
+  for (let t=0;t<=totalT;t++) {
+    const x=M+t*uw;
+    ctx.beginPath(); ctx.moveTo(x,M); ctx.lineTo(x,M+BH); ctx.stroke();
+  }
+
+  // 바
+  const cmap = {}; procs.forEach(p=>cmap[p.id]=p.color);
+  G.forEach(({pid,s,e})=>{
+    const x=M+s*uw, w=(e-s)*uw, y=M;
+    if (!pid) {
+      ctx.fillStyle='#1a2738'; ctx.fillRect(x,y,w,BH);
+      if (w>16) {
+        ctx.fillStyle='#334155'; ctx.font='10px monospace';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('idle',x+w/2,y+BH/2);
+      }
+    } else {
+      const c=cmap[pid];
+      ctx.fillStyle=c+'2a'; ctx.fillRect(x,y,w,BH);
+      ctx.fillStyle=c;      ctx.fillRect(x,y,3,BH);
+      if (w>18) {
+        ctx.fillStyle=c;
+        ctx.font=`bold ${w>38?14:10}px Segoe UI,system-ui`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(`P${pid}`,x+w/2,y+BH/2);
+      }
+    }
+  });
+
+  // 테두리
+  ctx.strokeStyle='#334155'; ctx.lineWidth=1;
+  ctx.strokeRect(M,M,totalT*uw,BH);
+
+  // 시간 축
+  ctx.fillStyle='#64748b'; ctx.font='10px monospace';
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  const step = uw<20 ? Math.ceil(20/uw) : 1;
+  for (let t=0;t<=totalT;t+=step) {
+    const x=M+t*uw;
+    ctx.fillStyle='#334155'; ctx.fillRect(x-.5,M+BH,1,4);
+    ctx.fillStyle='#64748b'; ctx.fillText(t,x,M+BH+6);
+  }
+  if (totalT%step!==0) {
+    const x=M+totalT*uw;
+    ctx.fillStyle='#334155'; ctx.fillRect(x-.5,M+BH,1,4);
+    ctx.fillStyle='#64748b'; ctx.fillText(totalT,x,M+BH+6);
+  }
+}
+
+/* ═══════════ 통계 ═══════════ */
+
+function drawStats(info) {
+  const block = document.getElementById('statsBlock');
+  block.classList.remove('hidden');
+  let sWT=0, sTAT=0, sRT=0;
+  const rows = procs.map(p=>{
+    const {fr,end} = info[p.id];
+    const tat=end-p.arrival, wt=tat-p.burst, rt=fr-p.arrival;
+    sWT+=wt; sTAT+=tat; sRT+=rt;
+    return `<tr>
+      <td><div class="badge" style="background:${p.color}22;color:${p.color};border:1px solid ${p.color}55">P${p.id}</div></td>
+      <td class="tr">${p.arrival}</td><td class="tr">${p.burst}</td>
+      <td class="tr">${fr}</td><td class="tr">${end}</td>
+      <td class="tr">${rt}</td><td class="tr">${wt}</td><td class="tr">${tat}</td>
+    </tr>`;
+  });
+  const n=procs.length;
+  document.getElementById('statsBody').innerHTML = rows.join('') + `
+    <tr class="avg">
+      <td colspan="5" style="color:#475569;font-size:0.75rem;padding-left:16px">평균</td>
+      <td class="tr">${(sRT/n).toFixed(2)}</td>
+      <td class="tr">${(sWT/n).toFixed(2)}</td>
+      <td class="tr">${(sTAT/n).toFixed(2)}</td>
+    </tr>`;
+}
+
+/* ─── init ─── */
+refreshParam();
+</script>
+</body>
+</html>

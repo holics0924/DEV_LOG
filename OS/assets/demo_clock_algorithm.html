@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clock 페이지 교체 알고리즘</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 32px 16px;
+      gap: 0;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      letter-spacing: -0.3px;
+    }
+    header p {
+      font-size: 0.8rem;
+      color: #475569;
+      margin-top: 4px;
+    }
+
+    #canvas {
+      display: block;
+      max-width: 100%;
+    }
+
+    .step-card {
+      margin-top: 20px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px 20px;
+      width: 520px;
+      max-width: 100%;
+    }
+    .step-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .step-desc {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .step-desc em {
+      font-style: normal;
+      color: #f59e0b;
+      font-weight: 600;
+    }
+    .step-desc .evict { color: #f87171; font-weight: 600; font-style: normal; }
+    .step-desc .load  { color: #34d399; font-weight: 600; font-style: normal; }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    button {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.15s, transform 0.1s;
+      font-family: inherit;
+    }
+    button:active { transform: scale(0.97); }
+
+    #btnNext {
+      background: #2563eb;
+      color: #fff;
+      flex: 1;
+    }
+    #btnNext:hover:not(:disabled) { background: #1d4ed8; }
+    #btnNext:disabled { background: #1e3a5f; color: #334155; cursor: not-allowed; }
+
+    #btnAuto {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      flex: 1;
+    }
+    #btnAuto:hover { background: #334155; }
+    #btnAuto.playing { background: #064e3b; color: #34d399; border-color: #059669; }
+
+    #btnReset {
+      background: #1e293b;
+      color: #64748b;
+      border: 1px solid #334155;
+    }
+    #btnReset:hover { background: #334155; }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Clock 페이지 교체 알고리즘</h1>
+  <p>reference bit 1 → 0으로 초기화 후 통과 &nbsp;|&nbsp; reference bit 0 → 교체 대상</p>
+</header>
+
+<canvas id="canvas" width="520" height="520"></canvas>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">초기 상태</div>
+  <div class="step-desc" id="stepDesc"></div>
+  <div class="controls">
+    <button id="btnReset">↺</button>
+    <button id="btnAuto">▶ 자동</button>
+    <button id="btnNext">다음 단계 →</button>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#60a5fa;"></div>
+    <span>reference bit = 1 (최근 사용됨)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#334155;"></div>
+    <span>reference bit = 0 (미사용)</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#f59e0b; border-radius:50%;"></div>
+    <span>Clock 포인터</span>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+
+/* ── 시나리오 ─────────────────────────────────────── */
+const STEPS = [
+  {
+    pointer: 0,
+    frames: [
+      {p:'A',r:1},{p:'B',r:1},{p:'C',r:0},{p:'D',r:1},
+      {p:'E',r:1},{p:'F',r:0},{p:'G',r:1},{p:'H',r:0},
+    ],
+    label: '초기 상태',
+    desc: '새 페이지 <em>X</em>가 필요하다. RAM이 꽉 찼으므로 Clock 포인터가 가리키는 곳부터 교체 대상을 찾는다.',
+    active: -1, evict: -1, loaded: -1,
+  },
+  {
+    pointer: 0,
+    frames: [
+      {p:'A',r:1,scanning:true},{p:'B',r:1},{p:'C',r:0},{p:'D',r:1},
+      {p:'E',r:1},{p:'F',r:0},{p:'G',r:1},{p:'H',r:0},
+    ],
+    label: 'Step 1 — 프레임 0 검사',
+    desc: '프레임 0 (<em>A</em>) : reference bit = <em>1</em>. 최근에 사용됨. bit를 0으로 낮추고 포인터를 다음 칸으로 이동.',
+    active: 0, evict: -1, loaded: -1,
+  },
+  {
+    pointer: 1,
+    frames: [
+      {p:'A',r:0},{p:'B',r:1,scanning:true},{p:'C',r:0},{p:'D',r:1},
+      {p:'E',r:1},{p:'F',r:0},{p:'G',r:1},{p:'H',r:0},
+    ],
+    label: 'Step 2 — 프레임 1 검사',
+    desc: '프레임 1 (<em>B</em>) : reference bit = <em>1</em>. 마찬가지로 bit를 0으로 낮추고 이동.',
+    active: 1, evict: -1, loaded: -1,
+  },
+  {
+    pointer: 2,
+    frames: [
+      {p:'A',r:0},{p:'B',r:0},{p:'C',r:0,evicting:true},{p:'D',r:1},
+      {p:'E',r:1},{p:'F',r:0},{p:'G',r:1},{p:'H',r:0},
+    ],
+    label: 'Step 3 — 교체 대상 발견',
+    desc: '프레임 2 (<span class="evict">C</span>) : reference bit = 0. 한 바퀴 동안 단 한 번도 접근되지 않음. <span class="evict">C를 디스크로 내보낸다.</span>',
+    active: 2, evict: 2, loaded: -1,
+  },
+  {
+    pointer: 3,
+    frames: [
+      {p:'A',r:0},{p:'B',r:0},{p:'X',r:1,loaded:true},{p:'D',r:1},
+      {p:'E',r:1},{p:'F',r:0},{p:'G',r:1},{p:'H',r:0},
+    ],
+    label: '완료',
+    desc: '<span class="load">X가 프레임 2에 올라왔다.</span> reference bit = 1로 설정. 포인터는 3번 프레임을 가리키며 다음 교체 요청을 기다린다.',
+    active: 2, evict: -1, loaded: 2,
+  },
+];
+
+/* ── 레이아웃 ─────────────────────────────────────── */
+const CX = 260, CY = 260, RING_R = 170;
+const FW = 56, FH = 68, FR = 9;
+
+function pos(i) {
+  const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+  return { x: CX + RING_R * Math.cos(a), y: CY + RING_R * Math.sin(a) };
+}
+
+/* ── 그리기 유틸 ──────────────────────────────────── */
+function rRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function arrow(x1, y1, x2, y2, color, width) {
+  const a  = Math.atan2(y2 - y1, x2 - x1);
+  const hl = 13;
+  ctx.strokeStyle = color;
+  ctx.fillStyle   = color;
+  ctx.lineWidth   = width;
+  ctx.lineCap     = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - hl * Math.cos(a - 0.38), y2 - hl * Math.sin(a - 0.38));
+  ctx.lineTo(x2 - hl * Math.cos(a + 0.38), y2 - hl * Math.sin(a + 0.38));
+  ctx.closePath();
+  ctx.fill();
+}
+
+/* ── 메인 렌더 ────────────────────────────────────── */
+function draw(step) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  /* 배경 */
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  /* 링 트랙 */
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(CX, CY, RING_R, 0, Math.PI * 2);
+  ctx.stroke();
+
+  /* 링 라벨 */
+  ctx.fillStyle = '#1e293b';
+  ctx.font = '600 11px Segoe UI, system-ui';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  /* ── 프레임들 ── */
+  step.frames.forEach((f, i) => {
+    const { x, y } = pos(i);
+    const isActive   = step.active  === i;
+    const isEvicting = step.evict   === i;
+    const isLoaded   = step.loaded  === i;
+
+    ctx.save();
+    ctx.translate(x, y);
+
+    /* 글로우 */
+    if (isEvicting) { ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 22; }
+    else if (isLoaded) { ctx.shadowColor = '#34d399'; ctx.shadowBlur = 22; }
+    else if (isActive) { ctx.shadowColor = '#f59e0b'; ctx.shadowBlur = 16; }
+
+    /* 배경 */
+    let bg = '#1e293b';
+    if (isEvicting) bg = '#3b0a0a';
+    else if (isLoaded) bg = '#052e16';
+    ctx.fillStyle = bg;
+    rRect(-FW/2, -FH/2, FW, FH, FR);
+    ctx.fill();
+
+    /* 테두리 */
+    let border = '#334155';
+    if (isEvicting) border = '#ef4444';
+    else if (isLoaded) border = '#34d399';
+    else if (isActive) border = '#f59e0b';
+    ctx.strokeStyle = border;
+    ctx.lineWidth = isActive || isEvicting || isLoaded ? 2 : 1;
+    ctx.shadowBlur = 0;
+    rRect(-FW/2, -FH/2, FW, FH, FR);
+    ctx.stroke();
+
+    /* 페이지 이름 */
+    ctx.fillStyle = isLoaded ? '#34d399' : isEvicting ? '#fca5a5' : '#e2e8f0';
+    ctx.font = 'bold 20px Segoe UI, system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(f.p, 0, -9);
+
+    /* reference bit 배지 */
+    const bitActive = f.r === 1;
+    const bitBg = bitActive ? '#172554' : '#1e293b';
+    const bitBorder = bitActive ? '#3b82f6' : '#475569';
+    const bitText  = bitActive ? '#93c5fd' : '#64748b';
+
+    ctx.fillStyle = bitBg;
+    rRect(-14, 11, 28, 17, 4);
+    ctx.fill();
+    ctx.strokeStyle = bitBorder;
+    ctx.lineWidth = 1;
+    rRect(-14, 11, 28, 17, 4);
+    ctx.stroke();
+
+    ctx.fillStyle = bitText;
+    ctx.font = '600 10px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`R=${f.r}`, 0, 19.5);
+
+    /* 프레임 번호 (링 바깥쪽) */
+    const outerR = RING_R + FH / 2 + 12;
+    const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    const lx = (CX + outerR * Math.cos(a)) - x;
+    const ly = (CY + outerR * Math.sin(a)) - y;
+    ctx.fillStyle = '#334155';
+    ctx.font = '10px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(i, lx, ly);
+
+    ctx.restore();
+  });
+
+  /* ── Clock 포인터 ── */
+  const pPos = pos(step.pointer);
+  const pAngle = Math.atan2(pPos.y - CY, pPos.x - CX);
+  const tipR  = RING_R - FH / 2 - 6;
+  const tailR = 28;
+  const tx = CX + tipR  * Math.cos(pAngle);
+  const ty = CY + tipR  * Math.sin(pAngle);
+  const bx = CX + tailR * Math.cos(pAngle);
+  const by = CY + tailR * Math.sin(pAngle);
+
+  arrow(bx, by, tx, ty, '#f59e0b', 2.5);
+
+  /* 중심 점 */
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.arc(CX, CY, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.arc(CX, CY, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  /* 중심 텍스트 */
+  ctx.fillStyle = '#475569';
+  ctx.font = '11px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('Clock', CX, CY + 14);
+
+  /* ── 진행 도트 ── */
+  const dotY = 500;
+  STEPS.forEach((_, i) => {
+    let col;
+    if (i === currentStep)     col = '#3b82f6';
+    else if (i < currentStep)  col = '#1e3a5f';
+    else                       col = '#1e293b';
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.arc(CX + (i - 2) * 18, dotY, i === currentStep ? 5 : 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/* ── 상태 및 UI ───────────────────────────────────── */
+let currentStep = 0;
+let autoTimer   = null;
+
+function render() {
+  const s = STEPS[currentStep];
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').innerHTML    = s.desc;
+  document.getElementById('btnNext').disabled      = currentStep >= STEPS.length - 1;
+  draw(s);
+}
+
+document.getElementById('btnNext').addEventListener('click', () => {
+  if (currentStep < STEPS.length - 1) { currentStep++; render(); }
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  stopAuto();
+  currentStep = 0;
+  render();
+});
+
+document.getElementById('btnAuto').addEventListener('click', () => {
+  if (autoTimer) { stopAuto(); return; }
+  const btn = document.getElementById('btnAuto');
+  btn.textContent = '⏸ 정지';
+  btn.classList.add('playing');
+  autoTimer = setInterval(() => {
+    if (currentStep < STEPS.length - 1) {
+      currentStep++;
+    } else {
+      currentStep = 0;
+    }
+    render();
+  }, 1600);
+});
+
+function stopAuto() {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
+  const btn = document.getElementById('btnAuto');
+  btn.textContent = '▶ 자동';
+  btn.classList.remove('playing');
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가상 주소 변환</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b;--pu:#a78bfa}
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:820px;margin:0 auto}
+    h1{font-size:1.15rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:22px}
+
+    .config{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+    .cfg-group{display:flex;flex-direction:column;gap:5px}
+    .cfg-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)}
+    select,input{background:var(--bg);border:1px solid var(--bd);border-radius:6px;color:var(--tx);padding:7px 10px;font-family:'Segoe UI',system-ui,sans-serif;font-size:0.88rem}
+    select:focus,input:focus{outline:none;border-color:var(--bl)}
+    #vaInput{font-family:monospace;width:140px}
+    .btn-go{padding:9px 20px;background:var(--bl);color:#fff;border:none;border-radius:7px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit}
+    .btn-go:hover{background:#2563eb}
+
+    /* 비트 시각화 */
+    .bit-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;margin-bottom:16px}
+    .bit-title{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);margin-bottom:12px}
+    .bit-row{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+    .bit{width:22px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-family:monospace;font-size:0.78rem;font-weight:700;border:1px solid;transition:all .2s;cursor:default}
+    .bit.vpn{background:#172554;border-color:#2563eb;color:#93c5fd}
+    .bit.off{background:#1a1045;border-color:#6d28d9;color:#c4b5fd}
+    .bit-legend{display:flex;gap:16px;font-size:0.75rem;margin-top:8px}
+    .legend-item{display:flex;align-items:center;gap:5px}
+    .legend-color{width:12px;height:12px;border-radius:2px;border:1px solid}
+
+    /* 변환 단계 */
+    .steps-wrap{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+    .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;transition:all .2s}
+    .step-card.active{border-color:var(--am);box-shadow:0 0 12px #f59e0b22}
+    .step-card.done{border-color:#334155;opacity:.7}
+    .step-card.fault{border-color:var(--rd);background:#450a0a}
+    .step-num{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:6px}
+    .step-content{font-size:0.9rem;color:#cbd5e1}
+    .step-val{font-family:monospace;font-size:1rem;font-weight:700;margin-top:6px}
+    .vpn-color{color:#93c5fd}
+    .off-color{color:#c4b5fd}
+    .pfn-color{color:#34d399}
+    .pa-color{color:#f59e0b}
+
+    /* 페이지 테이블 */
+    .pt-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:16px}
+    .pt-header{padding:10px 16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);background:var(--s2);border-bottom:1px solid var(--bd)}
+    table{width:100%;border-collapse:collapse;font-size:0.82rem}
+    th{padding:8px 14px;text-align:left;color:var(--mu);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--bd);background:var(--s2)}
+    td{padding:7px 14px;border-bottom:1px solid #1a2234;font-family:monospace}
+    tr:last-child td{border-bottom:none}
+    tr.highlighted{background:#1a2a1a}
+    tr.highlighted td.pt-vpn{color:#93c5fd;font-weight:700}
+    tr.highlighted td.pt-pfn{color:#34d399;font-weight:700}
+    tr.fault-row{background:#3b0a0a}
+    .valid-1{color:#34d399}
+    .valid-0{color:#475569}
+    .pt-edit{width:52px;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx);padding:3px 6px;font-family:monospace;font-size:0.8rem;text-align:center}
+    .pt-edit:focus{outline:none;border-color:var(--bl)}
+
+    .result-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px 20px;display:none}
+    .result-box.ok{border-color:var(--gr);background:#052e16}
+    .result-box.fault{border-color:var(--rd);background:#450a0a}
+    .result-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+    .result-addr{font-size:1.4rem;font-family:monospace;font-weight:900}
+  </style>
+</head>
+<body>
+
+<h1>가상 주소 → 물리 주소 변환</h1>
+<p class="sub">VPN으로 페이지 테이블을 찾고, PFN과 offset을 합쳐 물리 주소를 만드는 과정</p>
+
+<div class="config">
+  <div class="cfg-group">
+    <div class="cfg-label">가상 주소 (16진수 또는 10진수)</div>
+    <input id="vaInput" placeholder="예: 0x1A3C 또는 6716" value="0x1A3C">
+  </div>
+  <div class="cfg-group">
+    <div class="cfg-label">페이지 크기</div>
+    <select id="pageSel">
+      <option value="8">256 B (8비트 offset)</option>
+      <option value="10">1 KB (10비트 offset)</option>
+      <option value="12" selected>4 KB (12비트 offset)</option>
+    </select>
+  </div>
+  <div class="cfg-group">
+    <div class="cfg-label">주소 공간</div>
+    <select id="addrSel">
+      <option value="16" selected>16비트 (64KB)</option>
+      <option value="20">20비트 (1MB)</option>
+    </select>
+  </div>
+  <button class="btn-go" onclick="translate()">▶ 변환</button>
+</div>
+
+<div class="bit-wrap" id="bitWrap" style="display:none">
+  <div class="bit-title">가상 주소 비트 분할</div>
+  <div class="bit-row" id="bitRow"></div>
+  <div class="bit-legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background:#172554;border-color:#2563eb"></div>
+      <span style="color:#93c5fd">VPN (Virtual Page Number) — 페이지 테이블 인덱스</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background:#1a1045;border-color:#6d28d9"></div>
+      <span style="color:#c4b5fd">Offset — 페이지 내 위치</span>
+    </div>
+  </div>
+</div>
+
+<div class="steps-wrap" id="stepsWrap" style="display:none">
+  <div class="step-card" id="step1">
+    <div class="step-num">Step 1 — VPN 추출</div>
+    <div class="step-content" id="step1Content"></div>
+  </div>
+  <div class="step-card" id="step2">
+    <div class="step-num">Step 2 — 페이지 테이블 조회</div>
+    <div class="step-content" id="step2Content"></div>
+  </div>
+  <div class="step-card" id="step3">
+    <div class="step-num">Step 3 — 물리 주소 조합</div>
+    <div class="step-content" id="step3Content"></div>
+  </div>
+</div>
+
+<div class="pt-wrap">
+  <div class="pt-header">페이지 테이블 (PFN 직접 편집 가능 · Valid 클릭으로 토글)</div>
+  <table>
+    <thead>
+      <tr>
+        <th>VPN</th>
+        <th>Valid</th>
+        <th>PFN (Physical Frame Number)</th>
+        <th style="color:#334155;font-size:0.65rem">물리 주소 범위</th>
+      </tr>
+    </thead>
+    <tbody id="ptBody"></tbody>
+  </table>
+</div>
+
+<div class="result-box" id="resultBox">
+  <div class="result-title" id="resultTitle"></div>
+  <div class="result-addr" id="resultAddr"></div>
+  <div style="font-size:0.78rem;color:var(--mu);margin-top:6px" id="resultDesc"></div>
+</div>
+
+<script>
+// 페이지 테이블 (최대 16 entries용)
+const PT_DEFAULTS = [
+  {valid:1,pfn:3},{valid:1,pfn:7},{valid:0,pfn:0},{valid:1,pfn:12},
+  {valid:1,pfn:2},{valid:0,pfn:0},{valid:1,pfn:9},{valid:1,pfn:5},
+  {valid:0,pfn:0},{valid:1,pfn:14},{valid:1,pfn:1},{valid:0,pfn:0},
+  {valid:1,pfn:6},{valid:1,pfn:11},{valid:0,pfn:0},{valid:1,pfn:4},
+];
+let pageTable = PT_DEFAULTS.map(e=>({...e}));
+
+function hex(n, digits=4) { return '0x'+n.toString(16).toUpperCase().padStart(digits,'0'); }
+function bin(n, bits) { return n.toString(2).padStart(bits,'0'); }
+
+function getConfig() {
+  const offsetBits = parseInt(document.getElementById('pageSel').value);
+  const addrBits   = parseInt(document.getElementById('addrSel').value);
+  const vpnBits    = addrBits - offsetBits;
+  const pageSize   = 1 << offsetBits;
+  const numPages   = 1 << vpnBits;
+  return {offsetBits, addrBits, vpnBits, pageSize, numPages};
+}
+
+function parseAddr() {
+  const raw = document.getElementById('vaInput').value.trim();
+  if (/^0x/i.test(raw)) return parseInt(raw, 16);
+  return parseInt(raw, 10);
+}
+
+function renderPT() {
+  const {offsetBits, vpnBits, pageSize, numPages, addrBits} = getConfig();
+  const tbody = document.getElementById('ptBody');
+  const count = Math.min(numPages, pageTable.length);
+  tbody.innerHTML = '';
+  for (let v=0; v<count; v++) {
+    const e = pageTable[v];
+    const pStart = e.valid ? hex(e.pfn * pageSize, Math.ceil(addrBits/4)) : '—';
+    const pEnd   = e.valid ? hex(e.pfn * pageSize + pageSize - 1, Math.ceil(addrBits/4)) : '—';
+    const row = document.createElement('tr');
+    row.id = `pt-row-${v}`;
+    row.innerHTML = `
+      <td class="pt-vpn">${v} (${hex(v,2)})</td>
+      <td class="${e.valid?'valid-1':'valid-0'}" id="valid-${v}" onclick="toggleValid(${v})" style="cursor:pointer;user-select:none">${e.valid?'✓ 1':'✗ 0'}</td>
+      <td class="pt-pfn"><input class="pt-edit" id="pfn-${v}" value="${e.pfn}" min="0" max="31" type="number" onchange="setPFN(${v},this.value)"></td>
+      <td style="color:#334155;font-size:0.75rem">${e.valid?pStart+' ~ '+pEnd:'—'}</td>
+    `;
+    tbody.appendChild(row);
+  }
+}
+
+function toggleValid(v) {
+  pageTable[v].valid ^= 1;
+  renderPT();
+  translate();
+}
+
+function setPFN(v, val) {
+  pageTable[v].pfn = Math.max(0, parseInt(val)||0);
+  renderPT();
+  translate();
+}
+
+function translate() {
+  const va = parseAddr();
+  if (isNaN(va) || va < 0) return;
+  const {offsetBits, addrBits, vpnBits, pageSize, numPages} = getConfig();
+
+  // 비트 분할
+  const vaBin = bin(va, addrBits);
+  const vpn    = va >> offsetBits;
+  const offset = va & (pageSize - 1);
+  const vpnBin  = vaBin.slice(0, vpnBits);
+  const offBin  = vaBin.slice(vpnBits);
+
+  // 비트 시각화
+  document.getElementById('bitWrap').style.display = 'block';
+  const bitRow = document.getElementById('bitRow');
+  bitRow.innerHTML = vaBin.split('').map((b,i)=>`
+    <div class="bit ${i<vpnBits?'vpn':'off'}">${b}</div>
+  `).join('') + `
+    <span style="font-size:0.75rem;color:var(--mu);margin-left:8px">${hex(va)} (${va})</span>
+  `;
+
+  // 단계 표시
+  document.getElementById('stepsWrap').style.display='flex';
+
+  document.getElementById('step1Content').innerHTML =
+    `가상 주소 상위 <strong style="color:#93c5fd">${vpnBits}비트</strong> = VPN = <span class="vpn-color step-val">${vpn}</span>
+     <span style="font-size:0.78rem;color:var(--mu);margin-left:8px">(이진: ${vpnBin})</span><br>
+     <span style="font-size:0.8rem;color:var(--mu)">하위 <strong style="color:#c4b5fd">${offsetBits}비트</strong> = offset = <span class="off-color">${offset}</span> (페이지 내 위치)</span>`;
+
+  // 페이지 테이블 조회
+  document.querySelectorAll('#ptBody tr').forEach(r=>r.className='');
+  const rb = document.getElementById('resultBox');
+
+  if (vpn >= numPages || vpn >= pageTable.length) {
+    document.getElementById('step2Content').innerHTML =
+      `<span style="color:#fca5a5">VPN ${vpn}은 페이지 테이블 범위(0~${numPages-1})를 벗어남 → 세그멘테이션 폴트</span>`;
+    rb.style.display='block'; rb.className='result-box fault';
+    document.getElementById('resultTitle').textContent='세그멘테이션 폴트';
+    document.getElementById('resultAddr').textContent='—';
+    document.getElementById('resultDesc').textContent='VPN이 페이지 테이블 범위를 초과했습니다.';
+    return;
+  }
+
+  const entry = pageTable[vpn];
+  const ptRow = document.getElementById(`pt-row-${vpn}`);
+  if (ptRow) ptRow.className = entry.valid ? 'highlighted' : 'fault-row';
+
+  if (!entry.valid) {
+    document.getElementById('step2Content').innerHTML =
+      `페이지 테이블[VPN ${vpn}].valid = <span style="color:#ef4444">0</span> → 해당 페이지가 RAM에 없다`;
+    document.getElementById('step3Content').innerHTML =
+      `<span style="color:#fca5a5">페이지 폴트(Page Fault) 발생 → OS가 디스크에서 페이지를 RAM으로 올린 후 재시도</span>`;
+    rb.style.display='block'; rb.className='result-box fault';
+    document.getElementById('resultTitle').textContent='페이지 폴트 (Page Fault)';
+    document.getElementById('resultAddr').textContent='—';
+    document.getElementById('resultDesc').textContent=`VPN ${vpn}에 해당하는 페이지가 현재 RAM에 없습니다. OS가 스왑 공간에서 불러옵니다.`;
+    return;
+  }
+
+  const pfn = entry.pfn;
+  const pa  = (pfn << offsetBits) | offset;
+  const paBin = bin(pa, addrBits + 4); // PFN 비트 포함
+
+  document.getElementById('step2Content').innerHTML =
+    `페이지 테이블[VPN <span class="vpn-color">${vpn}</span>] → valid=1, PFN = <span class="pfn-color">${pfn}</span>`;
+
+  document.getElementById('step3Content').innerHTML =
+    `물리 주소 = PFN <span class="pfn-color">(${pfn})</span> × 페이지 크기(${pageSize}) + offset <span class="off-color">(${offset})</span><br>
+     <span class="pa-color step-val">${hex(pa)}</span>
+     <span style="font-size:0.78rem;color:var(--mu);margin-left:8px">(${pa})</span>`;
+
+  rb.style.display='block'; rb.className='result-box ok';
+  document.getElementById('resultTitle').innerHTML =
+    `✓ 변환 성공 — VPN <span style="color:#93c5fd">${vpn}</span> → PFN <span style="color:#34d399">${pfn}</span>`;
+  document.getElementById('resultAddr').innerHTML =
+    `<span style="color:#f59e0b">${hex(pa)}</span>`;
+  document.getElementById('resultDesc').textContent =
+    `가상 주소 ${hex(va)} = VPN(${vpn}) + offset(${offset}) → 물리 프레임 ${pfn}의 offset ${offset}번째 바이트`;
+}
+
+// 셀렉트 변경 시 테이블 재렌더
+document.getElementById('pageSel').onchange = () => { renderPT(); translate(); };
+document.getElementById('addrSel').onchange = () => { renderPT(); translate(); };
+document.getElementById('vaInput').addEventListener('keydown', e => { if(e.key==='Enter') translate(); });
+
+renderPT();
+translate();
+</script>
+</body>
+</html>

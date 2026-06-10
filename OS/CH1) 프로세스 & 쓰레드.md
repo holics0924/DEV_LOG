@@ -1,3 +1,8 @@
+---
+layout: default
+title: "CH1) 프로세스와 스레드"
+permalink: /OS/ch1-process-thread/
+---
 # 프로세스와 스레드, 그리고 컨텍스트 스위칭
 
 # 프로그램이 실행된다는 것

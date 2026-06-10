@@ -1,3 +1,8 @@
+---
+layout: default
+title: "CH5) 가상 메모리와 주소 변환"
+permalink: /OS/ch5-virtual-memory/
+---
 # 가상 메모리와 주소 변환
 
 # 주소 충돌 문제
@@ -72,6 +77,8 @@
 페이지 테이블은 배열이다. 인덱스가 VPN이고, 그 위치에 저장된 값이 물리 프레임 번호(PFN)다. CPU가 가상 주소를 들고 오면 VPN을 인덱스로 페이지 테이블을 조회해 PFN을 꺼낸다.
 
 ![주소 변환 과정](./assets/ch5_address_translation.svg)
+
+<iframe src="/DEV_LOG/OS/assets/demo_virtual_address.html" width="100%" height="780" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;"></iframe>
 
 변환 과정은 세 단계다.
 

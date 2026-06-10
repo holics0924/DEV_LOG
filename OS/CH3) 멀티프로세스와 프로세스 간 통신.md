@@ -1,3 +1,8 @@
+---
+layout: default
+title: "CH3) 멀티프로세스와 프로세스 간 통신"
+permalink: /OS/ch3-ipc/
+---
 # 멀티프로세스와 프로세스 간 통신
 
 # 스레드가 항상 답은 아니다

@@ -1,0 +1,25 @@
+title: DEV_LOG
+description: CS 면접 준비 + 개발 학습 기록
+url: "https://holics0924.github.io"
+baseurl: "/DEV_LOG"
+
+plugins:
+  - jekyll-optional-front-matter
+  - jekyll-default-layout
+  - jekyll-relative-links
+  - jekyll-titles-from-headings
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+
+encoding: utf-8
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+
+sass:
+  style: compressed
