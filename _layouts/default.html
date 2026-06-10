@@ -6,7 +6,7 @@
   <title>{% if page.title %}{{ page.title }} — {% endif %}DEV_LOG</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
 </head>
 <body>
@@ -18,11 +18,15 @@
   </header>
 
   <main>
+    {% if page.url != '/' and page.url != '/DEV_LOG/' %}
+    <p style="font-size:0.78rem;color:#484f58;margin-bottom:36px">
+      <a href="{{ '/' | relative_url }}" style="color:#484f58;text-decoration:none">홈</a>
+      &nbsp;›&nbsp; {{ page.title }}
+    </p>
+    {% endif %}
     {{ content }}
   </main>
 
-  <footer>
-    <div class="footer-inner">holics0924</div>
-  </footer>
+  <footer>holics0924 · {{ site.time | date: "%Y" }}</footer>
 </body>
 </html>
