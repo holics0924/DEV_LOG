@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스택 프레임 시뮬레이터</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b;--pu:#a78bfa;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:720px;margin:0 auto}
+    h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:20px}
+
+    .code-panel{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:18px;font-family:monospace;font-size:0.85rem;line-height:1.7}
+    .code-line{padding:2px 8px;border-radius:4px;transition:background .2s;color:#94a3b8}
+    .code-line.active{background:#1e3a5f;color:#93c5fd;font-weight:700}
+    .code-line.done{color:#475569}
+
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+    .btn{padding:9px 18px;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+    .btn-call{background:#1d4ed8;color:#fff}
+    .btn-call:hover:not(:disabled){background:#2563eb}
+    .btn-ret{background:#7c3aed;color:#fff}
+    .btn-ret:hover:not(:disabled){background:#6d28d9}
+    .btn-reset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+    .btn-reset:hover{background:var(--s2)}
+    .btn:disabled{opacity:.35;cursor:not-allowed}
+
+    .status{font-size:0.82rem;color:var(--am);padding:8px 14px;background:var(--s2);border-radius:6px;border-left:3px solid var(--am)}
+
+    .layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+
+    /* Stack visualizer */
+    .stack-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+    .panel-header{padding:10px 16px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mu);background:var(--s2);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center}
+    .sp-label{font-size:0.7rem;color:var(--am);font-family:monospace}
+
+    .stack-body{min-height:260px;display:flex;flex-direction:column;justify-content:flex-start;padding:12px;gap:6px;position:relative}
+    .addr-line{display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--mu);font-family:monospace;margin-bottom:2px}
+    .high-addr{color:#475569;font-size:0.68rem;text-align:center;padding:4px;border-bottom:1px dashed #1e293b}
+    .low-addr{color:#475569;font-size:0.68rem;text-align:center;padding:4px;border-top:1px dashed #1e293b;margin-top:auto}
+
+    .frame{border-radius:8px;overflow:hidden;transition:all .3s;animation:slideIn .3s ease}
+    @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .frame-header{padding:8px 14px;font-size:0.85rem;font-weight:700}
+    .frame-body{padding:8px 14px;font-size:0.78rem;font-family:monospace;line-height:1.7;border-top:1px solid rgba(255,255,255,.06)}
+    .frame-row{display:flex;justify-content:space-between}
+    .frame-key{color:#64748b}
+    .frame-val{color:#94a3b8}
+
+    .frame-main .frame-header{background:#172554;color:#93c5fd}
+    .frame-main .frame-body{background:#0f1f3d}
+    .frame-foo .frame-header{background:#1a2e1a;color:#6ee7b7}
+    .frame-foo .frame-body{background:#0f1f0f}
+    .frame-bar .frame-header{background:#2d1b69;color:#c4b5fd}
+    .frame-bar .frame-body{background:#1a0f3d}
+    .frame-baz .frame-header{background:#3b1515;color:#fca5a5}
+    .frame-baz .frame-body{background:#1f0d0d}
+
+    .sp-indicator{display:flex;align-items:center;gap:6px;font-size:0.72rem;color:var(--am);font-family:monospace;padding:4px 0}
+    .sp-arrow{color:var(--am);font-size:1rem}
+
+    /* Heap visualizer */
+    .heap-wrap{background:var(--s1);border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+    .heap-body{min-height:260px;padding:12px;display:flex;flex-direction:column;gap:6px}
+    .heap-obj{border-radius:8px;padding:10px 14px;transition:all .3s;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+    .heap-obj-int{background:#172554;border:1px solid #2563eb}
+    .heap-obj-list{background:#1a2e1a;border:1px solid #16a34a}
+    .heap-obj-str{background:#2d1b69;border:1px solid #7c3aed}
+    .heap-obj.orphan{opacity:.4;border-style:dashed}
+    .heap-obj-label{font-size:0.72rem;font-weight:700;font-family:monospace;margin-bottom:4px}
+    .heap-obj-info{font-size:0.7rem;color:#64748b;display:flex;justify-content:space-between}
+    .ref-count{font-size:0.7rem;font-family:monospace}
+    .ref-count.zero{color:var(--rd)}
+    .ref-count.positive{color:var(--gr)}
+
+    .empty-msg{color:#334155;font-size:0.82rem;text-align:center;margin-top:40px}
+
+    /* Legend */
+    .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:0.75rem;color:var(--mu)}
+    .leg-item{display:flex;align-items:center;gap:5px}
+    .leg-dot{width:10px;height:10px;border-radius:2px}
+  </style>
+</head>
+<body>
+  <h1>스택 프레임 시뮬레이터</h1>
+  <p class="sub">함수 호출과 종료에 따라 스택 프레임과 힙 객체가 어떻게 변하는지 확인해보세요.</p>
+
+  <div class="code-panel" id="codePanel">
+    <div class="code-line" id="c0">def main():</div>
+    <div class="code-line" id="c1">&nbsp;&nbsp;&nbsp;&nbsp;result = foo()</div>
+    <div class="code-line" id="c2">&nbsp;&nbsp;&nbsp;&nbsp;print(result)</div>
+    <div class="code-line" id="c3">&nbsp;</div>
+    <div class="code-line" id="c4">def foo():</div>
+    <div class="code-line" id="c5">&nbsp;&nbsp;&nbsp;&nbsp;x = 10</div>
+    <div class="code-line" id="c6">&nbsp;&nbsp;&nbsp;&nbsp;data = [1, 2, 3]</div>
+    <div class="code-line" id="c7">&nbsp;&nbsp;&nbsp;&nbsp;return bar(data)</div>
+    <div class="code-line" id="c8">&nbsp;</div>
+    <div class="code-line" id="c9">def bar(items):</div>
+    <div class="code-line" id="c10">&nbsp;&nbsp;&nbsp;&nbsp;msg = "done"</div>
+    <div class="code-line" id="c11">&nbsp;&nbsp;&nbsp;&nbsp;return items[0]</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-call" id="btnNext" onclick="nextStep()">다음 단계 →</button>
+    <button class="btn btn-reset" onclick="reset()">처음으로</button>
+    <div class="status" id="statusMsg">main()에서 시작합니다. "다음 단계"를 눌러보세요.</div>
+  </div>
+
+  <div class="layout">
+    <div class="stack-wrap">
+      <div class="panel-header">
+        스택 (높은 주소 → 낮은 주소)
+        <span class="sp-label" id="spLabel">SP: 0xFF00</span>
+      </div>
+      <div class="stack-body" id="stackBody">
+        <div class="high-addr">높은 주소 ↑</div>
+        <div id="frameContainer"></div>
+        <div class="low-addr">낮은 주소 ↓</div>
+      </div>
+    </div>
+
+    <div class="heap-wrap">
+      <div class="panel-header">힙 (동적 할당 객체)</div>
+      <div class="heap-body" id="heapBody">
+        <div class="empty-msg" id="heapEmpty">아직 힙 객체 없음</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#172554;border:1px solid #2563eb"></div>main 프레임</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1a2e1a;border:1px solid #16a34a"></div>foo 프레임</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2d1b69;border:1px solid #7c3aed"></div>bar 프레임</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#172554;border:1px solid #2563eb"></div>int 객체</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#1a2e1a;border:1px solid #16a34a"></div>list 객체</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2d1b69;border:1px solid #7c3aed"></div>str 객체</div>
+  </div>
+
+<script>
+const steps = [
+  {
+    code: ['c0'],
+    status: 'main() 실행 시작. 스택에 main 프레임이 생성됩니다.',
+    frames: [
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [],
+    sp: '0xFEF0'
+  },
+  {
+    code: ['c1','c4'],
+    status: 'main()이 foo()를 호출합니다. 새 스택 프레임이 생성됩니다.',
+    frames: [
+      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','(미정)'],['data','(미정)'],['ret','main']], sp:'0xFEA0'},
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [],
+    sp: '0xFEA0'
+  },
+  {
+    code: ['c5'],
+    status: 'foo() 안에서 x = 10. 정수 10은 힙에 int 객체로 생성됩니다.',
+    frames: [
+      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10 (int 10)'],['data','(미정)'],['ret','main']], sp:'0xFEA0'},
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [
+      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1}
+    ],
+    sp: '0xFEA0'
+  },
+  {
+    code: ['c6'],
+    status: 'data = [1, 2, 3]. 리스트 객체가 힙에 생성됩니다.',
+    frames: [
+      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20 (list)'],['ret','main']], sp:'0xFEA0'},
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [
+      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:1}
+    ],
+    sp: '0xFEA0'
+  },
+  {
+    code: ['c7','c9'],
+    status: 'foo()가 bar(data)를 호출합니다. bar 프레임이 생성됩니다. data(리스트)의 참조 카운트가 증가합니다.',
+    frames: [
+      {id:'bar', cls:'frame-bar', name:'bar(items)', vars:[['items','→ 0x6B20 (list)'],['msg','(미정)'],['ret','foo']], sp:'0xFE50'},
+      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']], sp:'0xFEA0'},
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [
+      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:2}
+    ],
+    sp: '0xFE50'
+  },
+  {
+    code: ['c10'],
+    status: 'bar() 안에서 msg = "done". 문자열 객체가 힙에 생성됩니다.',
+    frames: [
+      {id:'bar', cls:'frame-bar', name:'bar(items)', vars:[['items','→ 0x6B20'],['msg','→ 0x7C30 (str)'],['ret','foo']], sp:'0xFE50'},
+      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']], sp:'0xFEA0'},
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [
+      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:2},
+      {id:'h3', cls:'heap-obj-str', label:'str "done"', info:'0x7C30', refs:1}
+    ],
+    sp: '0xFE50'
+  },
+  {
+    code: ['c11'],
+    status: 'bar() 종료. items[0] = 1을 반환합니다. bar 프레임이 스택에서 사라집니다. msg("done")는 참조 카운트 0 → GC 해제.',
+    frames: [
+      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']], sp:'0xFEA0'},
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [
+      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:1},
+      {id:'h3', cls:'heap-obj-str', label:'str "done" 🗑', info:'0x7C30', refs:0, orphan:true}
+    ],
+    sp: '0xFEA0'
+  },
+  {
+    code: ['c7'],
+    status: 'foo() 종료. 반환값 1을 main()에 전달합니다. foo 프레임 소멸. x(int 10)와 data(list)의 참조 카운트 감소.',
+    frames: [
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','→ 0x8D40 (int 1)'],['ret','OS']], sp:'0xFEF0'}
+    ],
+    heap: [
+      {id:'h4', cls:'heap-obj-int', label:'int(1)', info:'0x8D40', refs:1},
+      {id:'h1', cls:'heap-obj-int', label:'int(10) 🗑', info:'0x5A10', refs:0, orphan:true},
+      {id:'h2', cls:'heap-obj-list', label:'list [1,2,3] 🗑', info:'0x6B20', refs:0, orphan:true}
+    ],
+    sp: '0xFEF0'
+  },
+  {
+    code: ['c2'],
+    status: 'main() 종료. 모든 스택 프레임이 사라집니다. 남은 힙 객체도 GC가 정리합니다.',
+    frames: [],
+    heap: [],
+    sp: '0xFF00'
+  }
+];
+
+let current = 0;
+
+function render(step) {
+  // Code highlight
+  document.querySelectorAll('.code-line').forEach(el => {
+    el.classList.remove('active','done');
+  });
+  step.code.forEach(id => document.getElementById(id)?.classList.add('active'));
+
+  // Status
+  document.getElementById('statusMsg').textContent = step.status;
+
+  // SP
+  document.getElementById('spLabel').textContent = `SP: ${step.sp}`;
+
+  // Frames
+  const fc = document.getElementById('frameContainer');
+  fc.innerHTML = '';
+  if (step.frames.length === 0) {
+    fc.innerHTML = '<div style="text-align:center;color:#334155;font-size:.82rem;padding:40px 0">모든 프레임 소멸<br><span style="font-size:.72rem">프로그램 종료</span></div>';
+  } else {
+    step.frames.forEach((f, i) => {
+      const div = document.createElement('div');
+      div.className = `frame ${f.cls}`;
+      if (i === 0) div.style.animation = 'slideIn .3s ease';
+      const vars = f.vars.map(([k,v]) =>
+        `<div class="frame-row"><span class="frame-key">${k}</span><span class="frame-val">${v}</span></div>`
+      ).join('');
+      div.innerHTML = `
+        <div class="frame-header">${f.name}</div>
+        <div class="frame-body">${vars}</div>
+      `;
+      fc.appendChild(div);
+    });
+  }
+
+  // Heap
+  const hb = document.getElementById('heapBody');
+  const he = document.getElementById('heapEmpty');
+  hb.innerHTML = '';
+  if (step.heap.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-msg';
+    empty.textContent = step.frames.length === 0 ? '프로그램 종료 — 모든 객체 해제됨' : '아직 힙 객체 없음';
+    hb.appendChild(empty);
+  } else {
+    step.heap.forEach(obj => {
+      const div = document.createElement('div');
+      div.className = `heap-obj ${obj.cls}${obj.orphan ? ' orphan' : ''}`;
+      div.innerHTML = `
+        <div class="heap-obj-label">${obj.label}</div>
+        <div class="heap-obj-info">
+          <span>${obj.info}</span>
+          <span class="ref-count ${obj.refs === 0 ? 'zero' : 'positive'}">참조: ${obj.refs}${obj.refs === 0 ? ' → GC 해제' : ''}</span>
+        </div>
+      `;
+      hb.appendChild(div);
+    });
+  }
+
+  // Buttons
+  document.getElementById('btnNext').disabled = current >= steps.length - 1;
+}
+
+function nextStep() {
+  if (current < steps.length - 1) {
+    current++;
+    render(steps[current]);
+  }
+}
+
+function reset() {
+  current = 0;
+  render(steps[0]);
+}
+
+render(steps[0]);
+</script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<svg width="720" height="270" viewBox="0 0 720 270" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#6e7681"/>
+  </marker></defs>
+  <rect width="720" height="270" fill="#0d1117" rx="12"/>
+  <text x="360" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">세그멘테이션 주소 변환</text>
+
+  <!-- Step labels -->
+  <text x="95" y="50" text-anchor="middle" fill="#484f58" font-size="11">① 가상 주소</text>
+  <text x="370" y="50" text-anchor="middle" fill="#484f58" font-size="11">② 세그먼트 테이블 조회</text>
+  <text x="630" y="50" text-anchor="middle" fill="#484f58" font-size="11">③ 물리 주소</text>
+
+  <!-- Virtual address box -->
+  <rect x="18" y="58" width="154" height="110" rx="8" fill="#161b22" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="95" y="78" text-anchor="middle" fill="#8b949e" font-size="11">가상 주소</text>
+  <rect x="28" y="86" width="60" height="24" rx="4" fill="#1c3a5e"/>
+  <text x="58" y="103" text-anchor="middle" fill="#58a6ff" font-size="12" font-family="monospace" font-weight="700">세그먼트 2</text>
+  <rect x="96" y="86" width="66" height="24" rx="4" fill="#1a3a27"/>
+  <text x="129" y="103" text-anchor="middle" fill="#3fb950" font-size="12" font-family="monospace" font-weight="700">0x064</text>
+  <text x="95" y="132" text-anchor="middle" fill="#484f58" font-size="10">세그먼트 번호</text>
+  <text x="95" y="148" text-anchor="middle" fill="#484f58" font-size="10">+ 오프셋</text>
+
+  <!-- Arrow 1 -->
+  <line x1="175" y1="113" x2="210" y2="113" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Segment table -->
+  <rect x="212" y="58" width="316" height="165" rx="8" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="370" y="78" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="700">세그먼트 테이블</text>
+
+  <!-- Header -->
+  <rect x="222" y="84" width="296" height="18" rx="3" fill="#1e2329"/>
+  <text x="272" y="97" text-anchor="middle" fill="#484f58" font-size="10" font-weight="700">세그먼트</text>
+  <text x="370" y="97" text-anchor="middle" fill="#484f58" font-size="10" font-weight="700">base</text>
+  <text x="456" y="97" text-anchor="middle" fill="#484f58" font-size="10" font-weight="700">limit</text>
+
+  <!-- Row 0 -->
+  <rect x="222" y="106" width="296" height="22" rx="2" fill="#1e2329"/>
+  <text x="272" y="121" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">0 (코드)</text>
+  <text x="370" y="121" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">0x1000</text>
+  <text x="456" y="121" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">0x500</text>
+
+  <!-- Row 1 -->
+  <rect x="222" y="130" width="296" height="22" rx="2" fill="#1e2329"/>
+  <text x="272" y="145" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">1 (데이터)</text>
+  <text x="370" y="145" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">0x3000</text>
+  <text x="456" y="145" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">0x200</text>
+
+  <!-- Row 2 highlighted -->
+  <rect x="222" y="154" width="296" height="22" rx="2" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1"/>
+  <text x="272" y="169" text-anchor="middle" fill="#58a6ff" font-size="10" font-family="monospace" font-weight="700">2 (힙) ←</text>
+  <text x="370" y="169" text-anchor="middle" fill="#58a6ff" font-size="10" font-family="monospace" font-weight="700">0x5000</text>
+  <text x="456" y="169" text-anchor="middle" fill="#58a6ff" font-size="10" font-family="monospace" font-weight="700">0x800</text>
+
+  <!-- Row 3 -->
+  <rect x="222" y="178" width="296" height="22" rx="2" fill="#1e2329"/>
+  <text x="272" y="193" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">3 (스택)</text>
+  <text x="370" y="193" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">0x8000</text>
+  <text x="456" y="193" text-anchor="middle" fill="#484f58" font-size="10" font-family="monospace">0x400</text>
+
+  <!-- Arrow 2 -->
+  <line x1="530" y1="165" x2="566" y2="150" stroke="#6e7681" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Physical address box -->
+  <rect x="568" y="58" width="134" height="165" rx="8" fill="#161b22" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="635" y="78" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="700">물리 주소</text>
+  <text x="578" y="106" fill="#8b949e" font-size="11" font-family="monospace">base</text>
+  <text x="578" y="124" fill="#58a6ff" font-size="11" font-family="monospace">0x5000</text>
+  <text x="578" y="142" fill="#8b949e" font-size="11" font-family="monospace">+ offset</text>
+  <text x="578" y="160" fill="#3fb950" font-size="11" font-family="monospace">0x064</text>
+  <line x1="578" y1="167" x2="692" y2="167" stroke="#484f58" stroke-width="1"/>
+  <text x="635" y="190" text-anchor="middle" fill="#3fb950" font-size="14" font-family="monospace" font-weight="700">0x5064</text>
+
+  <!-- Bottom note -->
+  <text x="360" y="246" text-anchor="middle" fill="#484f58" font-size="11">offset(0x064) &lt; limit(0x800) → 정상 접근</text>
+  <text x="360" y="262" text-anchor="middle" fill="#484f58" font-size="11">offset &gt;= limit이면 세그멘테이션 폴트</text>
+</svg>

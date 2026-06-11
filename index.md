@@ -13,7 +13,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#172554;color:#58a6ff">OS</span>
         Operating System
       </span>
-      <span class="subject-count">6 chapters</span>
+      <span class="subject-count">7 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/OS/ch1-process-thread/" class="chapter-link">
@@ -33,6 +33,9 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/OS/ch6-page-replacement/" class="chapter-link">
         <span class="ch-num">CH6</span>페이지 교체와 TLB
+      </a>
+      <a href="/DEV_LOG/OS/ch7-segmentation-stack-heap/" class="chapter-link">
+        <span class="ch-num">CH7</span>세그멘테이션과 스택, 힙
       </a>
     </div>
   </div>
