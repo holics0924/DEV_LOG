@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 24px 20px;
+    font-size: 14px;
+  }
+  h3 {
+    color: #58a6ff;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.03em;
+  }
+
+  /* 프로세스 영역 */
+  .timeline-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .process-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .process-label {
+    width: 90px;
+    font-size: 12px;
+    color: #8b949e;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .process-label span {
+    font-size: 11px;
+    display: block;
+    color: #6e7681;
+  }
+  .bar-container {
+    flex: 1;
+    height: 36px;
+    background: #161b22;
+    border-radius: 6px;
+    border: 1px solid #21262d;
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-segment {
+    position: absolute;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    transition: all 0.4s ease;
+    opacity: 0;
+    white-space: nowrap;
+  }
+  .bar-segment.visible { opacity: 1; }
+
+  /* 색상 */
+  .seg-running-b  { background: #1f4068; color: #58a6ff; border: 1px solid #388bfd; }
+  .seg-isr        { background: #3d1f1f; color: #ff7b72; border: 1px solid #da3633; }
+  .seg-resume-b   { background: #1a3a2a; color: #56d364; border: 1px solid #2ea043; }
+  .seg-waiting    { background: #161b22; color: #484f58; border: 1px solid #21262d; }
+  .seg-ready      { background: #2d2a1a; color: #e3b341; border: 1px solid #bb8009; }
+  .seg-cpu        { background: #1a3a2a; color: #56d364; border: 1px solid #2ea043; }
+
+  /* 커널 영역 */
+  .kernel-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .kernel-label {
+    width: 90px;
+    font-size: 12px;
+    color: #8b949e;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .kernel-container {
+    flex: 1;
+    height: 36px;
+    background: #161b22;
+    border-radius: 6px;
+    border: 1px solid #21262d;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 시간축 */
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .time-spacer { width: 90px; flex-shrink: 0; }
+  .time-axis {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+  .time-tick {
+    font-size: 10px;
+    color: #484f58;
+  }
+
+  /* 단계 설명 */
+  .step-desc {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    min-height: 60px;
+    transition: all 0.3s ease;
+  }
+  .step-desc .step-num {
+    font-size: 11px;
+    color: #58a6ff;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .step-desc .step-text {
+    font-size: 13px;
+    color: #c9d1d9;
+    line-height: 1.5;
+  }
+  .step-desc .step-text .highlight {
+    color: #e3b341;
+    font-weight: 600;
+  }
+
+  /* 버튼 */
+  .controls {
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #btn-next {
+    background: #238636;
+    color: #fff;
+  }
+  #btn-next:hover { background: #2ea043; }
+  #btn-next:disabled { background: #21262d; color: #484f58; cursor: default; }
+  #btn-reset {
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+  }
+  #btn-reset:hover { background: #30363d; color: #c9d1d9; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #21262d;
+    margin: 16px 0;
+  }
+
+  /* Ready Queue */
+  .queue-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .queue-label {
+    width: 90px;
+    font-size: 12px;
+    color: #8b949e;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .queue-box {
+    flex: 1;
+    height: 36px;
+    background: #161b22;
+    border-radius: 6px;
+    border: 1px solid #21262d;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .queue-chip {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.4s ease;
+  }
+  .queue-chip.visible { opacity: 1; }
+  .chip-b { background: #1f4068; color: #58a6ff; border: 1px solid #388bfd; }
+  .chip-a { background: #2d2a1a; color: #e3b341; border: 1px solid #bb8009; }
+  .chip-other { background: #1e2a1e; color: #6e7681; border: 1px solid #21262d; }
+  .queue-empty { font-size: 11px; color: #484f58; }
+</style>
+</head>
+<body>
+
+<h3>인터럽트 처리 흐름</h3>
+
+<div class="step-desc" id="step-desc">
+  <div class="step-num">시작 전</div>
+  <div class="step-text">다음 버튼을 눌러 단계별로 진행하세요.<br>프로세스 A는 <span class="highlight">Waiting</span> 상태(I/O 대기 중), 프로세스 B는 CPU를 쓰고 있습니다.</div>
+</div>
+
+<div class="timeline-area">
+  <div class="process-row">
+    <div class="process-label">CPU<span>실행 흐름</span></div>
+    <div class="bar-container" id="bar-cpu"></div>
+  </div>
+  <div class="process-row">
+    <div class="process-label">프로세스 B<span>실행 중</span></div>
+    <div class="bar-container" id="bar-b"></div>
+  </div>
+  <div class="kernel-row">
+    <div class="kernel-label">커널<span>ISR</span></div>
+    <div class="kernel-container" id="bar-kernel"></div>
+  </div>
+</div>
+
+<div class="queue-area">
+  <div class="queue-label">Ready Queue</div>
+  <div class="queue-box" id="queue-box">
+    <span class="queue-empty" id="queue-empty">비어있음</span>
+    <span class="queue-chip chip-other" id="chip-other">다른 프로세스들...</span>
+  </div>
+</div>
+
+<div class="queue-area">
+  <div class="queue-label">Waiting Queue</div>
+  <div class="queue-box" id="waiting-box">
+    <span class="queue-chip chip-a visible" id="chip-a-waiting">프로세스 A (I/O 대기)</span>
+  </div>
+</div>
+
+<hr class="divider">
+
+<div class="controls">
+  <button id="btn-next" onclick="nextStep()">다음 단계 →</button>
+  <button id="btn-reset" onclick="reset()">처음부터</button>
+</div>
+
+<script>
+const TOTAL_STEPS = 6;
+let step = 0;
+
+const steps = [
+  {
+    num: "1단계 — 정상 실행",
+    text: "프로세스 B가 CPU를 받아 실행 중입니다. 프로세스 A는 I/O 완료를 기다리며 <span class='highlight'>Waiting Queue</span>에 있습니다.",
+    cpu: [{ left: 0, width: 30, cls: "seg-running-b", text: "B 실행 중" }],
+    b:   [{ left: 0, width: 30, cls: "seg-running-b", text: "Running" }],
+    kernel: [],
+    queueOther: true, queueA: false, waitingA: true,
+  },
+  {
+    num: "2단계 — 인터럽트 신호 도착",
+    text: "디스크가 A의 I/O를 완료하고 <span class='highlight'>인터럽트 핀에 신호를 보냅니다.</span> CPU는 현재 명령어를 마치고 신호를 감지합니다.",
+    cpu: [
+      { left: 0, width: 30, cls: "seg-running-b", text: "B 실행 중" },
+      { left: 31, width: 8, cls: "seg-isr", text: "⚡ 신호" },
+    ],
+    b:   [{ left: 0, width: 30, cls: "seg-running-b", text: "Running" }],
+    kernel: [],
+    queueOther: true, queueA: false, waitingA: true,
+  },
+  {
+    num: "3단계 — B 상태 저장",
+    text: "<span class='highlight'>B의 레지스터와 PC를 PCB에 저장합니다.</span> B는 멈추지만 나중에 이 시점부터 정확히 재개할 수 있습니다.",
+    cpu: [
+      { left: 0, width: 30, cls: "seg-running-b", text: "B 실행 중" },
+      { left: 31, width: 18, cls: "seg-isr", text: "B 상태 저장" },
+    ],
+    b:   [
+      { left: 0, width: 30, cls: "seg-running-b", text: "Running" },
+      { left: 31, width: 18, cls: "seg-waiting", text: "Stopped" },
+    ],
+    kernel: [{ left: 31, width: 18, cls: "seg-isr", text: "PCB 저장" }],
+    queueOther: true, queueA: false, waitingA: true,
+  },
+  {
+    num: "4단계 — ISR 실행 (인터럽트 벡터 → ISR)",
+    text: "<span class='highlight'>인터럽트 벡터 테이블을 조회해 해당 ISR을 실행합니다.</span> ISR이 A를 Waiting → Ready Queue로 올립니다.",
+    cpu: [
+      { left: 0, width: 30, cls: "seg-running-b", text: "B 실행 중" },
+      { left: 31, width: 35, cls: "seg-isr", text: "ISR 실행 중" },
+    ],
+    b:   [
+      { left: 0, width: 30, cls: "seg-running-b", text: "Running" },
+      { left: 31, width: 35, cls: "seg-waiting", text: "Stopped" },
+    ],
+    kernel: [
+      { left: 31, width: 35, cls: "seg-isr", text: "벡터 조회 → ISR" },
+    ],
+    queueOther: true, queueA: true, waitingA: false,
+  },
+  {
+    num: "5단계 — B 재개",
+    text: "ISR이 끝나면 CPU는 <span class='highlight'>인터럽트 당했던 B로 돌아갑니다.</span> A는 Ready Queue에서 스케줄러가 배정해줄 때를 기다립니다.",
+    cpu: [
+      { left: 0, width: 30, cls: "seg-running-b", text: "B 실행 중" },
+      { left: 31, width: 35, cls: "seg-isr", text: "ISR 실행 중" },
+      { left: 67, width: 33, cls: "seg-resume-b", text: "B 재개" },
+    ],
+    b:   [
+      { left: 0, width: 30, cls: "seg-running-b", text: "Running" },
+      { left: 31, width: 35, cls: "seg-waiting", text: "Stopped" },
+      { left: 67, width: 33, cls: "seg-resume-b", text: "Resumed" },
+    ],
+    kernel: [
+      { left: 31, width: 35, cls: "seg-isr", text: "벡터 조회 → ISR" },
+    ],
+    queueOther: true, queueA: true, waitingA: false,
+  },
+  {
+    num: "6단계 — A 스케줄링 (나중에)",
+    text: "이후 스케줄러가 A를 선택하면 A가 CPU를 받아 실행됩니다. <span class='highlight'>인터럽트 → B 재개 → A 스케줄링, 이 순서가 핵심입니다.</span>",
+    cpu: [
+      { left: 0, width: 30, cls: "seg-running-b", text: "B 실행 중" },
+      { left: 31, width: 35, cls: "seg-isr", text: "ISR 실행 중" },
+      { left: 67, width: 20, cls: "seg-resume-b", text: "B 재개" },
+      { left: 88, width: 12, cls: "seg-cpu", text: "A 실행" },
+    ],
+    b:   [
+      { left: 0, width: 30, cls: "seg-running-b", text: "Running" },
+      { left: 31, width: 56, cls: "seg-waiting", text: "Stopped / Ready" },
+    ],
+    kernel: [
+      { left: 31, width: 35, cls: "seg-isr", text: "ISR" },
+    ],
+    queueOther: true, queueA: false, waitingA: false,
+  },
+];
+
+function render() {
+  if (step === 0) {
+    clearAll();
+    return;
+  }
+  const s = steps[step - 1];
+  document.getElementById('step-desc').innerHTML =
+    `<div class="step-num">${s.num}</div><div class="step-text">${s.text}</div>`;
+
+  renderBar('bar-cpu', s.cpu);
+  renderBar('bar-b', s.b);
+  renderBar('bar-kernel', s.kernel);
+
+  const chipOther = document.getElementById('chip-other');
+  const chipAWaiting = document.getElementById('chip-a-waiting');
+  const queueEmpty = document.getElementById('queue-empty');
+
+  chipOther.classList.toggle('visible', s.queueOther);
+  chipAWaiting.classList.toggle('visible', s.waitingA);
+
+  // Ready Queue에 A 추가
+  let chipAReady = document.getElementById('chip-a-ready');
+  if (!chipAReady) {
+    chipAReady = document.createElement('span');
+    chipAReady.className = 'queue-chip chip-a';
+    chipAReady.id = 'chip-a-ready';
+    chipAReady.textContent = '프로세스 A';
+    document.getElementById('queue-box').appendChild(chipAReady);
+  }
+  chipAReady.classList.toggle('visible', s.queueA);
+  queueEmpty.style.display = (s.queueOther || s.queueA) ? 'none' : 'inline';
+
+  document.getElementById('btn-next').disabled = (step >= TOTAL_STEPS);
+}
+
+function renderBar(id, segments) {
+  const container = document.getElementById(id);
+  container.innerHTML = '';
+  segments.forEach(seg => {
+    const el = document.createElement('div');
+    el.className = `bar-segment ${seg.cls}`;
+    el.style.left = seg.left + '%';
+    el.style.width = seg.width + '%';
+    el.textContent = seg.text;
+    container.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('visible'));
+  });
+}
+
+function clearAll() {
+  ['bar-cpu', 'bar-b', 'bar-kernel'].forEach(id => {
+    document.getElementById(id).innerHTML = '';
+  });
+  document.getElementById('step-desc').innerHTML =
+    `<div class="step-num">시작 전</div><div class="step-text">다음 버튼을 눌러 단계별로 진행하세요.<br>프로세스 A는 <span class="highlight">Waiting</span> 상태(I/O 대기 중), 프로세스 B는 CPU를 쓰고 있습니다.</div>`;
+  document.getElementById('chip-other').classList.remove('visible');
+  document.getElementById('chip-a-waiting').classList.add('visible');
+  document.getElementById('queue-empty').style.display = 'inline';
+  const chipAReady = document.getElementById('chip-a-ready');
+  if (chipAReady) chipAReady.remove();
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextStep() {
+  if (step < TOTAL_STEPS) {
+    step++;
+    render();
+  }
+}
+
+function reset() {
+  step = 0;
+  render();
+  clearAll();
+}
+</script>
+</body>
+</html>

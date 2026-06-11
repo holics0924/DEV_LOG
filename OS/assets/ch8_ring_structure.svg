@@ -1,0 +1,53 @@
+<svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', system-ui, sans-serif">
+  <rect width="520" height="520" fill="#0d1117" rx="12"/>
+
+  <!-- Ring 3 (바깥) -->
+  <circle cx="260" cy="260" r="230" fill="#1a1a0a" stroke="#bb8009" stroke-width="1.5"/>
+  <!-- Ring 2 -->
+  <circle cx="260" cy="260" r="170" fill="#1a150a" stroke="#6e4c00" stroke-width="1" stroke-dasharray="6,4"/>
+  <!-- Ring 1 -->
+  <circle cx="260" cy="260" r="110" fill="#0e1a10" stroke="#1a4020" stroke-width="1" stroke-dasharray="6,4"/>
+  <!-- Ring 0 (안쪽) -->
+  <circle cx="260" cy="260" r="50" fill="#0e1d33" stroke="#388bfd" stroke-width="2"/>
+
+  <!-- Ring 레이블 -->
+  <text x="260" y="254" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="700">Ring 0</text>
+  <text x="260" y="271" text-anchor="middle" fill="#4a7fa8" font-size="11">커널</text>
+
+  <text x="260" y="158" text-anchor="middle" fill="#3a5c3a" font-size="11" font-weight="600">Ring 1 / Ring 2</text>
+  <text x="260" y="173" text-anchor="middle" fill="#2a3a2a" font-size="10">현대 OS에서 미사용</text>
+
+  <text x="260" y="52" text-anchor="middle" fill="#e3b341" font-size="13" font-weight="700">Ring 3</text>
+  <text x="260" y="69" text-anchor="middle" fill="#bb8009" font-size="11">유저 애플리케이션</text>
+
+  <!-- Ring 번호 태그 (왼쪽) -->
+  <text x="22" y="264" fill="#388bfd" font-size="11" font-weight="600">Ring 0</text>
+  <text x="96" y="264" fill="#2a4a2a" font-size="11">Ring 1</text>
+  <text x="156" y="264" fill="#2a4a2a" font-size="11">Ring 2</text>
+  <text x="384" y="264" fill="#bb8009" font-size="11" font-weight="600">Ring 3</text>
+
+  <!-- 권한 설명 박스들 (Ring 0) -->
+  <rect x="84" y="360" width="154" height="76" rx="7" fill="#0e1d33" stroke="#388bfd" stroke-width="1"/>
+  <text x="161" y="378" text-anchor="middle" fill="#388bfd" font-size="11" font-weight="700">Ring 0 권한</text>
+  <text x="96" y="396" fill="#58a6ff" font-size="10">• 하드웨어 직접 접근</text>
+  <text x="96" y="412" fill="#58a6ff" font-size="10">• 메모리 맵 변경</text>
+  <text x="96" y="428" fill="#58a6ff" font-size="10">• 모든 CPU 명령어</text>
+
+  <!-- 권한 설명 박스들 (Ring 3) -->
+  <rect x="282" y="360" width="154" height="76" rx="7" fill="#1a1a0a" stroke="#bb8009" stroke-width="1"/>
+  <text x="359" y="378" text-anchor="middle" fill="#bb8009" font-size="11" font-weight="700">Ring 3 권한</text>
+  <text x="294" y="396" fill="#e3b341" font-size="10">• 일반 연산만 가능</text>
+  <text x="294" y="412" fill="#e3b341" font-size="10">• 하드웨어 접근 불가</text>
+  <text x="294" y="428" fill="#e3b341" font-size="10">• syscall로만 커널 진입</text>
+
+  <!-- 화살표: Ring 3 → Ring 0 (syscall) — 오른쪽 오프셋으로 텍스트 겹침 방지 -->
+  <path d="M330 200 L330 120" fill="none" stroke="#da3633" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrow-red)"/>
+  <rect x="338" y="155" width="52" height="16" rx="3" fill="#0d1117"/>
+  <text x="364" y="167" text-anchor="middle" fill="#ff7b72" font-size="10">syscall</text>
+
+  <defs>
+    <marker id="arrow-red" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#da3633"/>
+    </marker>
+  </defs>
+</svg>

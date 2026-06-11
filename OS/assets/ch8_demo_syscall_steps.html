@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 24px 20px;
+    font-size: 14px;
+  }
+  h3 { color: #58a6ff; font-size: 14px; font-weight: 600; margin-bottom: 20px; }
+
+  /* 모드 인디케이터 */
+  .mode-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  .mode-label { font-size: 12px; color: #6e7681; }
+  .mode-chip {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+  }
+  .mode-user   { background: #2b280e; color: #e3b341; border: 1px solid #bb8009; }
+  .mode-kernel { background: #0e1d33; color: #58a6ff; border: 1px solid #388bfd; }
+  .mode-chip.active { box-shadow: 0 0 10px currentColor; }
+  .mode-chip.inactive { opacity: 0.3; }
+
+  /* 메인 다이어그램 */
+  .diagram {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    margin-bottom: 20px;
+  }
+  .col-user   { background: #111109; border: 1px solid #2b1f00; border-radius: 8px; padding: 12px; }
+  .col-kernel { background: #090e18; border: 1px solid #0e2040; border-radius: 8px; padding: 12px; }
+  .col-arrow  { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; }
+  .col-title  { font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+  .user-title   { color: #bb8009; }
+  .kernel-title { color: #388bfd; }
+
+  /* 스텝 박스 */
+  .step-box {
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    border: 1px solid transparent;
+    transition: all 0.35s ease;
+    opacity: 0.25;
+  }
+  .step-box.active {
+    opacity: 1;
+    box-shadow: 0 0 8px rgba(88,166,255,0.2);
+  }
+  .step-box.done { opacity: 0.55; }
+
+  .step-user   { background: #1e1a08; border-color: #2b1f00; }
+  .step-user.active   { border-color: #bb8009; background: #2b280e; }
+  .step-kernel { background: #08101e; border-color: #0a1828; }
+  .step-kernel.active { border-color: #388bfd; background: #0e1d33; }
+
+  .step-num  { font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+  .step-title { font-weight: 600; margin-bottom: 3px; }
+  .step-code  { font-family: monospace; color: #6e7681; font-size: 11px; margin-top: 5px; }
+  .user-num   { color: #e3b341; }
+  .kernel-num { color: #58a6ff; }
+
+  /* 화살표 */
+  .arrow-down { font-size: 22px; color: #da3633; line-height: 1; }
+  .arrow-up   { font-size: 22px; color: #56d364; line-height: 1; }
+  .arrow-label { font-size: 10px; color: #6e7681; text-align: center; }
+
+  /* 설명 박스 */
+  .step-desc {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    min-height: 58px;
+    transition: all 0.3s;
+  }
+  .desc-num  { font-size: 11px; color: #58a6ff; font-weight: 600; margin-bottom: 4px; }
+  .desc-text { font-size: 13px; color: #c9d1d9; line-height: 1.5; }
+  .hl { color: #e3b341; font-weight: 600; }
+  .hl-blue { color: #58a6ff; font-weight: 600; }
+  .hl-red  { color: #ff7b72; font-weight: 600; }
+  .hl-green { color: #56d364; font-weight: 600; }
+
+  /* 버튼 */
+  .controls { display: flex; gap: 10px; }
+  button { padding: 8px 18px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  #btn-next  { background: #238636; color: #fff; }
+  #btn-next:hover { background: #2ea043; }
+  #btn-next:disabled { background: #21262d; color: #484f58; cursor: default; }
+  #btn-reset { background: #21262d; color: #8b949e; border: 1px solid #30363d; }
+  #btn-reset:hover { background: #30363d; color: #c9d1d9; }
+
+  hr.div { border: none; border-top: 1px solid #21262d; margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<h3>시스템 콜 단계별 흐름</h3>
+
+<div class="mode-bar">
+  <span class="mode-label">현재 모드:</span>
+  <span class="mode-chip mode-user active" id="chip-user">유저 모드 (Ring 3)</span>
+  <span class="mode-chip mode-kernel inactive" id="chip-kernel">커널 모드 (Ring 0)</span>
+</div>
+
+<div class="diagram">
+  <!-- 유저 모드 컬럼 -->
+  <div class="col-user">
+    <div class="col-title user-title">유저 모드</div>
+
+    <div class="step-box step-user" id="s1">
+      <div class="step-num user-num">① 앱 실행</div>
+      <div class="step-title">read() 호출</div>
+      <div class="step-code">n = read(fd, buf, 100)</div>
+    </div>
+
+    <div class="step-box step-user" id="s2">
+      <div class="step-num user-num">② 트랩 명령어</div>
+      <div class="step-title">syscall 실행</div>
+      <div class="step-code">mov rax, 0  ; read = 0번<br>syscall     ; 트랩 발생</div>
+    </div>
+
+    <div class="step-box step-user" id="s6">
+      <div class="step-num user-num">⑥ 유저 코드 재개</div>
+      <div class="step-title">결과값 수신 후 계속</div>
+      <div class="step-code">n = 100  ; 읽은 바이트 수<br>printf("%d", n)</div>
+    </div>
+  </div>
+
+  <!-- 화살표 컬럼 -->
+  <div class="col-arrow">
+    <div style="text-align:center">
+      <div class="arrow-down" id="arrow-down">↓</div>
+      <div class="arrow-label" id="arrow-down-label">모드 전환</div>
+    </div>
+    <div style="text-align:center; margin-top:20px">
+      <div class="arrow-up" id="arrow-up">↑</div>
+      <div class="arrow-label" id="arrow-up-label">복귀</div>
+    </div>
+  </div>
+
+  <!-- 커널 모드 컬럼 -->
+  <div class="col-kernel">
+    <div class="col-title kernel-title">커널 모드</div>
+
+    <div class="step-box step-kernel" id="s3">
+      <div class="step-num kernel-num">③ 모드 전환</div>
+      <div class="step-title">유저 → 커널</div>
+      <div class="step-code">레지스터 저장<br>Ring 3 → Ring 0</div>
+    </div>
+
+    <div class="step-box step-kernel" id="s4">
+      <div class="step-num kernel-num">④ 테이블 조회</div>
+      <div class="step-title">syscall 번호 → 핸들러</div>
+      <div class="step-code">syscall_table[0]<br>→ sys_read()</div>
+    </div>
+
+    <div class="step-box step-kernel" id="s5">
+      <div class="step-num kernel-num">⑤ 커널 처리</div>
+      <div class="step-title">sys_read() 실행</div>
+      <div class="step-code">디스크/버퍼 접근<br>결과 유저 메모리에 복사</div>
+    </div>
+  </div>
+</div>
+
+<div class="step-desc" id="step-desc">
+  <div class="desc-num">시작 전</div>
+  <div class="desc-text">다음 버튼으로 단계별로 진행하세요. 유저 앱이 <span class="hl">read()</span>를 호출하는 순간부터 결과를 받아 돌아오기까지의 흐름입니다.</div>
+</div>
+
+<hr class="div">
+
+<div class="controls">
+  <button id="btn-next" onclick="nextStep()">다음 단계 →</button>
+  <button id="btn-reset" onclick="reset()">처음부터</button>
+</div>
+
+<script>
+const TOTAL = 6;
+let step = 0;
+
+const descs = [
+  null,
+  {
+    num: "① 앱 실행",
+    text: "유저 애플리케이션이 <span class='hl'>read()</span>를 호출합니다. 이건 C 라이브러리 함수처럼 보이지만, 내부에서 커널에 진입하는 과정을 감싸고 있습니다."
+  },
+  {
+    num: "② 트랩 명령어 실행",
+    text: "<span class='hl-red'>syscall</span> CPU 명령어가 실행됩니다. rax에 시스템 콜 번호(read = 0)를 넣고 syscall을 실행하면 <span class='hl-red'>하드웨어 트랩이 발생</span>해 CPU가 커널 모드로 진입합니다."
+  },
+  {
+    num: "③ 커널 모드 전환",
+    text: "CPU가 <span class='hl-blue'>Ring 3 → Ring 0</span>으로 전환됩니다. 현재 레지스터 값을 저장하고, 커널 스택으로 전환합니다. 이 시점부터 하드웨어에 직접 접근할 수 있습니다."
+  },
+  {
+    num: "④ 시스템 콜 테이블 조회",
+    text: "커널이 <span class='hl-blue'>syscall_table</span>에서 번호 0에 해당하는 핸들러를 찾습니다. 0번 = sys_read(). 시스템 콜 번호는 OS마다 다르게 정의되어 있습니다."
+  },
+  {
+    num: "⑤ 커널에서 처리",
+    text: "<span class='hl-blue'>sys_read()</span>가 실행됩니다. 디스크나 버퍼에서 데이터를 읽어 유저가 넘긴 buf 주소에 복사합니다. 이 과정은 Ring 0 권한이 있어야만 가능합니다."
+  },
+  {
+    num: "⑥ 유저 모드 복귀",
+    text: "커널 처리가 끝나면 <span class='hl-green'>Ring 0 → Ring 3</span>으로 돌아옵니다. 저장했던 레지스터 복원, 결과값(읽은 바이트 수) 전달. 유저 코드는 read() 호출 다음 줄부터 이어서 실행됩니다."
+  }
+];
+
+const stepToBox = { 1: 's1', 2: 's2', 3: 's3', 4: 's4', 5: 's5', 6: 's6' };
+const userMode  = [1, 2, 6];
+const kernelMode = [3, 4, 5];
+
+function render() {
+  // 모든 박스 초기화
+  for (let i = 1; i <= 6; i++) {
+    const box = document.getElementById(stepToBox[i]);
+    box.classList.remove('active', 'done');
+    if (i < step) box.classList.add('done');
+    if (i === step) box.classList.add('active');
+  }
+
+  // 모드 인디케이터
+  const inKernel = step >= 3 && step <= 5;
+  document.getElementById('chip-user').classList.toggle('active', !inKernel || step === 0);
+  document.getElementById('chip-user').classList.toggle('inactive', inKernel && step !== 0);
+  document.getElementById('chip-kernel').classList.toggle('active', inKernel);
+  document.getElementById('chip-kernel').classList.toggle('inactive', !inKernel);
+
+  // 설명
+  if (step === 0) {
+    document.getElementById('step-desc').innerHTML = '<div class="desc-num">시작 전</div><div class="desc-text">다음 버튼으로 단계별로 진행하세요. 유저 앱이 <span class="hl">read()</span>를 호출하는 순간부터 결과를 받아 돌아오기까지의 흐름입니다.</div>';
+  } else {
+    const d = descs[step];
+    document.getElementById('step-desc').innerHTML = `<div class="desc-num">${d.num}</div><div class="desc-text">${d.text}</div>`;
+  }
+
+  document.getElementById('btn-next').disabled = step >= TOTAL;
+}
+
+function nextStep() {
+  if (step < TOTAL) { step++; render(); }
+}
+
+function reset() {
+  step = 0;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

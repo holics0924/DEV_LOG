@@ -1,0 +1,62 @@
+<svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', system-ui, sans-serif">
+  <rect width="720" height="340" fill="#0d1117" rx="12"/>
+
+  <text x="360" y="32" text-anchor="middle" fill="#8b949e" font-size="12" font-weight="600" letter-spacing="0.05em">커널 모드 진입 경로 3가지</text>
+
+  <!-- 커널 모드 중앙 박스 -->
+  <rect x="270" y="200" width="180" height="100" rx="10" fill="#0e1d33" stroke="#388bfd" stroke-width="2"/>
+  <text x="360" y="240" text-anchor="middle" fill="#58a6ff" font-size="14" font-weight="700">커널 모드</text>
+  <text x="360" y="260" text-anchor="middle" fill="#4a7fa8" font-size="11">(Ring 0)</text>
+  <text x="360" y="278" text-anchor="middle" fill="#4a7fa8" font-size="10">ISR / 핸들러 실행</text>
+  <text x="360" y="292" text-anchor="middle" fill="#4a7fa8" font-size="10">처리 후 유저 모드 복귀</text>
+
+  <!-- 경로 1: 시스템 콜 (왼쪽) -->
+  <rect x="30" y="48" width="180" height="110" rx="8" fill="#2b280e" stroke="#bb8009" stroke-width="1.5"/>
+  <text x="120" y="72" text-anchor="middle" fill="#e3b341" font-size="13" font-weight="700">① 시스템 콜</text>
+  <text x="120" y="92" text-anchor="middle" fill="#8b949e" font-size="11">프로그램이 의도적으로</text>
+  <text x="120" y="108" text-anchor="middle" fill="#8b949e" font-size="11">커널 서비스 요청</text>
+  <text x="46" y="130" fill="#6e7681" font-size="10">예) read(), write(), fork()</text>
+  <text x="46" y="146" fill="#6e7681" font-size="10">트리거: syscall 명령어</text>
+
+  <!-- 경로 2: 하드웨어 인터럽트 (중앙) -->
+  <rect x="270" y="48" width="180" height="110" rx="8" fill="#1a150a" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="360" y="72" text-anchor="middle" fill="#f0883e" font-size="13" font-weight="700">② 하드웨어 인터럽트</text>
+  <text x="360" y="92" text-anchor="middle" fill="#8b949e" font-size="11">외부 장치가 CPU에</text>
+  <text x="360" y="108" text-anchor="middle" fill="#8b949e" font-size="11">신호 전송</text>
+  <text x="286" y="130" fill="#6e7681" font-size="10">예) 디스크 완료, 타이머</text>
+  <text x="286" y="146" fill="#6e7681" font-size="10">트리거: 인터럽트 핀</text>
+
+  <!-- 경로 3: 예외 (오른쪽) -->
+  <rect x="510" y="48" width="180" height="110" rx="8" fill="#1a0a0a" stroke="#da3633" stroke-width="1.5"/>
+  <text x="600" y="72" text-anchor="middle" fill="#ff7b72" font-size="13" font-weight="700">③ 예외</text>
+  <text x="600" y="92" text-anchor="middle" fill="#8b949e" font-size="11">CPU가 오류 감지 시</text>
+  <text x="600" y="108" text-anchor="middle" fill="#8b949e" font-size="11">자동 발생</text>
+  <text x="526" y="130" fill="#6e7681" font-size="10">예) 0 나누기, 세그폴트</text>
+  <text x="526" y="146" fill="#6e7681" font-size="10">트리거: CPU 내부</text>
+
+  <!-- 화살표들 → 커널 모드 -->
+  <!-- 시스템 콜 → 커널 -->
+  <path d="M160 158 Q160 200 270 230" fill="none" stroke="#bb8009" stroke-width="1.5" marker-end="url(#t-yellow)"/>
+  <rect x="168" y="186" width="68" height="16" rx="3" fill="#0d1117"/>
+  <text x="202" y="198" text-anchor="middle" fill="#e3b341" font-size="10">의도적</text>
+
+  <!-- 하드웨어 인터럽트 → 커널 -->
+  <line x1="360" y1="158" x2="360" y2="198" stroke="#f0883e" stroke-width="1.5" marker-end="url(#t-orange)"/>
+  <rect x="368" y="170" width="52" height="16" rx="3" fill="#0d1117"/>
+  <text x="394" y="182" text-anchor="middle" fill="#f0883e" font-size="10">비동기</text>
+
+  <!-- 예외 → 커널 -->
+  <path d="M560 158 Q560 200 450 230" fill="none" stroke="#da3633" stroke-width="1.5" marker-end="url(#t-red)"/>
+  <rect x="484" y="186" width="68" height="16" rx="3" fill="#0d1117"/>
+  <text x="518" y="198" text-anchor="middle" fill="#ff7b72" font-size="10">자동</text>
+
+  <!-- 공통: 처리 후 복귀 표시 -->
+  <rect x="180" y="308" width="360" height="22" rx="5" fill="#161b22" stroke="#21262d" stroke-width="1"/>
+  <text x="360" y="323" text-anchor="middle" fill="#6e7681" font-size="11">세 경로 모두: 인터럽트 벡터 테이블 조회 → ISR 실행 → 유저 모드 복귀</text>
+
+  <defs>
+    <marker id="t-yellow" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#bb8009"/></marker>
+    <marker id="t-orange" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#f0883e"/></marker>
+    <marker id="t-red" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#da3633"/></marker>
+  </defs>
+</svg>

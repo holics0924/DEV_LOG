@@ -115,7 +115,7 @@ permalink: /OS/ch7-segmentation-stack-heap/
 
 아래 시뮬레이터에서 직접 확인해볼 수 있다.
 
-<iframe src="/DEV_LOG/OS/assets/demo_stack_frames.html" width="100%" height="900" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;" onload="this.style.height=(this.contentDocument||this.contentWindow.document).documentElement.scrollHeight+'px'"></iframe>
+<iframe src="/DEV_LOG/OS/assets/ch7_demo_stack_frames.html" width="100%" height="900" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;" onload="this.style.height=(this.contentDocument||this.contentWindow.document).documentElement.scrollHeight+'px'"></iframe>
 
 <br>
 

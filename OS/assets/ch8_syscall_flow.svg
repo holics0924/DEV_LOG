@@ -1,0 +1,80 @@
+<svg viewBox="0 0 720 400" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', system-ui, sans-serif">
+  <rect width="720" height="400" fill="#0d1117" rx="12"/>
+
+  <!-- 유저 모드 영역 -->
+  <rect x="20" y="20" width="680" height="148" rx="8" fill="#1a1a0a" stroke="#bb8009" stroke-width="1.5"/>
+  <text x="36" y="40" fill="#bb8009" font-size="11" font-weight="600">유저 모드 (Ring 3)</text>
+
+  <!-- 커널 모드 영역 -->
+  <rect x="20" y="232" width="680" height="148" rx="8" fill="#0e1d33" stroke="#388bfd" stroke-width="1.5"/>
+  <text x="36" y="252" fill="#388bfd" font-size="11" font-weight="600">커널 모드 (Ring 0)</text>
+
+  <!-- 모드 전환 경계선 -->
+  <line x1="20" y1="190" x2="700" y2="190" stroke="#30363d" stroke-width="1" stroke-dasharray="6,4"/>
+  <text x="360" y="185" text-anchor="middle" fill="#484f58" font-size="10">── 모드 경계 ──</text>
+  <text x="360" y="200" text-anchor="middle" fill="#484f58" font-size="10">── 모드 경계 ──</text>
+
+  <!-- Step 1: 유저 코드 실행 -->
+  <rect x="40" y="52" width="110" height="96" rx="7" fill="#2b280e" stroke="#bb8009" stroke-width="1"/>
+  <text x="95" y="74" text-anchor="middle" fill="#e3b341" font-size="11" font-weight="600">① 유저 코드</text>
+  <text x="95" y="92" text-anchor="middle" fill="#8b949e" font-size="10">앱 실행 중</text>
+  <text x="56" y="112" fill="#6e7681" font-size="10">n = read(fd,</text>
+  <text x="56" y="126" fill="#6e7681" font-size="10">  buf, 100)</text>
+  <text x="95" y="142" text-anchor="middle" fill="#6e7681" font-size="9">read() 호출</text>
+
+  <!-- Step 2: syscall 명령어 -->
+  <rect x="190" y="52" width="110" height="96" rx="7" fill="#2b1a0a" stroke="#f0883e" stroke-width="1"/>
+  <text x="245" y="74" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="600">② 트랩 발생</text>
+  <text x="245" y="92" text-anchor="middle" fill="#8b949e" font-size="10">syscall 명령어</text>
+  <text x="206" y="112" fill="#6e7681" font-size="10">mov rax, 0</text>
+  <text x="206" y="126" fill="#6e7681" font-size="10">syscall</text>
+  <text x="245" y="142" text-anchor="middle" fill="#6e7681" font-size="9">CPU → 커널 진입</text>
+
+  <!-- 화살표 1→2 -->
+  <line x1="150" y1="100" x2="188" y2="100" stroke="#bb8009" stroke-width="1.5" marker-end="url(#a-yellow)"/>
+
+  <!-- Step 3: 시스템 콜 테이블 조회 -->
+  <rect x="340" y="258" width="130" height="96" rx="7" fill="#0e1d33" stroke="#388bfd" stroke-width="1"/>
+  <text x="405" y="278" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">③ 테이블 조회</text>
+  <text x="405" y="296" text-anchor="middle" fill="#8b949e" font-size="10">syscall 번호로</text>
+  <text x="405" y="310" text-anchor="middle" fill="#8b949e" font-size="10">핸들러 함수 찾기</text>
+  <text x="356" y="330" fill="#6e7681" font-size="10">0 → sys_read()</text>
+  <text x="356" y="344" fill="#6e7681" font-size="10">1 → sys_write()</text>
+
+  <!-- Step 4: 커널 처리 -->
+  <rect x="510" y="258" width="120" height="96" rx="7" fill="#0e1d33" stroke="#388bfd" stroke-width="1"/>
+  <text x="570" y="278" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">④ 커널 처리</text>
+  <text x="570" y="296" text-anchor="middle" fill="#8b949e" font-size="10">sys_read() 실행</text>
+  <text x="570" y="312" text-anchor="middle" fill="#8b949e" font-size="10">디스크/버퍼 접근</text>
+  <text x="570" y="330" text-anchor="middle" fill="#6e7681" font-size="9">(Ring 0 권한으로)</text>
+  <text x="570" y="348" text-anchor="middle" fill="#6e7681" font-size="9">결과를 유저 버퍼에</text>
+
+  <!-- 트랩 화살표 (유저→커널) -->
+  <line x1="245" y1="150" x2="245" y2="228" stroke="#da3633" stroke-width="2" marker-end="url(#a-red)"/>
+  <rect x="253" y="182" width="60" height="16" rx="3" fill="#0d1117"/>
+  <text x="283" y="194" text-anchor="middle" fill="#ff7b72" font-size="10">모드 전환</text>
+
+  <!-- 커널 내부 화살표 3→4 -->
+  <line x1="245" y1="306" x2="338" y2="306" stroke="#388bfd" stroke-width="1.5" marker-end="url(#a-blue)"/>
+  <line x1="470" y1="306" x2="508" y2="306" stroke="#388bfd" stroke-width="1.5" marker-end="url(#a-blue)"/>
+
+  <!-- Step 5: 복귀 -->
+  <rect x="490" y="52" width="120" height="96" rx="7" fill="#2b280e" stroke="#bb8009" stroke-width="1"/>
+  <text x="550" y="74" text-anchor="middle" fill="#e3b341" font-size="11" font-weight="600">⑤ 유저 복귀</text>
+  <text x="550" y="92" text-anchor="middle" fill="#8b949e" font-size="10">결과값 전달</text>
+  <text x="550" y="110" text-anchor="middle" fill="#8b949e" font-size="10">유저 모드 재개</text>
+  <text x="506" y="130" fill="#6e7681" font-size="10">n = 100  (읽은 바이트)</text>
+  <text x="550" y="146" text-anchor="middle" fill="#6e7681" font-size="9">다음 줄부터 계속</text>
+
+  <!-- 복귀 화살표 (커널→유저) -->
+  <line x1="570" y1="257" x2="570" y2="151" stroke="#56d364" stroke-width="2" marker-end="url(#a-green)"/>
+  <rect x="578" y="196" width="56" height="16" rx="3" fill="#0d1117"/>
+  <text x="606" y="207" text-anchor="middle" fill="#56d364" font-size="10">복귀</text>
+
+  <defs>
+    <marker id="a-yellow" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#bb8009"/></marker>
+    <marker id="a-red" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#da3633"/></marker>
+    <marker id="a-blue" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#388bfd"/></marker>
+    <marker id="a-green" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#56d364"/></marker>
+  </defs>
+</svg>

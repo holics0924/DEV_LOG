@@ -13,7 +13,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#172554;color:#58a6ff">OS</span>
         Operating System
       </span>
-      <span class="subject-count">7 chapters</span>
+      <span class="subject-count">9 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/OS/ch1-process-thread/" class="chapter-link">
@@ -36,6 +36,12 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/OS/ch7-segmentation-stack-heap/" class="chapter-link">
         <span class="ch-num">CH7</span>세그멘테이션과 스택, 힙
+      </a>
+      <a href="/DEV_LOG/OS/ch8-kernel-syscall/" class="chapter-link">
+        <span class="ch-num">CH8</span>커널 모드와 시스템 콜
+      </a>
+      <a href="/DEV_LOG/OS/ch9-interrupt/" class="chapter-link">
+        <span class="ch-num">CH9</span>인터럽트
       </a>
     </div>
   </div>
