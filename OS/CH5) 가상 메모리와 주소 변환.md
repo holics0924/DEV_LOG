@@ -70,7 +70,7 @@ permalink: /OS/ch5-virtual-memory/
 
 ![주소 변환 과정](./assets/ch5_address_translation.svg)
 
-<iframe src="/DEV_LOG/OS/assets/demo_virtual_address.html" width="100%" height="780" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;"></iframe>
+<iframe src="/DEV_LOG/OS/assets/demo_virtual_address.html" width="100%" height="1100" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;"></iframe>
 
 변환 과정은 세 단계다.
 

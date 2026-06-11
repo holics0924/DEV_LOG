@@ -27,7 +27,7 @@ WRITE → 결과를 count에 쓴다
 
 이게 디버깅하기 어려운 이유도 여기 있다. 보통은 잘 된다. 스레드들이 운 좋게 겹치지 않으면 문제가 안 보인다. 부하가 높아지거나 타이밍이 맞아야 터진다.
 
-<iframe src="/DEV_LOG/OS/assets/demo_race_condition.html" width="100%" height="640" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;"></iframe>
+<iframe src="/DEV_LOG/OS/assets/demo_race_condition.html" width="100%" height="1050" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;"></iframe>
 
 더 현실적인 예시를 들면, 쇼핑몰에서 두 사용자가 동시에 마지막 재고 1개를 구매하는 상황이다. 재고 확인(READ)과 차감(WRITE)이 원자적이지 않으면 두 스레드 모두 재고가 1이라고 읽은 뒤 각자 0으로 덮어쓴다. 두 주문이 모두 통과되고 재고는 -1이 된다.
 
