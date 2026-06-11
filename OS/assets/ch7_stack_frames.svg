@@ -8,7 +8,7 @@
     <path d="M0,0 L0,6 L8,3 z" fill="#d29922"/>
   </marker></defs>
   <rect width="720" height="340" fill="#0d1117" rx="12"/>
-  <text x="360" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">스택 프레임 쌓임 (높은 주소 → 낮은 주소)</text>
+  <text x="360" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">스택 프레임 쌓임 — 높은 주소(위) → 낮은 주소(아래)</text>
 
   <!-- Step labels -->
   <text x="90" y="50" text-anchor="middle" fill="#484f58" font-size="11">① main() 실행</text>
@@ -17,108 +17,108 @@
   <text x="630" y="50" text-anchor="middle" fill="#484f58" font-size="11">④ bar() 종료</text>
 
   <!-- ===== Panel 1: main() only ===== -->
-  <!-- High address label -->
   <text x="90" y="68" text-anchor="middle" fill="#484f58" font-size="9">높은 주소 ↑</text>
-  <!-- Empty space -->
-  <rect x="40" y="72" width="100" height="110" rx="3" fill="#161b22" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="4,3"/>
-  <text x="90" y="130" text-anchor="middle" fill="#2a2a2a" font-size="10">미사용</text>
 
-  <!-- main frame -->
-  <rect x="40" y="182" width="100" height="70" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
-  <text x="90" y="200" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
-  <text x="90" y="218" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
-  <text x="90" y="232" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
+  <!-- main frame at TOP (high address) -->
+  <rect x="40" y="72" width="100" height="60" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="90" y="90" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
+  <text x="90" y="107" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
+  <text x="90" y="121" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
 
-  <!-- SP arrow -->
-  <line x1="150" y1="185" x2="168" y2="185" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
-  <text x="155" y="178" fill="#d29922" font-size="9" font-weight="700">SP</text>
+  <!-- SP arrow at BOTTOM of main (low address side) -->
+  <line x1="150" y1="131" x2="168" y2="131" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
+  <text x="155" y="124" fill="#d29922" font-size="9" font-weight="700">SP</text>
 
-  <!-- Low address -->
-  <text x="90" y="268" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
+  <!-- Empty space below (lower address) -->
+  <rect x="40" y="132" width="100" height="110" rx="3" fill="#161b22" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="90" y="190" text-anchor="middle" fill="#2a2a2a" font-size="10">미사용</text>
+
+  <text x="90" y="258" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
 
   <!-- ===== Panel 2: foo() called ===== -->
   <text x="270" y="68" text-anchor="middle" fill="#484f58" font-size="9">높은 주소 ↑</text>
-  <!-- Empty space smaller -->
-  <rect x="220" y="72" width="100" height="60" rx="3" fill="#161b22" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="4,3"/>
-  <text x="270" y="105" text-anchor="middle" fill="#2a2a2a" font-size="10">미사용</text>
 
-  <!-- foo frame (new) -->
-  <rect x="220" y="132" width="100" height="60" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
-  <text x="270" y="150" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">foo()</text>
-  <text x="270" y="168" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">x=10</text>
-  <text x="270" y="182" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: main</text>
+  <!-- main frame at TOP -->
+  <rect x="220" y="72" width="100" height="55" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="270" y="89" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
+  <text x="270" y="106" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
+  <text x="270" y="120" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
 
-  <!-- main frame -->
-  <rect x="220" y="192" width="100" height="60" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
-  <text x="270" y="210" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
-  <text x="270" y="228" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
-  <text x="270" y="242" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
+  <!-- foo frame BELOW main (lower address) -->
+  <rect x="220" y="127" width="100" height="60" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="270" y="145" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">foo()</text>
+  <text x="270" y="162" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">x=10</text>
+  <text x="270" y="176" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: main</text>
 
-  <!-- SP arrow -->
-  <line x1="330" y1="135" x2="348" y2="135" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
-  <text x="335" y="128" fill="#d29922" font-size="9" font-weight="700">SP</text>
+  <!-- SP arrow at BOTTOM of foo (even lower) -->
+  <line x1="330" y1="186" x2="348" y2="186" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
+  <text x="335" y="179" fill="#d29922" font-size="9" font-weight="700">SP</text>
 
-  <text x="270" y="268" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
+  <!-- Empty space below -->
+  <rect x="220" y="187" width="100" height="55" rx="3" fill="#161b22" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="270" y="217" text-anchor="middle" fill="#2a2a2a" font-size="10">미사용</text>
+
+  <text x="270" y="258" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
 
   <!-- ===== Panel 3: bar() called ===== -->
   <text x="450" y="68" text-anchor="middle" fill="#484f58" font-size="9">높은 주소 ↑</text>
 
-  <!-- bar frame (new) -->
-  <rect x="400" y="72" width="100" height="60" rx="3" fill="#2d1b69" stroke="#a78bfa" stroke-width="1.5"/>
-  <text x="450" y="90" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">bar()</text>
-  <text x="450" y="108" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">y=[1,2,3]</text>
-  <text x="450" y="122" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: foo</text>
+  <!-- main at TOP -->
+  <rect x="400" y="72" width="100" height="50" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="450" y="88" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
+  <text x="450" y="104" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
+  <text x="450" y="116" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
 
-  <!-- foo frame -->
-  <rect x="400" y="132" width="100" height="60" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
-  <text x="450" y="150" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">foo()</text>
-  <text x="450" y="168" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">x=10</text>
-  <text x="450" y="182" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: main</text>
+  <!-- foo below main -->
+  <rect x="400" y="122" width="100" height="55" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="450" y="139" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">foo()</text>
+  <text x="450" y="156" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">x=10</text>
+  <text x="450" y="170" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: main</text>
 
-  <!-- main frame -->
-  <rect x="400" y="192" width="100" height="60" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
-  <text x="450" y="210" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
-  <text x="450" y="228" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
-  <text x="450" y="242" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
+  <!-- bar BELOW foo (lowest address) -->
+  <rect x="400" y="177" width="100" height="60" rx="3" fill="#2d1b69" stroke="#a78bfa" stroke-width="1.5"/>
+  <text x="450" y="195" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">bar()</text>
+  <text x="450" y="212" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">items</text>
+  <text x="450" y="226" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: foo</text>
 
-  <!-- SP arrow -->
-  <line x1="510" y1="75" x2="528" y2="75" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
-  <text x="515" y="68" fill="#d29922" font-size="9" font-weight="700">SP</text>
+  <!-- SP at BOTTOM of bar -->
+  <line x1="510" y1="236" x2="528" y2="236" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
+  <text x="515" y="229" fill="#d29922" font-size="9" font-weight="700">SP</text>
 
-  <text x="450" y="268" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
+  <text x="450" y="258" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
 
   <!-- ===== Panel 4: bar() returns ===== -->
   <text x="630" y="68" text-anchor="middle" fill="#484f58" font-size="9">높은 주소 ↑</text>
 
-  <!-- bar frame gone (gray dashed) -->
-  <rect x="580" y="72" width="100" height="60" rx="3" fill="#161b22" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="4,3"/>
-  <text x="630" y="97" text-anchor="middle" fill="#2a2a2a" font-size="10">bar() 소멸</text>
-  <text x="630" y="112" text-anchor="middle" fill="#2a2a2a" font-size="9">자동 해제</text>
+  <!-- main at TOP -->
+  <rect x="580" y="72" width="100" height="50" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="630" y="88" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
+  <text x="630" y="104" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
+  <text x="630" y="116" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
 
-  <!-- foo frame -->
-  <rect x="580" y="132" width="100" height="60" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
-  <text x="630" y="150" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">foo()</text>
-  <text x="630" y="168" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">x=10</text>
-  <text x="630" y="182" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: main</text>
+  <!-- foo below main -->
+  <rect x="580" y="122" width="100" height="55" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="630" y="139" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">foo()</text>
+  <text x="630" y="156" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">x=10</text>
+  <text x="630" y="170" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: main</text>
 
-  <!-- main frame -->
-  <rect x="580" y="192" width="100" height="60" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
-  <text x="630" y="210" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">main()</text>
-  <text x="630" y="228" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">argc=1</text>
-  <text x="630" y="242" text-anchor="middle" fill="#8b949e" font-size="9" font-family="monospace">ret: OS</text>
+  <!-- SP back up to bottom of foo -->
+  <line x1="690" y1="176" x2="708" y2="176" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
+  <text x="695" y="169" fill="#d29922" font-size="9" font-weight="700">SP</text>
 
-  <!-- SP arrow back up -->
-  <line x1="690" y1="135" x2="708" y2="135" stroke="#d29922" stroke-width="1.5" marker-end="url(#sp-arr)"/>
-  <text x="695" y="128" fill="#d29922" font-size="9" font-weight="700">SP</text>
+  <!-- bar space freed (dashed, faded) -->
+  <rect x="580" y="177" width="100" height="60" rx="3" fill="#161b22" stroke="#2a2a2a" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="630" y="203" text-anchor="middle" fill="#2a2a2a" font-size="10">bar() 소멸</text>
+  <text x="630" y="217" text-anchor="middle" fill="#2a2a2a" font-size="9">자동 해제</text>
 
-  <text x="630" y="268" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
+  <text x="630" y="258" text-anchor="middle" fill="#484f58" font-size="9">낮은 주소 ↓</text>
 
   <!-- Arrows between panels -->
-  <line x1="148" y1="180" x2="214" y2="150" stroke="#484f58" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4,3"/>
-  <line x1="328" y1="148" x2="394" y2="100" stroke="#484f58" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4,3"/>
-  <line x1="508" y1="100" x2="574" y2="148" stroke="#484f58" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+  <line x1="148" y1="160" x2="214" y2="170" stroke="#484f58" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+  <line x1="328" y1="200" x2="394" y2="210" stroke="#484f58" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4,3"/>
+  <line x1="508" y1="220" x2="574" y2="200" stroke="#484f58" stroke-width="1.2" marker-end="url(#arr)" stroke-dasharray="4,3"/>
 
   <!-- Bottom note -->
-  <text x="360" y="298" text-anchor="middle" fill="#484f58" font-size="11">함수 호출 시 스택 포인터(SP)가 내려가며 프레임 생성 — 종료 시 자동 소멸</text>
-  <text x="360" y="316" text-anchor="middle" fill="#484f58" font-size="11">프레임 안의 지역 변수도 함께 사라짐. 힙 객체는 별도로 관리됨.</text>
+  <text x="360" y="283" text-anchor="middle" fill="#484f58" font-size="11">함수 호출 시 SP가 낮은 주소로 내려가며 새 프레임 생성 — main이 항상 가장 위(높은 주소)</text>
+  <text x="360" y="299" text-anchor="middle" fill="#484f58" font-size="11">종료 시 SP가 다시 올라가고 해당 프레임 자동 소멸</text>
 </svg>

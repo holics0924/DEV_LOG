@@ -44,8 +44,9 @@
     .high-addr{color:#475569;font-size:0.68rem;text-align:center;padding:4px;border-bottom:1px dashed #1e293b}
     .low-addr{color:#475569;font-size:0.68rem;text-align:center;padding:4px;border-top:1px dashed #1e293b;margin-top:auto}
 
-    .frame{border-radius:8px;overflow:hidden;transition:all .3s;animation:slideIn .3s ease}
-    @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .frame{border-radius:8px;overflow:hidden;transition:all .3s}
+    .frame.new-frame{animation:slideDown .3s ease}
+    @keyframes slideDown{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
     .frame-header{padding:8px 14px;font-size:0.85rem;font-weight:700}
     .frame-body{padding:8px 14px;font-size:0.78rem;font-family:monospace;line-height:1.7;border-top:1px solid rgba(255,255,255,.06)}
     .frame-row{display:flex;justify-content:space-between}
@@ -143,22 +144,23 @@
   </div>
 
 <script>
+// frames 순서: main 먼저(높은 주소/위) → bar 나중(낮은 주소/아래)
 const steps = [
   {
     code: ['c0'],
-    status: 'main() 실행 시작. 스택에 main 프레임이 생성됩니다.',
+    status: 'main() 실행 시작. 스택에 main 프레임이 생성됩니다. (높은 주소에서 시작)',
     frames: [
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], isNew:true}
     ],
     heap: [],
     sp: '0xFEF0'
   },
   {
     code: ['c1','c4'],
-    status: 'main()이 foo()를 호출합니다. 새 스택 프레임이 생성됩니다.',
+    status: 'main()이 foo()를 호출합니다. SP가 낮은 주소로 내려가며 foo 프레임이 main 아래에 생성됩니다.',
     frames: [
-      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','(미정)'],['data','(미정)'],['ret','main']], sp:'0xFEA0'},
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']]},
+      {id:'foo',  cls:'frame-foo',  name:'foo()',  vars:[['x','(미정)'],['data','(미정)'],['ret','main']], isNew:true}
     ],
     heap: [],
     sp: '0xFEA0'
@@ -167,8 +169,8 @@ const steps = [
     code: ['c5'],
     status: 'foo() 안에서 x = 10. 정수 10은 힙에 int 객체로 생성됩니다.',
     frames: [
-      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10 (int 10)'],['data','(미정)'],['ret','main']], sp:'0xFEA0'},
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']]},
+      {id:'foo',  cls:'frame-foo',  name:'foo()',  vars:[['x','→ 0x5A10 (int 10)'],['data','(미정)'],['ret','main']]}
     ],
     heap: [
       {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1}
@@ -179,25 +181,25 @@ const steps = [
     code: ['c6'],
     status: 'data = [1, 2, 3]. 리스트 객체가 힙에 생성됩니다.',
     frames: [
-      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20 (list)'],['ret','main']], sp:'0xFEA0'},
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']]},
+      {id:'foo',  cls:'frame-foo',  name:'foo()',  vars:[['x','→ 0x5A10'],['data','→ 0x6B20 (list)'],['ret','main']]}
     ],
     heap: [
-      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h1', cls:'heap-obj-int',  label:'int(10)',      info:'0x5A10', refs:1},
       {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:1}
     ],
     sp: '0xFEA0'
   },
   {
     code: ['c7','c9'],
-    status: 'foo()가 bar(data)를 호출합니다. bar 프레임이 생성됩니다. data(리스트)의 참조 카운트가 증가합니다.',
+    status: 'foo()가 bar(data)를 호출합니다. SP가 더 낮아지며 bar 프레임이 foo 아래에 생성됩니다.',
     frames: [
-      {id:'bar', cls:'frame-bar', name:'bar(items)', vars:[['items','→ 0x6B20 (list)'],['msg','(미정)'],['ret','foo']], sp:'0xFE50'},
-      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']], sp:'0xFEA0'},
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()',     vars:[['result','(미정)'],['ret','OS']]},
+      {id:'foo',  cls:'frame-foo',  name:'foo()',      vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']]},
+      {id:'bar',  cls:'frame-bar',  name:'bar(items)', vars:[['items','→ 0x6B20 (list)'],['msg','(미정)'],['ret','foo']], isNew:true}
     ],
     heap: [
-      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h1', cls:'heap-obj-int',  label:'int(10)',      info:'0x5A10', refs:1},
       {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:2}
     ],
     sp: '0xFE50'
@@ -206,47 +208,47 @@ const steps = [
     code: ['c10'],
     status: 'bar() 안에서 msg = "done". 문자열 객체가 힙에 생성됩니다.',
     frames: [
-      {id:'bar', cls:'frame-bar', name:'bar(items)', vars:[['items','→ 0x6B20'],['msg','→ 0x7C30 (str)'],['ret','foo']], sp:'0xFE50'},
-      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']], sp:'0xFEA0'},
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()',     vars:[['result','(미정)'],['ret','OS']]},
+      {id:'foo',  cls:'frame-foo',  name:'foo()',      vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']]},
+      {id:'bar',  cls:'frame-bar',  name:'bar(items)', vars:[['items','→ 0x6B20'],['msg','→ 0x7C30 (str)'],['ret','foo']]}
     ],
     heap: [
-      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h1', cls:'heap-obj-int',  label:'int(10)',      info:'0x5A10', refs:1},
       {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:2},
-      {id:'h3', cls:'heap-obj-str', label:'str "done"', info:'0x7C30', refs:1}
+      {id:'h3', cls:'heap-obj-str',  label:'str "done"',   info:'0x7C30', refs:1}
     ],
     sp: '0xFE50'
   },
   {
     code: ['c11'],
-    status: 'bar() 종료. items[0] = 1을 반환합니다. bar 프레임이 스택에서 사라집니다. msg("done")는 참조 카운트 0 → GC 해제.',
+    status: 'bar() 종료. SP가 다시 올라가며 bar 프레임 소멸. msg("done") 참조 카운트 0 → GC 해제.',
     frames: [
-      {id:'foo', cls:'frame-foo', name:'foo()', vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']], sp:'0xFEA0'},
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','(미정)'],['ret','OS']]},
+      {id:'foo',  cls:'frame-foo',  name:'foo()',  vars:[['x','→ 0x5A10'],['data','→ 0x6B20'],['ret','main']]}
     ],
     heap: [
-      {id:'h1', cls:'heap-obj-int', label:'int(10)', info:'0x5A10', refs:1},
+      {id:'h1', cls:'heap-obj-int',  label:'int(10)',        info:'0x5A10', refs:1},
       {id:'h2', cls:'heap-obj-list', label:'list [1, 2, 3]', info:'0x6B20', refs:1},
-      {id:'h3', cls:'heap-obj-str', label:'str "done" 🗑', info:'0x7C30', refs:0, orphan:true}
+      {id:'h3', cls:'heap-obj-str',  label:'str "done" 🗑',  info:'0x7C30', refs:0, orphan:true}
     ],
     sp: '0xFEA0'
   },
   {
     code: ['c7'],
-    status: 'foo() 종료. 반환값 1을 main()에 전달합니다. foo 프레임 소멸. x(int 10)와 data(list)의 참조 카운트 감소.',
+    status: 'foo() 종료. SP 다시 올라가며 foo 프레임 소멸. x(int 10)와 data(list) 참조 카운트 0 → GC 해제.',
     frames: [
-      {id:'main', cls:'frame-main', name:'main()', vars:[['result','→ 0x8D40 (int 1)'],['ret','OS']], sp:'0xFEF0'}
+      {id:'main', cls:'frame-main', name:'main()', vars:[['result','→ 0x8D40 (int 1)'],['ret','OS']]}
     ],
     heap: [
-      {id:'h4', cls:'heap-obj-int', label:'int(1)', info:'0x8D40', refs:1},
-      {id:'h1', cls:'heap-obj-int', label:'int(10) 🗑', info:'0x5A10', refs:0, orphan:true},
+      {id:'h4', cls:'heap-obj-int',  label:'int(1)',         info:'0x8D40', refs:1},
+      {id:'h1', cls:'heap-obj-int',  label:'int(10) 🗑',     info:'0x5A10', refs:0, orphan:true},
       {id:'h2', cls:'heap-obj-list', label:'list [1,2,3] 🗑', info:'0x6B20', refs:0, orphan:true}
     ],
     sp: '0xFEF0'
   },
   {
     code: ['c2'],
-    status: 'main() 종료. 모든 스택 프레임이 사라집니다. 남은 힙 객체도 GC가 정리합니다.',
+    status: 'main() 종료. 모든 스택 프레임 소멸. 남은 힙 객체 GC 정리.',
     frames: [],
     heap: [],
     sp: '0xFF00'
@@ -274,10 +276,9 @@ function render(step) {
   if (step.frames.length === 0) {
     fc.innerHTML = '<div style="text-align:center;color:#334155;font-size:.82rem;padding:40px 0">모든 프레임 소멸<br><span style="font-size:.72rem">프로그램 종료</span></div>';
   } else {
-    step.frames.forEach((f, i) => {
+    step.frames.forEach((f) => {
       const div = document.createElement('div');
-      div.className = `frame ${f.cls}`;
-      if (i === 0) div.style.animation = 'slideIn .3s ease';
+      div.className = `frame ${f.cls}${f.isNew ? ' new-frame' : ''}`;
       const vars = f.vars.map(([k,v]) =>
         `<div class="frame-row"><span class="frame-key">${k}</span><span class="frame-val">${v}</span></div>`
       ).join('');
