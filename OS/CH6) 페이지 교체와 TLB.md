@@ -48,7 +48,7 @@ reference bit = 0  →  이 페이지 교체
 
 초기화 후 다시 접근이 오면 하드웨어가 1로 돌려놓는다. 다음 순회에서 살아남는다. 접근이 없으면 0인 채로 남아 결국 교체된다.
 
-<iframe src="/DEV_LOG/OS/assets/demo_clock_algorithm.html" width="100%" height="1200" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;"></iframe>
+<iframe src="/DEV_LOG/OS/assets/demo_clock_algorithm.html" width="100%" height="900" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;" onload="this.style.height=(this.contentDocument||this.contentWindow.document).documentElement.scrollHeight+'px'"></iframe>
 
 <br>
 

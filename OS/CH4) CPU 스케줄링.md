@@ -165,9 +165,10 @@ time quantum 설정이 핵심이다.
 <iframe
   src="/DEV_LOG/OS/assets/demo_cpu_scheduling.html"
   width="100%"
-  height="1150"
+  height="1050"
   frameborder="0"
-  style="border-radius:10px;border:1px solid #334155;display:block;">
+  style="border-radius:10px;border:1px solid #334155;display:block;"
+  onload="this.style.height=(this.contentDocument||this.contentWindow.document).documentElement.scrollHeight+'px'">
 </iframe>
 
 <br>
