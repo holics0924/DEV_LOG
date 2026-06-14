@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모니터와 조건변수</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --rd:#ef4444;--rdb:#450a0a;--rdl:#fca5a5;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+      --pu:#a78bfa;--pub:#2e1065;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:960px;margin:0 auto}
+
+    h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:20px}
+
+    /* 모드 토글 */
+    .mode-bar{display:flex;gap:8px;margin-bottom:20px}
+    .mode-btn{padding:8px 20px;border:1px solid var(--bd);border-radius:7px;background:var(--s1);color:#94a3b8;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+    .mode-btn:hover{background:#334155;color:var(--tx)}
+    .mode-btn.active-if{background:var(--rdb);border-color:var(--rd);color:var(--rdl)}
+    .mode-btn.active-while{background:var(--grb);border-color:var(--gr);color:var(--grl)}
+
+    /* 진행 표시 */
+    .progress-bar{display:flex;gap:6px;margin-bottom:18px;align-items:center}
+    .step-dot{width:10px;height:10px;border-radius:50%;background:var(--bd);transition:background .2s;cursor:pointer}
+    .step-dot.done{background:#334155}
+    .step-dot.current{background:var(--bl);box-shadow:0 0 8px #3b82f688}
+    .step-label{font-size:0.72rem;color:var(--mu);margin-left:8px}
+
+    /* 메인 레이아웃 */
+    .arena{display:grid;grid-template-columns:1fr 100px 1fr 1fr;gap:12px;margin-bottom:16px}
+
+    /* 스레드 패널 */
+    .thread-panel{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;transition:border-color .2s}
+    .thread-panel.t-producer{border-color:#334155}
+    .thread-panel.t-a{border-color:#334155}
+    .thread-panel.t-b{border-color:#334155}
+    .thread-panel.t-producer.active{border-color:var(--am)}
+    .thread-panel.t-a.active{border-color:var(--bl)}
+    .thread-panel.t-b.active{border-color:var(--gr)}
+
+    .thread-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+    .thread-name{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+    .t-producer .thread-name{color:var(--am)}
+    .t-a .thread-name{color:var(--bll)}
+    .t-b .thread-name{color:var(--grl)}
+    .state-badge{font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px;margin-left:auto;transition:all .2s}
+    .state-running{background:#1a3a1a;color:var(--gr);border:1px solid var(--gr)}
+    .state-sleeping{background:var(--amb);color:var(--aml);border:1px solid var(--am)}
+    .state-waiting{background:#1a1a3a;color:#a5b4fc;border:1px solid #6366f1}
+    .state-idle{background:#1e293b;color:var(--mu);border:1px solid var(--bd)}
+    .state-error{background:var(--rdb);color:var(--rdl);border:1px solid var(--rd);animation:pulse .5s ease-in-out infinite alternate}
+    @keyframes pulse{from{opacity:.7}to{opacity:1}}
+
+    /* 코드 라인 */
+    .code-lines{font-family:monospace;font-size:0.75rem}
+    .code-line{display:flex;gap:8px;align-items:flex-start;padding:4px 8px;border-radius:5px;border:1px solid transparent;margin-bottom:2px;transition:all .2s;min-height:28px}
+    .code-line .ln{color:#475569;min-width:14px;padding-top:1px;flex-shrink:0}
+    .code-line .code{color:#94a3b8;flex:1;line-height:1.5}
+    .code-line.active-producer{background:#1f2a0a;border-color:var(--am);box-shadow:0 0 10px #f59e0b22}
+    .code-line .code.active-producer{color:#fde68a}
+    .code-line.active-a{background:var(--blb);border-color:var(--bl);box-shadow:0 0 10px #3b82f622}
+    .code-line .code.active-a{color:#bfdbfe}
+    .code-line.active-b{background:var(--grb);border-color:var(--gr);box-shadow:0 0 10px #10b98122}
+    .code-line .code.active-b{color:#bbf7d0}
+    .code-line.crashed{background:var(--rdb);border-color:var(--rd)}
+    .code-line .code.crashed{color:var(--rdl)}
+
+    /* 버퍼 패널 */
+    .buffer-panel{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+    .buf-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mu)}
+    .buf-slot{width:60px;height:50px;border-radius:8px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:0.72rem;color:var(--mu);transition:all .3s;background:var(--bg)}
+    .buf-slot.filled{border-color:var(--am);background:var(--amb);color:var(--aml);font-weight:700;box-shadow:0 0 12px #f59e0b33}
+    .mutex-indicator{margin-top:4px;text-align:center;width:100%}
+    .mutex-label{font-size:0.62rem;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+    .mutex-holder{font-size:0.78rem;font-weight:700;padding:4px 10px;border-radius:6px;background:var(--s1);border:1px solid var(--bd);color:var(--mu);transition:all .2s;text-align:center}
+    .mutex-holder.by-p{background:#1f2a0a;border-color:var(--am);color:var(--aml)}
+    .mutex-holder.by-a{background:var(--blb);border-color:var(--bl);color:var(--bll)}
+    .mutex-holder.by-b{background:var(--grb);border-color:var(--gr);color:var(--grl)}
+
+    /* 설명 카드 */
+    .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px;min-height:70px}
+    .step-card-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+    .step-card-desc{font-size:0.9rem;color:#cbd5e1;line-height:1.65}
+    .step-card-desc .hi-a{color:var(--bll);font-weight:700}
+    .step-card-desc .hi-b{color:var(--grl);font-weight:700}
+    .step-card-desc .hi-p{color:var(--aml);font-weight:700}
+    .step-card-desc .hi-err{color:var(--rdl);font-weight:700}
+    .step-card-desc .hi-ok{color:var(--grl);font-weight:700}
+
+    /* 컨트롤 */
+    .controls{display:flex;gap:10px;align-items:center}
+    .ctrl-btn{padding:9px 22px;border:1px solid var(--bd);border-radius:7px;background:var(--s1);color:#94a3b8;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+    .ctrl-btn:hover:not(:disabled){background:#334155;color:var(--tx)}
+    .ctrl-btn:disabled{opacity:.35;cursor:default}
+    .ctrl-btn.primary{background:#172554;border-color:var(--bl);color:var(--bll)}
+    .ctrl-btn.primary:hover:not(:disabled){background:#1e3a8a}
+    .step-counter{font-size:0.8rem;color:var(--mu);margin-left:auto}
+
+    /* 대기열 표시 */
+    .wait-queue{margin-top:8px;border-top:1px solid var(--bd);padding-top:8px}
+    .wq-label{font-size:0.62rem;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+    .wq-items{display:flex;gap:4px;flex-wrap:wrap}
+    .wq-item{font-size:0.68rem;padding:2px 8px;border-radius:12px;border:1px solid var(--am);color:var(--aml);background:var(--amb)}
+  </style>
+</head>
+<body>
+  <h1>Producer-Consumer: if vs while</h1>
+  <p class="sub">버퍼 크기 1 · 소비자 A, B 대기 중 · 생산자가 아이템 1개 투입</p>
+
+  <div class="mode-bar">
+    <button class="mode-btn" id="btn-if" onclick="setMode('if')">if 버전</button>
+    <button class="mode-btn" id="btn-while" onclick="setMode('while')">while 버전</button>
+  </div>
+
+  <div class="progress-bar" id="progress-bar">
+    <div class="step-dot" id="dot-0" onclick="goToStep(0)"></div>
+    <div class="step-dot" id="dot-1" onclick="goToStep(1)"></div>
+    <div class="step-dot" id="dot-2" onclick="goToStep(2)"></div>
+    <div class="step-dot" id="dot-3" onclick="goToStep(3)"></div>
+    <div class="step-dot" id="dot-4" onclick="goToStep(4)"></div>
+    <div class="step-dot" id="dot-5" onclick="goToStep(5)"></div>
+    <div class="step-dot" id="dot-6" onclick="goToStep(6)"></div>
+    <span class="step-label" id="step-label"></span>
+  </div>
+
+  <div class="step-card">
+    <div class="step-card-label">이번 단계</div>
+    <div class="step-card-desc" id="step-desc">모드를 선택하세요.</div>
+  </div>
+
+  <div class="arena">
+    <!-- Producer -->
+    <div class="thread-panel t-producer" id="panel-p">
+      <div class="thread-header">
+        <span class="thread-name">Producer</span>
+        <span class="state-badge state-idle" id="badge-p">대기</span>
+      </div>
+      <div class="code-lines" id="code-p">
+        <div class="code-line" id="p-l1"><span class="ln">1</span><span class="code">mutex.lock()</span></div>
+        <div class="code-line" id="p-l2"><span class="ln">2</span><span class="code">buffer.append(item)</span></div>
+        <div class="code-line" id="p-l3"><span class="ln">3</span><span class="code">cond.notifyAll()</span></div>
+        <div class="code-line" id="p-l4"><span class="ln">4</span><span class="code">mutex.unlock()</span></div>
+      </div>
+    </div>
+
+    <!-- Buffer -->
+    <div class="buffer-panel">
+      <div class="buf-title">Buffer</div>
+      <div class="buf-slot" id="buf-slot">빈 슬롯</div>
+      <div class="mutex-indicator">
+        <div class="mutex-label">Mutex</div>
+        <div class="mutex-holder" id="mutex-holder">free</div>
+      </div>
+      <div class="wait-queue">
+        <div class="wq-label">Wait Queue</div>
+        <div class="wq-items" id="wait-queue-items"></div>
+      </div>
+    </div>
+
+    <!-- Consumer A -->
+    <div class="thread-panel t-a" id="panel-a">
+      <div class="thread-header">
+        <span class="thread-name">Consumer A</span>
+        <span class="state-badge state-sleeping" id="badge-a">대기중</span>
+      </div>
+      <div class="code-lines" id="code-a">
+      </div>
+    </div>
+
+    <!-- Consumer B -->
+    <div class="thread-panel t-b" id="panel-b">
+      <div class="thread-header">
+        <span class="thread-name">Consumer B</span>
+        <span class="state-badge state-sleeping" id="badge-b">대기중</span>
+      </div>
+      <div class="code-lines" id="code-b">
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="btn-prev" onclick="prevStep()">← 이전</button>
+    <button class="ctrl-btn primary" id="btn-next" onclick="nextStep()">다음 →</button>
+    <button class="ctrl-btn" onclick="resetStep()">↺ 처음</button>
+    <span class="step-counter" id="step-counter"></span>
+  </div>
+
+  <script>
+    // ── 데이터 정의 ──────────────────────────────────────────────
+
+    const IF_CODE = [
+      'mutex.lock()',
+      'if buffer is empty:',
+      '    cond.wait(mutex)',
+      'item = buffer.pop()',
+      'mutex.unlock()',
+    ];
+
+    const WHILE_CODE = [
+      'mutex.lock()',
+      'while buffer is empty:',
+      '    cond.wait(mutex)',
+      'item = buffer.pop()',
+      'mutex.unlock()',
+    ];
+
+    // step: { desc, bufFilled, mutex, waitQueue, p:{state,line}, a:{state,line,crashed}, b:{state,line,crashed} }
+    // state: idle / running / sleeping / waiting / error
+    // line: 0-based index into code, -1 = none
+
+    const STEPS_IF = [
+      {
+        desc: '<span class="hi-a">Consumer A</span>와 <span class="hi-b">Consumer B</span> 모두 <code>wait()</code> 안에서 잠들어 있습니다. 버퍼는 비어있고 뮤텍스는 free 상태입니다.',
+        bufFilled: false, mutex: null, waitQueue: ['A', 'B'],
+        p: {state:'idle',  line:-1},
+        a: {state:'sleeping', line:2},
+        b: {state:'sleeping', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 뮤텍스를 획득합니다.',
+        bufFilled: false, mutex: 'p', waitQueue: ['A', 'B'],
+        p: {state:'running', line:0},
+        a: {state:'sleeping', line:2},
+        b: {state:'sleeping', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 버퍼에 아이템을 넣습니다.',
+        bufFilled: true, mutex: 'p', waitQueue: ['A', 'B'],
+        p: {state:'running', line:1},
+        a: {state:'sleeping', line:2},
+        b: {state:'sleeping', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 <code>notifyAll()</code>을 호출합니다. A와 B가 대기열에서 깨어날 준비를 합니다.',
+        bufFilled: true, mutex: 'p', waitQueue: [],
+        p: {state:'running', line:2},
+        a: {state:'waiting', line:2},
+        b: {state:'waiting', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 뮤텍스를 반납합니다. <span class="hi-a">Consumer A</span>가 먼저 뮤텍스를 획득합니다. <code>if</code>는 이미 지나쳤으므로 <span class="hi-a">A</span>는 곧바로 <code>pop()</code>으로 이동합니다.',
+        bufFilled: true, mutex: 'a', waitQueue: ['B'],
+        p: {state:'idle',  line:-1},
+        a: {state:'running', line:3},
+        b: {state:'waiting', line:2},
+      },
+      {
+        desc: '<span class="hi-a">Consumer A</span>가 아이템을 꺼냅니다. 버퍼는 다시 비어집니다. 뮤텍스를 반납하면 <span class="hi-b">B</span>가 획득합니다.',
+        bufFilled: false, mutex: 'b', waitQueue: [],
+        p: {state:'idle',  line:-1},
+        a: {state:'idle',  line:4},
+        b: {state:'running', line:3},
+      },
+      {
+        desc: '<span class="hi-b">Consumer B</span>도 <code>if</code>를 이미 지나쳤습니다. <code>pop()</code>을 실행하지만 <span class="hi-err">버퍼가 비어있어 오류가 발생합니다.</span> <code>if</code> 대신 <code>while</code>을 썼다면 B는 조건을 재확인 후 다시 잠들었을 것입니다.',
+        bufFilled: false, mutex: 'b', waitQueue: [],
+        p: {state:'idle',   line:-1},
+        a: {state:'idle',   line:4},
+        b: {state:'error',  line:3, crashed:true},
+      },
+    ];
+
+    const STEPS_WHILE = [
+      {
+        desc: '<span class="hi-a">Consumer A</span>와 <span class="hi-b">Consumer B</span> 모두 <code>wait()</code> 안에서 잠들어 있습니다. 버퍼는 비어있습니다.',
+        bufFilled: false, mutex: null, waitQueue: ['A', 'B'],
+        p: {state:'idle',  line:-1},
+        a: {state:'sleeping', line:2},
+        b: {state:'sleeping', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 뮤텍스를 획득합니다.',
+        bufFilled: false, mutex: 'p', waitQueue: ['A', 'B'],
+        p: {state:'running', line:0},
+        a: {state:'sleeping', line:2},
+        b: {state:'sleeping', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 버퍼에 아이템을 넣습니다.',
+        bufFilled: true, mutex: 'p', waitQueue: ['A', 'B'],
+        p: {state:'running', line:1},
+        a: {state:'sleeping', line:2},
+        b: {state:'sleeping', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 <code>notifyAll()</code>을 호출합니다. A와 B가 깨어날 준비를 합니다.',
+        bufFilled: true, mutex: 'p', waitQueue: [],
+        p: {state:'running', line:2},
+        a: {state:'waiting', line:2},
+        b: {state:'waiting', line:2},
+      },
+      {
+        desc: '<span class="hi-p">Producer</span>가 뮤텍스를 반납합니다. <span class="hi-a">Consumer A</span>가 먼저 뮤텍스를 획득합니다. <code>wait()</code>에서 리턴되면 <code>while</code> 처음으로 돌아갑니다.',
+        bufFilled: true, mutex: 'a', waitQueue: ['B'],
+        p: {state:'idle',  line:-1},
+        a: {state:'running', line:1},
+        b: {state:'waiting', line:2},
+      },
+      {
+        desc: '<span class="hi-a">A</span>가 <code>while</code> 조건 재확인 → 버퍼에 아이템 있음 → 루프 탈출 → <code>pop()</code> 성공. 뮤텍스 반납 후 <span class="hi-b">B</span>가 뮤텍스를 획득합니다.',
+        bufFilled: false, mutex: 'b', waitQueue: [],
+        p: {state:'idle',  line:-1},
+        a: {state:'idle',  line:4},
+        b: {state:'running', line:1},
+      },
+      {
+        desc: '<span class="hi-b">Consumer B</span>가 <code>while</code> 조건 재확인 → <span class="hi-ok">버퍼가 비어있음</span> → 다시 <code>wait()</code> 호출 → 뮤텍스 반납 후 잠듭니다. 오류 없이 안전하게 대기합니다.',
+        bufFilled: false, mutex: null, waitQueue: ['B'],
+        p: {state:'idle',    line:-1},
+        a: {state:'idle',    line:4},
+        b: {state:'sleeping', line:2},
+      },
+    ];
+
+    // ── 상태 ──────────────────────────────────────────────────────
+    let mode = null;
+    let currentStep = 0;
+    let steps = [];
+
+    function setMode(m) {
+      mode = m;
+      steps = m === 'if' ? STEPS_IF : STEPS_WHILE;
+      document.getElementById('btn-if').className = 'mode-btn' + (m==='if'?' active-if':'');
+      document.getElementById('btn-while').className = 'mode-btn' + (m==='while'?' active-while':'');
+      renderCode(m === 'if' ? IF_CODE : WHILE_CODE);
+      currentStep = 0;
+      render();
+    }
+
+    function renderCode(lines) {
+      const tmpl = (i, code) =>
+        `<div class="code-line" id="a-l${i}"><span class="ln">${i+1}</span><span class="code" id="a-lc${i}">${code}</span></div>`;
+      const tmplB = (i, code) =>
+        `<div class="code-line" id="b-l${i}"><span class="ln">${i+1}</span><span class="code" id="b-lc${i}">${code}</span></div>`;
+      document.getElementById('code-a').innerHTML = lines.map((c,i)=>tmpl(i,c)).join('');
+      document.getElementById('code-b').innerHTML = lines.map((c,i)=>tmplB(i,c)).join('');
+    }
+
+    function render() {
+      if (!mode || steps.length === 0) return;
+      const s = steps[currentStep];
+      const total = steps.length;
+
+      // progress dots
+      for (let i = 0; i < 7; i++) {
+        const dot = document.getElementById('dot-'+i);
+        if (!dot) continue;
+        dot.className = 'step-dot' + (i < currentStep ? ' done' : i === currentStep ? ' current' : '');
+        dot.style.display = i < total ? '' : 'none';
+      }
+      document.getElementById('step-label').textContent = `${currentStep+1} / ${total}`;
+      document.getElementById('step-counter').textContent = `스텝 ${currentStep+1} / ${total}`;
+
+      // desc
+      document.getElementById('step-desc').innerHTML = s.desc;
+
+      // buffer
+      const slot = document.getElementById('buf-slot');
+      slot.className = 'buf-slot' + (s.bufFilled ? ' filled' : '');
+      slot.textContent = s.bufFilled ? '📦 item' : '빈 슬롯';
+
+      // mutex
+      const mh = document.getElementById('mutex-holder');
+      mh.className = 'mutex-holder' + (s.mutex ? ' by-'+s.mutex : '');
+      mh.textContent = s.mutex ? {p:'Producer',a:'Consumer A',b:'Consumer B'}[s.mutex] : 'free';
+
+      // wait queue
+      const wqi = document.getElementById('wait-queue-items');
+      wqi.innerHTML = (s.waitQueue||[]).map(n=>`<span class="wq-item">${n}</span>`).join('') || '<span style="font-size:.65rem;color:#475569">없음</span>';
+
+      // threads
+      renderThread('p', s.p, 'producer');
+      renderThread('a', s.a, 'a');
+      renderThread('b', s.b, 'b');
+
+      // buttons
+      document.getElementById('btn-prev').disabled = currentStep === 0;
+      document.getElementById('btn-next').disabled = currentStep === total - 1;
+    }
+
+    function renderThread(id, ts, colorKey) {
+      const stateMap = {idle:'대기',running:'실행중',sleeping:'잠든 중',waiting:'깨어나는 중',error:'오류!'};
+      const classMap = {idle:'state-idle',running:'state-running',sleeping:'state-sleeping',waiting:'state-waiting',error:'state-error'};
+
+      const badge = document.getElementById('badge-'+id);
+      badge.className = 'state-badge ' + classMap[ts.state];
+      badge.textContent = stateMap[ts.state];
+
+      const panel = document.getElementById('panel-'+id);
+      panel.className = 'thread-panel t-'+id + (ts.state !== 'idle' && ts.state !== 'sleeping' ? ' active' : '');
+
+      // clear active lines
+      if (id !== 'p') {
+        const codeLines = document.getElementById('code-'+id);
+        if (!codeLines) return;
+        codeLines.querySelectorAll('.code-line').forEach(el => {
+          el.className = 'code-line';
+          el.querySelector('.code').className = 'code';
+        });
+        if (ts.line >= 0) {
+          const lineEl = document.getElementById(id+'-l'+ts.line);
+          const codeEl = document.getElementById(id+'-lc'+ts.line);
+          if (lineEl) {
+            lineEl.className = 'code-line active-'+colorKey + (ts.crashed?' crashed':'');
+            if (codeEl) codeEl.className = 'code active-'+colorKey + (ts.crashed?' crashed':'');
+          }
+        }
+      } else {
+        // producer
+        for (let i=0;i<4;i++){
+          const el=document.getElementById('p-l'+(i+1));
+          if(el) el.className='code-line';
+        }
+        if(ts.line>=0){
+          const el=document.getElementById('p-l'+(ts.line+1));
+          if(el) el.className='code-line active-producer';
+        }
+      }
+    }
+
+    function nextStep(){ if(currentStep < steps.length-1){ currentStep++; render(); } }
+    function prevStep(){ if(currentStep > 0){ currentStep--; render(); } }
+    function resetStep(){ currentStep=0; render(); }
+    function goToStep(i){ if(i<steps.length){ currentStep=i; render(); } }
+
+    // 초기 모드
+    setMode('if');
+  </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 500" width="740" height="500">
+  <rect width="740" height="500" fill="#0f172a" rx="12"/>
+
+  <text x="370" y="32" text-anchor="middle" fill="#94a3b8" font-size="13" font-family="system-ui,sans-serif" font-weight="700">세마포어 vs 조건변수</text>
+
+  <!-- 구분선 -->
+  <line x1="370" y1="46" x2="370" y2="470" stroke="#1e293b" stroke-width="2"/>
+
+  <!-- ══ 왼쪽: 세마포어 ══ -->
+  <text x="185" y="65" text-anchor="middle" fill="#f59e0b" font-size="13" font-family="system-ui,sans-serif" font-weight="700">세마포어</text>
+  <text x="185" y="81" text-anchor="middle" fill="#64748b" font-size="10.5" font-family="system-ui,sans-serif">정수 카운터로 자원 개수를 센다</text>
+
+  <!-- 카운터 박스 -->
+  <rect x="118" y="94" width="134" height="60" rx="8" fill="#1f1a00" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="185" y="116" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="system-ui,sans-serif" font-weight="700">Semaphore</text>
+  <text x="185" y="140" text-anchor="middle" fill="#fde68a" font-size="26" font-family="monospace" font-weight="900">3</text>
+
+  <!-- P() / V() -->
+  <rect x="22" y="166" width="155" height="40" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="100" y="183" text-anchor="middle" fill="#fbbf24" font-size="10.5" font-family="monospace" font-weight="700">P() / acquire()</text>
+  <text x="100" y="198" text-anchor="middle" fill="#64748b" font-size="9.5" font-family="system-ui,sans-serif">카운터 감소. 0이면 대기</text>
+
+  <rect x="188" y="166" width="155" height="40" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="266" y="183" text-anchor="middle" fill="#fbbf24" font-size="10.5" font-family="monospace" font-weight="700">V() / release()</text>
+  <text x="266" y="198" text-anchor="middle" fill="#64748b" font-size="9.5" font-family="system-ui,sans-serif">카운터 증가. 대기자 깨움</text>
+
+  <!-- 사용 예 -->
+  <rect x="22" y="218" width="320" height="84" rx="7" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="38" y="235" fill="#64748b" font-size="9.5" font-family="system-ui,sans-serif" font-weight="700">Producer-Consumer 구현:</text>
+  <text x="38" y="253" fill="#94a3b8" font-size="9.5" font-family="monospace">empty = Semaphore(N)  # 빈 슬롯</text>
+  <text x="38" y="270" fill="#94a3b8" font-size="9.5" font-family="monospace">full  = Semaphore(0)  # 찬 슬롯</text>
+  <text x="38" y="287" fill="#94a3b8" font-size="9.5" font-family="monospace">mutex = Semaphore(1)  # 임계구역</text>
+
+  <!-- 장점 박스 -->
+  <rect x="22" y="314" width="150" height="86" rx="6" fill="#052e16" stroke="#059669" stroke-width="1"/>
+  <text x="97" y="332" text-anchor="middle" fill="#34d399" font-size="10" font-family="system-ui,sans-serif" font-weight="700">장점</text>
+  <text x="36" y="351" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif">• 자원 개수 제어에 직관적</text>
+  <text x="36" y="368" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif">• 프로세스 간 공유 가능</text>
+  <text x="36" y="385" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif">• 구현이 단순</text>
+
+  <!-- 단점 박스 -->
+  <rect x="184" y="314" width="158" height="86" rx="6" fill="#450a0a" stroke="#dc2626" stroke-width="1"/>
+  <text x="263" y="332" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">단점</text>
+  <text x="198" y="351" fill="#fca5a5" font-size="9.5" font-family="system-ui,sans-serif">• acquire 순서 실수 → 데드락</text>
+  <text x="198" y="368" fill="#fca5a5" font-size="9.5" font-family="system-ui,sans-serif">• 복합 조건 표현 어려움</text>
+  <text x="198" y="385" fill="#fca5a5" font-size="9.5" font-family="system-ui,sans-serif">• 소유권 없어 오용 가능</text>
+
+  <!-- 사용 시점 -->
+  <rect x="22" y="412" width="320" height="38" rx="7" fill="#1f1a00" stroke="#92400e" stroke-width="1"/>
+  <text x="182" y="427" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="system-ui,sans-serif" font-weight="700">주요 사용:</text>
+  <text x="182" y="443" text-anchor="middle" fill="#fcd34d" font-size="9.5" font-family="system-ui,sans-serif">자원 개수 제한 · 시그널링 · 프로세스 간 동기화</text>
+
+  <!-- ══ 오른쪽: 조건변수 ══ -->
+  <text x="555" y="65" text-anchor="middle" fill="#10b981" font-size="13" font-family="system-ui,sans-serif" font-weight="700">조건변수</text>
+  <text x="555" y="81" text-anchor="middle" fill="#64748b" font-size="10.5" font-family="system-ui,sans-serif">임의의 불리언 조건을 기다린다</text>
+
+  <!-- while 박스 -->
+  <rect x="400" y="94" width="280" height="60" rx="8" fill="#052e16" stroke="#10b981" stroke-width="1.5"/>
+  <text x="540" y="119" text-anchor="middle" fill="#34d399" font-size="11" font-family="monospace">while &lt;어떤 조건이든&gt;:</text>
+  <text x="540" y="141" text-anchor="middle" fill="#6ee7b7" font-size="11" font-family="monospace">    cond.wait(mutex)</text>
+
+  <!-- wait / notify -->
+  <rect x="398" y="166" width="158" height="40" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="477" y="183" text-anchor="middle" fill="#34d399" font-size="10.5" font-family="monospace" font-weight="700">wait(mutex)</text>
+  <text x="477" y="198" text-anchor="middle" fill="#64748b" font-size="9.5" font-family="system-ui,sans-serif">반납+잠듦 (원자적)</text>
+
+  <rect x="566" y="166" width="154" height="40" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="643" y="183" text-anchor="middle" fill="#34d399" font-size="10.5" font-family="monospace" font-weight="700">notify(All)()</text>
+  <text x="643" y="198" text-anchor="middle" fill="#64748b" font-size="9.5" font-family="system-ui,sans-serif">대기 스레드 깨움</text>
+
+  <!-- 사용 예 -->
+  <rect x="398" y="218" width="320" height="84" rx="7" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="414" y="235" fill="#64748b" font-size="9.5" font-family="system-ui,sans-serif" font-weight="700">복합 조건 표현 가능:</text>
+  <text x="414" y="253" fill="#94a3b8" font-size="9.5" font-family="monospace">mutex.lock()</text>
+  <text x="414" y="270" fill="#94a3b8" font-size="9.5" font-family="monospace">while len(q)&lt;100 and t&lt;5.0:</text>
+  <text x="414" y="287" fill="#94a3b8" font-size="9.5" font-family="monospace">    cond.wait(mutex)</text>
+
+  <!-- 장점 박스 -->
+  <rect x="398" y="314" width="155" height="86" rx="6" fill="#052e16" stroke="#059669" stroke-width="1"/>
+  <text x="476" y="332" text-anchor="middle" fill="#34d399" font-size="10" font-family="system-ui,sans-serif" font-weight="700">장점</text>
+  <text x="412" y="351" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif">• 임의 조건 표현 자유</text>
+  <text x="412" y="368" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif">• 뮤텍스와 명시적 결합</text>
+  <text x="412" y="385" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif">• 순서 실수 없음</text>
+
+  <!-- 단점 박스 -->
+  <rect x="563" y="314" width="155" height="86" rx="6" fill="#450a0a" stroke="#dc2626" stroke-width="1"/>
+  <text x="641" y="332" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">단점</text>
+  <text x="577" y="351" fill="#fca5a5" font-size="9.5" font-family="system-ui,sans-serif">• 같은 프로세스 내</text>
+  <text x="577" y="368" fill="#fca5a5" font-size="9.5" font-family="system-ui,sans-serif">  스레드 간만 사용 가능</text>
+  <text x="577" y="385" fill="#fca5a5" font-size="9.5" font-family="system-ui,sans-serif">• wait()은 항상 while로</text>
+
+  <!-- 사용 시점 -->
+  <rect x="398" y="412" width="320" height="38" rx="7" fill="#052e16" stroke="#059669" stroke-width="1"/>
+  <text x="558" y="427" text-anchor="middle" fill="#34d399" font-size="10" font-family="system-ui,sans-serif" font-weight="700">주요 사용:</text>
+  <text x="558" y="443" text-anchor="middle" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif">스레드 간 복잡한 조건 대기 · 모니터 구현 기반</text>
+</svg>

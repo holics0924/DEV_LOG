@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Readers-Writers</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:900px;margin:0 auto}
+    h1{font-size:1.15rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:22px}
+
+    /* 메인 레이아웃 */
+    .arena{display:grid;grid-template-columns:1fr 180px;gap:16px;margin-bottom:20px}
+
+    /* 스레드 목록 */
+    .threads-panel{display:flex;flex-direction:column;gap:10px}
+    .thread-row{display:flex;align-items:center;gap:12px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;transition:all .25s}
+    .thread-row.reading {border-color:var(--bl);background:#0d1f40;box-shadow:0 0 12px #3b82f622}
+    .thread-row.writing {border-color:var(--rd);background:#2a0808;box-shadow:0 0 12px #ef444422}
+    .thread-row.waiting {border-color:var(--am);background:#1f1a00}
+    .thread-row.idle    {border-color:var(--bd)}
+
+    .th-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .th-icon.reader{background:#172554}
+    .th-icon.writer{background:#450a0a}
+    .th-name{font-size:0.82rem;font-weight:700;min-width:80px}
+    .th-name.reader{color:#60a5fa}
+    .th-name.writer{color:#fca5a5}
+    .th-badge{font-size:0.68rem;font-weight:700;padding:3px 10px;border-radius:20px;margin-left:auto}
+    .badge-reading{background:#172554;color:#93c5fd;border:1px solid var(--bl)}
+    .badge-writing{background:#450a0a;color:#fca5a5;border:1px solid var(--rd);animation:pulseR .6s ease-in-out infinite alternate}
+    .badge-waiting{background:#1f1a00;color:#fcd34d;border:1px solid var(--am)}
+    .badge-idle    {background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+    @keyframes pulseR{from{opacity:.6}to{opacity:1}}
+
+    .th-op{font-size:0.75rem;color:var(--mu);font-family:monospace}
+    .th-op.active{color:#bfdbfe}
+    .th-op.active-w{color:#fca5a5}
+
+    /* 우측: 공유 상태 */
+    .state-panel{display:flex;flex-direction:column;gap:12px}
+    .state-box{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center}
+    .state-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:8px}
+
+    /* read_count */
+    .count-val{font-size:2.4rem;font-weight:900;font-family:monospace;color:#f1f5f9;transition:all .3s;line-height:1}
+    .count-val.nonzero{color:#60a5fa}
+    .count-name{font-size:0.72rem;color:var(--mu);margin-top:4px;font-family:monospace}
+
+    /* write_mutex */
+    .wmutex-val{font-size:0.85rem;font-weight:700;padding:7px 10px;border-radius:7px;background:var(--bg);border:1px solid var(--bd);color:var(--mu);transition:all .25s;line-height:1.35}
+    .wmutex-val.locked  {background:#450a0a;border-color:var(--rd);color:#fca5a5}
+    .wmutex-val.free    {background:#052e16;border-color:var(--gr);color:#6ee7b7}
+
+    /* DB 박스 */
+    .db-box{background:#1e293b;border:2px solid var(--bd);border-radius:10px;padding:14px;text-align:center;transition:all .25s}
+    .db-box.reading{border-color:var(--bl)}
+    .db-box.writing{border-color:var(--rd);animation:pulseR .6s ease-in-out infinite alternate}
+    .db-icon{font-size:1.6rem;margin-bottom:4px}
+    .db-status{font-size:0.78rem;font-weight:700;color:var(--mu);transition:color .25s}
+    .db-status.reading{color:#60a5fa}
+    .db-status.writing{color:#fca5a5}
+
+    /* 설명 카드 */
+    .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+    .step-label{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+    .step-desc{font-size:0.9rem;color:#cbd5e1;line-height:1.6}
+    .step-desc .hl-r{color:#93c5fd;font-weight:700}
+    .step-desc .hl-w{color:#fca5a5;font-weight:700}
+    .step-desc .hl-ok{color:#6ee7b7;font-weight:700}
+    .step-desc code{font-family:monospace;font-size:0.85em;background:#334155;padding:1px 5px;border-radius:3px}
+
+    .controls{display:flex;gap:9px}
+    button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:0.85rem;font-weight:700;font-family:inherit;transition:all .12s}
+    #btnNext{background:var(--bl);color:#fff;flex:1}
+    #btnNext:hover:not(:disabled){background:#2563eb}
+    #btnNext:disabled{background:#1e3a5f;color:#334155;cursor:not-allowed}
+    #btnReset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+    #btnReset:hover{background:#334155}
+  </style>
+</head>
+<body>
+<h1>Readers-Writers — read_count 메커니즘</h1>
+<p class="sub">읽기는 동시에 가능 · 쓰기는 독점 · read_count로 리더 수를 추적한다</p>
+
+<div class="arena">
+  <div class="threads-panel">
+    <div class="thread-row idle" id="tr-ra">
+      <div class="th-icon reader">📖</div>
+      <div>
+        <div class="th-name reader">Reader A</div>
+        <div class="th-op" id="op-ra">대기 중</div>
+      </div>
+      <span class="th-badge badge-idle" id="badge-ra">대기</span>
+    </div>
+    <div class="thread-row idle" id="tr-rb">
+      <div class="th-icon reader">📖</div>
+      <div>
+        <div class="th-name reader">Reader B</div>
+        <div class="th-op" id="op-rb">대기 중</div>
+      </div>
+      <span class="th-badge badge-idle" id="badge-rb">대기</span>
+    </div>
+    <div class="thread-row idle" id="tr-rc">
+      <div class="th-icon reader">📖</div>
+      <div>
+        <div class="th-name reader">Reader C</div>
+        <div class="th-op" id="op-rc">대기 중</div>
+      </div>
+      <span class="th-badge badge-idle" id="badge-rc">대기</span>
+    </div>
+    <div class="thread-row idle" id="tr-w">
+      <div class="th-icon writer">✏️</div>
+      <div>
+        <div class="th-name writer">Writer</div>
+        <div class="th-op" id="op-w">대기 중</div>
+      </div>
+      <span class="th-badge badge-idle" id="badge-w">대기</span>
+    </div>
+  </div>
+
+  <div class="state-panel">
+    <div class="state-box">
+      <div class="state-label">read_count</div>
+      <div class="count-val" id="rc-val">0</div>
+      <div class="count-name">read_count</div>
+    </div>
+    <div class="state-box">
+      <div class="state-label">write_mutex</div>
+      <div class="wmutex-val free" id="wm-val">free</div>
+    </div>
+    <div class="db-box" id="db-box">
+      <div class="db-icon">🗄️</div>
+      <div class="db-status" id="db-status">유휴</div>
+    </div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">초기 상태</div>
+  <div class="step-desc"  id="stepDesc">리더와 라이터가 대기 중입니다. <code>read_count = 0</code>, <code>write_mutex = free</code>.</div>
+</div>
+
+<div class="controls">
+  <button id="btnReset">↺ 처음</button>
+  <button id="btnNext">다음 단계 →</button>
+</div>
+
+<script>
+// state: { label, desc, threads:{ra,rb,rc,w}, rc, wm, db }
+// thread state: idle / reading / writing / waiting
+// wm: free / locked
+// db: idle / reading / writing
+
+const STEPS = [
+  { label:'초기 상태',
+    desc:'모든 스레드가 대기 중입니다. <code>read_count = 0</code>, <code>write_mutex = free</code>입니다.',
+    threads:{ra:'idle',rb:'idle',rc:'idle',w:'idle'},
+    ops:{ra:'대기 중',rb:'대기 중',rc:'대기 중',w:'대기 중'},
+    rc:0, wm:'free', db:'idle' },
+
+  { label:'Step 1 — Reader A 진입',
+    desc:'<span class="hl-r">Reader A</span>가 진입합니다. <code>read_count = 1</code>. <span class="hl-ok">read_count가 1이 됐으므로 (첫 번째 리더) write_mutex를 잠급니다.</span> 이제 라이터는 진입할 수 없습니다.',
+    threads:{ra:'reading',rb:'idle',rc:'idle',w:'idle'},
+    ops:{ra:'read_count=1, write_mutex.lock()',rb:'대기 중',rc:'대기 중',w:'대기 중'},
+    rc:1, wm:'locked', db:'reading' },
+
+  { label:'Step 2 — Reader B 진입',
+    desc:'<span class="hl-r">Reader B</span>가 진입합니다. <code>read_count = 2</code>. 두 번째 리더이므로 write_mutex는 이미 잠겨있어 다시 잠그지 않습니다. <span class="hl-ok">리더 A, B가 동시에 읽고 있습니다.</span>',
+    threads:{ra:'reading',rb:'reading',rc:'idle',w:'idle'},
+    ops:{ra:'데이터 읽는 중',rb:'read_count=2',rc:'대기 중',w:'대기 중'},
+    rc:2, wm:'locked', db:'reading' },
+
+  { label:'Step 3 — Writer 진입 시도',
+    desc:'<span class="hl-w">Writer</span>가 진입을 시도합니다. <code>write_mutex.lock()</code>을 호출하지만 <span class="hl-ok">이미 리더가 잠가뒀습니다.</span> Writer는 모든 리더가 나갈 때까지 대기합니다.',
+    threads:{ra:'reading',rb:'reading',rc:'idle',w:'waiting'},
+    ops:{ra:'데이터 읽는 중',rb:'데이터 읽는 중',rc:'대기 중',w:'write_mutex.lock() 대기...'},
+    rc:2, wm:'locked', db:'reading' },
+
+  { label:'Step 4 — Reader C 진입',
+    desc:'<span class="hl-r">Reader C</span>도 진입합니다. <code>read_count = 3</code>. <span class="hl-ok">Writer가 기다리는 동안에도 새 리더가 진입할 수 있습니다.</span> (리더 우선 정책의 특징)',
+    threads:{ra:'reading',rb:'reading',rc:'reading',w:'waiting'},
+    ops:{ra:'데이터 읽는 중',rb:'데이터 읽는 중',rc:'read_count=3',w:'write_mutex.lock() 대기...'},
+    rc:3, wm:'locked', db:'reading' },
+
+  { label:'Step 5 — Reader A 탈출',
+    desc:'<span class="hl-r">Reader A</span>가 읽기를 마치고 나갑니다. <code>read_count = 2</code>. 아직 리더가 남아 있으므로 write_mutex는 유지됩니다.',
+    threads:{ra:'idle',rb:'reading',rc:'reading',w:'waiting'},
+    ops:{ra:'read_count=2, 탈출',rb:'데이터 읽는 중',rc:'데이터 읽는 중',w:'write_mutex.lock() 대기...'},
+    rc:2, wm:'locked', db:'reading' },
+
+  { label:'Step 6 — Reader B 탈출',
+    desc:'<span class="hl-r">Reader B</span>도 나갑니다. <code>read_count = 1</code>. 아직 C가 남아 있습니다.',
+    threads:{ra:'idle',rb:'idle',rc:'reading',w:'waiting'},
+    ops:{ra:'완료',rb:'read_count=1, 탈출',rc:'데이터 읽는 중',w:'write_mutex.lock() 대기...'},
+    rc:1, wm:'locked', db:'reading' },
+
+  { label:'Step 7 — Reader C 탈출 → write_mutex 해제',
+    desc:'<span class="hl-r">Reader C</span>가 나갑니다. <code>read_count = 0</code>. <span class="hl-ok">마지막 리더이므로 write_mutex를 해제합니다.</span> Writer가 깨어날 수 있습니다.',
+    threads:{ra:'idle',rb:'idle',rc:'idle',w:'waiting'},
+    ops:{ra:'완료',rb:'완료',rc:'read_count=0, write_mutex.unlock()',w:'write_mutex.lock() 대기...'},
+    rc:0, wm:'free', db:'idle' },
+
+  { label:'Step 8 — Writer 독점 진입',
+    desc:'<span class="hl-w">Writer</span>가 <code>write_mutex</code>를 획득합니다. <span class="hl-ok">모든 리더와 라이터를 차단한 채 독점으로 씁니다.</span> 이 동안 새 리더도 진입할 수 없습니다.',
+    threads:{ra:'idle',rb:'idle',rc:'idle',w:'writing'},
+    ops:{ra:'완료',rb:'완료',rc:'완료',w:'write_mutex 획득, 쓰기 중...'},
+    rc:0, wm:'locked', db:'writing' },
+
+  { label:'Step 9 — Writer 완료',
+    desc:'<span class="hl-w">Writer</span>가 쓰기를 마치고 <code>write_mutex</code>를 해제합니다. 이제 새 리더와 라이터가 다시 경쟁할 수 있습니다.',
+    threads:{ra:'idle',rb:'idle',rc:'idle',w:'idle'},
+    ops:{ra:'완료',rb:'완료',rc:'완료',w:'write_mutex.unlock(), 완료'},
+    rc:0, wm:'free', db:'idle' },
+];
+
+let cur = -1;
+
+const STATE_MAP = {
+  idle:    {cls:'idle',    badge:'badge-idle',    label:'대기'},
+  reading: {cls:'reading', badge:'badge-reading', label:'읽는 중'},
+  writing: {cls:'writing', badge:'badge-writing', label:'쓰는 중'},
+  waiting: {cls:'waiting', badge:'badge-waiting', label:'대기 중'},
+};
+
+function applyStep(s) {
+  ['ra','rb','rc','w'].forEach(id => {
+    const st = s.threads[id];
+    const m = STATE_MAP[st];
+    document.getElementById('tr-'+id).className = 'thread-row ' + m.cls;
+    document.getElementById('badge-'+id).className = 'th-badge ' + m.badge;
+    document.getElementById('badge-'+id).textContent = m.label;
+    const opEl = document.getElementById('op-'+id);
+    opEl.textContent = s.ops[id];
+    opEl.className = 'th-op' + (st==='reading'?' active':st==='writing'?' active-w':'');
+  });
+
+  const rcEl = document.getElementById('rc-val');
+  rcEl.textContent = s.rc;
+  rcEl.className = 'count-val' + (s.rc > 0 ? ' nonzero' : '');
+
+  const wm = document.getElementById('wm-val');
+  wm.className = 'wmutex-val ' + s.wm;
+  wm.textContent = s.wm === 'locked' ? '잠김 (Locked)' : 'free';
+
+  const db = document.getElementById('db-box');
+  const dbSt = document.getElementById('db-status');
+  db.className = 'db-box' + (s.db==='idle'?'':' '+s.db);
+  dbSt.className = 'db-status' + (s.db==='idle'?'':' '+s.db);
+  dbSt.textContent = s.db==='reading'?'읽기 중 (동시 허용)':s.db==='writing'?'쓰기 중 (독점)':'유휴';
+
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').innerHTML = s.desc;
+  document.getElementById('btnNext').disabled = cur >= STEPS.length - 1;
+}
+
+function next() {
+  if (cur >= STEPS.length - 1) return;
+  cur++;
+  applyStep(STEPS[cur]);
+}
+
+function reset() {
+  cur = -1;
+  applyStep(STEPS[0]);
+  cur = -1;
+  document.getElementById('btnNext').disabled = false;
+}
+
+document.getElementById('btnNext').addEventListener('click', next);
+document.getElementById('btnReset').addEventListener('click', reset);
+
+reset();
+</script>
+</body>
+</html>

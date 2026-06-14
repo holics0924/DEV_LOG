@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 580" width="700" height="580">
+  <defs>
+    <marker id="arrG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <rect width="700" height="580" fill="#0f172a" rx="12"/>
+  <text x="350" y="28" text-anchor="middle" fill="#94a3b8" font-size="12.5" font-family="system-ui,sans-serif" font-weight="700">Dining Philosophers — 해결책: 철학자 한 명의 방향을 반대로</text>
+
+  <!-- 구분선 -->
+  <line x1="350" y1="42" x2="350" y2="540" stroke="#1e293b" stroke-width="1.5"/>
+
+  <!-- ══ 왼쪽: 문제 상황 ══ -->
+  <text x="175" y="58" text-anchor="middle" fill="#ef4444" font-size="12" font-family="system-ui,sans-serif" font-weight="700">문제: 데드락</text>
+  <text x="175" y="73" text-anchor="middle" fill="#64748b" font-size="10" font-family="system-ui,sans-serif">모두 왼쪽 포크를 집음 → 순환 대기</text>
+
+  <!-- 왼쪽 테이블 -->
+  <circle cx="175" cy="240" r="55" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="175" y="237" text-anchor="middle" fill="#475569" font-size="9" font-family="system-ui,sans-serif">테이블</text>
+
+  <!-- 포크 (P0-P4가 각자 왼쪽 포크 보유) -->
+  <rect x="228" y="139" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1" transform="rotate(-26 235 151)"/>
+  <rect x="256" y="248" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1" transform="rotate(54 263 260)"/>
+  <rect x="168" y="327" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1"/>
+  <rect x="80"  y="248" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1" transform="rotate(-54 87 260)"/>
+  <rect x="107" y="139" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1" transform="rotate(26 114 151)"/>
+
+  <!-- 왼쪽 철학자들 -->
+  <circle cx="175" cy="130" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="175" y="126" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P0</text>
+  <text x="175" y="138" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <circle cx="274" cy="185" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="274" y="181" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P1</text>
+  <text x="274" y="193" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <circle cx="238" cy="322" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="238" y="318" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P2</text>
+  <text x="238" y="330" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <circle cx="112" cy="322" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="112" y="318" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P3</text>
+  <text x="112" y="330" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <circle cx="76" cy="185" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="76" y="181" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P4</text>
+  <text x="76" y="193" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <!-- 왼쪽 결과 박스 -->
+  <rect x="20" y="368" width="310" height="32" rx="7" fill="#450a0a" stroke="#ef4444" stroke-width="1"/>
+  <text x="175" y="389" text-anchor="middle" fill="#fca5a5" font-size="10.5" font-family="system-ui,sans-serif" font-weight="700">💀 순환 대기 → 데드락 (아무도 못 먹음)</text>
+
+  <!-- 왼쪽 설명 박스 -->
+  <rect x="20" y="410" width="310" height="116" rx="7" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="36" y="430" fill="#ef4444" font-size="10" font-family="system-ui,sans-serif" font-weight="700">데드락 조건 4가지 모두 성립:</text>
+  <text x="36" y="450" fill="#94a3b8" font-size="9.5" font-family="system-ui,sans-serif">• 상호배제: 포크는 한 명만 쥘 수 있다</text>
+  <text x="36" y="468" fill="#94a3b8" font-size="9.5" font-family="system-ui,sans-serif">• 점유와 대기: 왼쪽 쥔 채 오른쪽 기다린다</text>
+  <text x="36" y="486" fill="#94a3b8" font-size="9.5" font-family="system-ui,sans-serif">• 비선점: 포크를 강제로 빼앗을 수 없다</text>
+  <text x="36" y="504" fill="#94a3b8" font-size="9.5" font-family="system-ui,sans-serif">• 순환 대기: P0→P1→P2→P3→P4→P0</text>
+
+  <!-- ══ 오른쪽: 해결책 ══ -->
+  <text x="525" y="58" text-anchor="middle" fill="#10b981" font-size="12" font-family="system-ui,sans-serif" font-weight="700">해결: P4의 순서 반전</text>
+  <text x="525" y="73" text-anchor="middle" fill="#64748b" font-size="10" font-family="system-ui,sans-serif">P4만 오른쪽 먼저 → 순환 끊김</text>
+
+  <!-- 오른쪽 테이블 -->
+  <circle cx="525" cy="240" r="55" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="525" y="237" text-anchor="middle" fill="#475569" font-size="9" font-family="system-ui,sans-serif">테이블</text>
+
+  <!-- 오른쪽 포크 -->
+  <rect x="577" y="139" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1" transform="rotate(-26 584 151)"/>
+  <rect x="606" y="248" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1" transform="rotate(54 613 260)"/>
+  <rect x="518" y="327" width="14" height="24" rx="3" fill="#172554" stroke="#3b82f6" stroke-width="1"/>
+  <!-- F3 — P4가 오른쪽 먼저 잡음 (초록) -->
+  <rect x="430" y="248" width="14" height="24" rx="3" fill="#052e16" stroke="#10b981" stroke-width="1.5" transform="rotate(-54 437 260)"/>
+  <!-- F4 — P4의 오른쪽 포크 (초록) -->
+  <rect x="457" y="139" width="14" height="24" rx="3" fill="#052e16" stroke="#10b981" stroke-width="1.5" transform="rotate(26 464 151)"/>
+
+  <!-- P0: F4가 P4에게 막혀 대기 -->
+  <circle cx="525" cy="130" r="24" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+  <text x="525" y="126" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P0</text>
+  <text x="525" y="138" text-anchor="middle" fill="#64748b" font-size="8" font-family="system-ui,sans-serif">대기 중</text>
+
+  <circle cx="624" cy="185" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="624" y="181" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P1</text>
+  <text x="624" y="193" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <circle cx="588" cy="322" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="588" y="318" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P2</text>
+  <text x="588" y="330" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <circle cx="462" cy="322" r="24" fill="#300808" stroke="#ef4444" stroke-width="2"/>
+  <text x="462" y="318" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P3</text>
+  <text x="462" y="330" text-anchor="middle" fill="#ef4444" font-size="8" font-family="system-ui,sans-serif">왼쪽↙</text>
+
+  <!-- P4: 오른쪽 먼저 (초록) -->
+  <circle cx="426" cy="185" r="24" fill="#0a2e1a" stroke="#10b981" stroke-width="2.5"/>
+  <text x="426" y="181" text-anchor="middle" fill="#6ee7b7" font-size="10" font-family="system-ui,sans-serif" font-weight="700">P4</text>
+  <text x="426" y="193" text-anchor="middle" fill="#10b981" font-size="8" font-family="system-ui,sans-serif">오른쪽↗</text>
+
+  <!-- 화살표 -->
+  <line x1="438" y1="168" x2="458" y2="155" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrG)"/>
+  <text x="370" y="150" fill="#10b981" font-size="9" font-family="system-ui,sans-serif" font-weight="700">① 오른쪽 먼저</text>
+  <line x1="514" y1="148" x2="476" y2="152" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="518" y="143" fill="#ef4444" font-size="8.5" font-family="system-ui,sans-serif">P0 차단됨</text>
+
+  <!-- 오른쪽 결과 박스 -->
+  <rect x="370" y="368" width="310" height="32" rx="7" fill="#052e16" stroke="#10b981" stroke-width="1"/>
+  <text x="525" y="389" text-anchor="middle" fill="#6ee7b7" font-size="10.5" font-family="system-ui,sans-serif" font-weight="700">✓ 순환 끊김 → P4가 양쪽 잡고 식사 가능</text>
+
+  <!-- 오른쪽 설명 박스 -->
+  <rect x="370" y="410" width="310" height="116" rx="7" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="386" y="430" fill="#10b981" font-size="10" font-family="system-ui,sans-serif" font-weight="700">해결책: 순환 대기 차단</text>
+  <text x="386" y="450" fill="#94a3b8" font-size="9.5" font-family="system-ui,sans-serif">P4가 오른쪽 포크(F4)를 먼저 잡음</text>
+  <text x="386" y="468" fill="#94a3b8" font-size="9.5" font-family="system-ui,sans-serif">→ P0의 왼쪽(F4)이 막혀 P0 대기</text>
+  <text x="386" y="486" fill="#94a3b8" font-size="9.5" font-family="system-ui,sans-serif">→ P4→P0 방향 사이클 소멸</text>
+  <text x="386" y="504" fill="#6ee7b7" font-size="9.5" font-family="system-ui,sans-serif" font-weight="700">= "락 획득 순서 통일"과 같은 원리</text>
+</svg>
