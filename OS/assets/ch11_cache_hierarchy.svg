@@ -1,0 +1,67 @@
+<svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:760px;display:block;margin:0 auto;font-family:sans-serif">
+  <rect width="760" height="220" fill="#0d1117" rx="10"/>
+
+  <defs>
+    <marker id="arr11" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#484f58"/>
+    </marker>
+  </defs>
+
+  <!-- CPU -->
+  <rect x="15" y="75" width="85" height="70" rx="6" fill="#0d1f38" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="57" y="105" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="bold">CPU</text>
+  <text x="57" y="121" text-anchor="middle" fill="#8b949e" font-size="10">3 GHz</text>
+  <text x="57" y="135" text-anchor="middle" fill="#8b949e" font-size="9">0.3 ns/clock</text>
+
+  <!-- Arrow 1 -->
+  <line x1="100" y1="110" x2="122" y2="110" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr11)"/>
+
+  <!-- L1 -->
+  <rect x="125" y="65" width="105" height="90" rx="6" fill="#0b2118" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="177" y="95" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="bold">L1 캐시</text>
+  <text x="177" y="111" text-anchor="middle" fill="#8b949e" font-size="10">32 KB</text>
+  <text x="177" y="126" text-anchor="middle" fill="#3fb950" font-size="11">~1 ns</text>
+  <text x="177" y="143" text-anchor="middle" fill="#8b949e" font-size="9">코어 전용</text>
+
+  <!-- Arrow 2 -->
+  <line x1="230" y1="110" x2="252" y2="110" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr11)"/>
+
+  <!-- L2 -->
+  <rect x="255" y="55" width="115" height="110" rx="6" fill="#271f00" stroke="#d29922" stroke-width="1.5"/>
+  <text x="312" y="85" text-anchor="middle" fill="#d29922" font-size="12" font-weight="bold">L2 캐시</text>
+  <text x="312" y="102" text-anchor="middle" fill="#8b949e" font-size="10">256 KB</text>
+  <text x="312" y="117" text-anchor="middle" fill="#d29922" font-size="11">~4 ns</text>
+  <text x="312" y="132" text-anchor="middle" fill="#8b949e" font-size="9">코어 전용</text>
+  <text x="312" y="147" text-anchor="middle" fill="#8b949e" font-size="9">또는 2코어 공유</text>
+
+  <!-- Arrow 3 -->
+  <line x1="370" y1="110" x2="392" y2="110" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr11)"/>
+
+  <!-- L3 -->
+  <rect x="395" y="42" width="130" height="136" rx="6" fill="#2d1200" stroke="#f78166" stroke-width="1.5"/>
+  <text x="460" y="72" text-anchor="middle" fill="#f78166" font-size="12" font-weight="bold">L3 캐시</text>
+  <text x="460" y="89" text-anchor="middle" fill="#8b949e" font-size="10">4 – 32 MB</text>
+  <text x="460" y="104" text-anchor="middle" fill="#f78166" font-size="11">~20 ns</text>
+  <text x="460" y="119" text-anchor="middle" fill="#8b949e" font-size="9">전체 코어 공유</text>
+  <text x="460" y="134" text-anchor="middle" fill="#8b949e" font-size="9">LLC (Last Level Cache)</text>
+  <text x="460" y="149" text-anchor="middle" fill="#8b949e" font-size="9">CPU 다이 내부</text>
+  <text x="460" y="164" text-anchor="middle" fill="#8b949e" font-size="9">미스 시 RAM으로</text>
+
+  <!-- Arrow 4 -->
+  <line x1="525" y1="110" x2="547" y2="110" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr11)"/>
+
+  <!-- RAM -->
+  <rect x="550" y="28" width="155" height="164" rx="6" fill="#161b22" stroke="#6e7681" stroke-width="1.5"/>
+  <text x="627" y="58" text-anchor="middle" fill="#c9d1d9" font-size="12" font-weight="bold">RAM</text>
+  <text x="627" y="75" text-anchor="middle" fill="#8b949e" font-size="10">8 – 64 GB</text>
+  <text x="627" y="90" text-anchor="middle" fill="#f85149" font-size="11">~100 ns</text>
+  <text x="627" y="106" text-anchor="middle" fill="#8b949e" font-size="9">CPU 외부 / DRAM</text>
+  <rect x="566" y="115" width="122" height="22" rx="4" fill="#1c0808"/>
+  <text x="627" y="130" text-anchor="middle" fill="#f85149" font-size="9">≈ 300 클록 대기</text>
+  <text x="627" y="147" text-anchor="middle" fill="#8b949e" font-size="9">L3 미스 시 최종 도착지</text>
+  <text x="627" y="163" text-anchor="middle" fill="#8b949e" font-size="9">(이후 → 디스크)</text>
+  <text x="627" y="179" text-anchor="middle" fill="#484f58" font-size="9">50,000+ ns</text>
+
+  <!-- Bottom caption -->
+  <text x="380" y="210" text-anchor="middle" fill="#484f58" font-size="9">← 빠름 · 작음 · 비쌈                                크고 · 느리고 · 저렴 →</text>
+</svg>

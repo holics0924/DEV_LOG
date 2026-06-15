@@ -13,7 +13,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#172554;color:#58a6ff">OS</span>
         Operating System
       </span>
-      <span class="subject-count">10 chapters</span>
+      <span class="subject-count">11 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/OS/ch1-process-thread/" class="chapter-link">
@@ -45,6 +45,9 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/OS/ch10-monitor-condvar/" class="chapter-link">
         <span class="ch-num">CH10</span>모니터와 조건변수
+      </a>
+      <a href="/DEV_LOG/OS/ch11-cache-memory/" class="chapter-link">
+        <span class="ch-num">CH11</span>캐시 메모리 계층과 지역성
       </a>
     </div>
   </div>

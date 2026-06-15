@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>캐시 지역성 시뮬레이터</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --rd:#ef4444;--rdb:#450a0a;--rdl:#fca5a5;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 40px;max-width:860px;margin:0 auto}
+
+    h1{font-size:1.05rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:18px}
+
+    /* 모드 토글 */
+    .mode-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+    .mode-btn{padding:8px 20px;border:1px solid var(--bd);border-radius:7px;background:var(--s1);color:#94a3b8;font-size:0.83rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+    .mode-btn:hover{background:#334155;color:var(--tx)}
+    .mode-btn.active-enough{background:var(--grb);border-color:var(--gr);color:var(--grl)}
+    .mode-btn.active-small{background:var(--rdb);border-color:var(--rd);color:var(--rdl)}
+
+    /* 설명 박스 */
+    .explain{border:1px solid var(--bd);border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:0.78rem;color:#94a3b8;line-height:1.7;transition:background .2s,border-color .2s}
+    .explain.mode-enough{background:#051a0e;border-color:#1a4a30}
+    .explain.mode-small{background:#1a0505;border-color:#4a1a1a}
+    .explain strong{color:var(--tx)}
+
+    /* 범례 */
+    .legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;font-size:0.75rem;color:var(--mu)}
+    .legend-item{display:flex;align-items:center;gap:5px}
+    .legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+
+    /* 두 패널 */
+    .grids{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+    @media(max-width:500px){.grids{grid-template-columns:1fr}}
+
+    .grid-panel{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:16px}
+    .panel-title{font-size:0.82rem;font-weight:700;margin-bottom:4px;letter-spacing:.2px}
+    .panel-title.row{color:var(--grl)}
+    .panel-title.col{color:var(--rdl)}
+    .panel-desc{font-size:0.68rem;color:var(--mu);margin-bottom:12px}
+
+    /* 캐시 그리드 */
+    .cell-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:14px}
+    .cell{
+      aspect-ratio:1;border-radius:5px;background:#1a1e2e;
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.58rem;color:#334155;font-weight:600;
+      transition:background .15s,border-color .15s;border:1px solid transparent;
+    }
+    .cell.default{background:#1a1e2e;color:#334155;border-color:transparent}
+    .cell.in-cache{background:#0b1f14;color:#34d399;border-color:#1a4a30}
+    .cell.hit{background:var(--grb);border-color:var(--gr);color:var(--grl)}
+    .cell.miss{background:var(--rdb);border-color:var(--rd);color:var(--rdl)}
+
+    /* 통계 */
+    .stats{display:flex;gap:14px;font-size:0.8rem;margin-bottom:12px}
+    .stat-item{display:flex;align-items:center;gap:5px}
+    .stat-label{color:var(--mu);font-size:0.72rem}
+    .stat-val{font-weight:700;font-size:0.9rem;min-width:24px}
+    .stat-val.hits{color:var(--gr)}
+    .stat-val.misses{color:var(--rd)}
+    .stat-val.rate{color:var(--am)}
+
+    /* 캐시 슬롯 */
+    .cache-bar-label{font-size:0.68rem;color:var(--mu);margin-bottom:4px}
+    .cache-slots{display:flex;gap:4px}
+    .cache-slot{
+      height:20px;flex:1;border-radius:3px;background:#1a1e2e;
+      border:1px solid #334155;font-size:0.62rem;
+      display:flex;align-items:center;justify-content:center;
+      color:var(--mu);transition:all .2s;
+    }
+    .cache-slot.occupied-row{background:#0b1f14;border-color:#10b981;color:#6ee7b7;font-weight:600}
+    .cache-slot.occupied-col{background:#1a0a0a;border-color:#ef4444;color:#fca5a5;font-weight:600}
+
+    /* 단계 정보 */
+    .step-info{font-size:0.72rem;color:var(--mu);margin-bottom:8px;min-height:1.1em}
+    .step-info .cur{color:var(--tx);font-weight:600}
+    .result-hit{color:var(--gr)}
+    .result-miss{color:var(--rd)}
+
+    /* 컨트롤 */
+    .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .btn{padding:7px 18px;border:1px solid var(--bd);border-radius:7px;background:var(--s1);color:#94a3b8;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+    .btn:hover:not(:disabled){background:#334155;color:var(--tx)}
+    .btn:disabled{opacity:.4;cursor:default}
+    .btn-primary{border-color:#3b82f6;color:var(--bll);background:var(--blb)}
+    .btn-primary:hover:not(:disabled){background:#1d3a6e}
+    .progress-info{font-size:0.75rem;color:var(--mu);margin-left:auto}
+    .progress-info span{color:#cbd5e1;font-weight:600}
+
+    /* 완료 메시지 */
+    .done-msg{display:none;margin-top:16px;border:1px solid var(--bd);border-radius:8px;padding:12px 16px;font-size:0.78rem;color:#94a3b8;line-height:1.7}
+    .done-msg.visible{display:block}
+    .done-msg.mode-enough{background:#051a0e;border-color:#1a4a30}
+    .done-msg.mode-small{background:#1a0505;border-color:#4a1a1a}
+    .done-msg strong{color:var(--tx)}
+    .done-msg .highlight-gr{color:var(--grl)}
+    .done-msg .highlight-rd{color:var(--rdl)}
+  </style>
+</head>
+<body>
+
+<h1>캐시 지역성 시뮬레이터</h1>
+<p class="sub">행 우선 vs 열 우선 — 4×4 행렬, 캐시 슬롯 수를 바꿔가며 확인</p>
+
+<div class="mode-bar">
+  <button class="mode-btn active-enough" id="btn-enough" onclick="setMode('enough')">캐시 충분 (슬롯 4개)</button>
+  <button class="mode-btn" id="btn-small" onclick="setMode('small')">캐시 부족 (슬롯 2개)</button>
+</div>
+
+<div class="explain mode-enough" id="explain-box">
+  <strong>캐시 충분 모드</strong> — 슬롯 4개, 4행 전체를 올려둘 수 있다.
+  두 방식 모두 히트가 발생하고 히트율은 같다.
+  차이는 <strong>패턴</strong>에 있다 — 단계를 끝까지 돌려보자.
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#450a0a;border:1px solid #ef4444"></div>캐시 미스</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#052e16;border:1px solid #10b981"></div>캐시 히트</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#0b1f14;border:1px solid #1a4a30"></div>캐시에 있음</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1a1e2e"></div>미접근</div>
+</div>
+
+<div class="grids">
+  <div class="grid-panel">
+    <div class="panel-title row">행 우선 (Row-major)</div>
+    <div class="panel-desc">[0][0]→[0][1]→[0][2]→[0][3]→[1][0]→ ...</div>
+    <div class="cell-grid" id="row-grid"></div>
+    <div class="step-info" id="row-step-info">—</div>
+    <div class="stats">
+      <div class="stat-item"><span class="stat-label">히트</span><span class="stat-val hits" id="row-hits">0</span></div>
+      <div class="stat-item"><span class="stat-label">미스</span><span class="stat-val misses" id="row-misses">0</span></div>
+      <div class="stat-item"><span class="stat-label">히트율</span><span class="stat-val rate" id="row-rate">—</span></div>
+    </div>
+    <div class="cache-bar-label" id="row-cap-label">캐시 슬롯 (4개)</div>
+    <div class="cache-slots" id="row-slots"></div>
+  </div>
+
+  <div class="grid-panel">
+    <div class="panel-title col">열 우선 (Column-major)</div>
+    <div class="panel-desc">[0][0]→[1][0]→[2][0]→[3][0]→[0][1]→ ...</div>
+    <div class="cell-grid" id="col-grid"></div>
+    <div class="step-info" id="col-step-info">—</div>
+    <div class="stats">
+      <div class="stat-item"><span class="stat-label">히트</span><span class="stat-val hits" id="col-hits">0</span></div>
+      <div class="stat-item"><span class="stat-label">미스</span><span class="stat-val misses" id="col-misses">0</span></div>
+      <div class="stat-item"><span class="stat-label">히트율</span><span class="stat-val rate" id="col-rate">—</span></div>
+    </div>
+    <div class="cache-bar-label" id="col-cap-label">캐시 슬롯 (4개)</div>
+    <div class="cache-slots" id="col-slots"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-primary" id="step-btn" onclick="stepDemo()">다음 단계 →</button>
+  <button class="btn" onclick="resetDemo()">↺ 리셋</button>
+  <div class="progress-info">단계 <span id="step-counter">0</span> / 16</div>
+</div>
+
+<div class="done-msg mode-enough" id="done-msg"></div>
+
+<script>
+var N=4, LINE=4;
+var currentMode='enough';
+var S={};
+
+var MODES={
+  enough:{
+    cap:4,
+    explainHtml:'<strong>캐시 충분 모드</strong> — 슬롯 4개, 4행 전체를 올려둘 수 있다. 두 방식 모두 히트가 발생하고 히트율은 같다. 차이는 <strong>패턴</strong>에 있다 — 단계를 끝까지 돌려보자.',
+    doneHtml:'<strong>결과.</strong> 히트율 동일 (75%). 하지만 패턴이 다르다.<br>'
+      +'행 우선: <span class="highlight-gr">M H H H</span> / <span class="highlight-gr">M H H H</span> / <span class="highlight-gr">M H H H</span> / <span class="highlight-gr">M H H H</span> — 행 하나 올리자마자 3번 히트.<br>'
+      +'열 우선: <span class="highlight-rd">M M M M</span> / <span class="highlight-gr">H H H H</span> / <span class="highlight-gr">H H H H</span> / <span class="highlight-gr">H H H H</span> — 첫 열에서 미스 4연속, 그 다음 열부터 히트.<br>'
+      +'실제 1000×1000 행렬에서 L1(32KB)은 약 8행만 담는다. <strong>캐시 부족 모드</strong>로 전환해보자.',
+    btnClass:'active-enough',
+    explainClass:'mode-enough',
+    doneClass:'mode-enough'
+  },
+  small:{
+    cap:2,
+    explainHtml:'<strong>캐시 부족 모드</strong> — 슬롯 2개, 2행밖에 못 담는다. 열 우선은 새 행을 올릴 때마다 기존 행이 밀려나 재방문 시 이미 없어진다.',
+    doneHtml:'<strong>결과.</strong> <span class="highlight-gr">행 우선 75%</span> vs <span class="highlight-rd">열 우선 0%</span>.<br>'
+      +'열 우선은 [0][0]→[1][0]→[2][0]→[3][0]을 올리는 사이 행0이 밀려나고, 다음 열에서 행0을 다시 올리면 행2가 밀린다. 이 순환이 끝없이 반복된다.<br>'
+      +'1000×1000 행렬에서는 캐시가 항상 부족한 상황이라 실제로는 이 모드에 가깝다.',
+    btnClass:'active-small',
+    explainClass:'mode-small',
+    doneClass:'mode-small'
+  }
+};
+
+function lineId(r,c){return Math.floor((r*N+c)/LINE);}
+
+function buildSlots(slotsId,cap){
+  var el=document.getElementById(slotsId);
+  el.innerHTML='';
+  for(var i=0;i<cap;i++){
+    var s=document.createElement('div');
+    s.className='cache-slot';
+    s.textContent='빈';
+    el.appendChild(s);
+  }
+}
+
+function initGrid(id){
+  var el=document.getElementById(id);
+  el.innerHTML='';
+  for(var i=0;i<N*N;i++){
+    var d=document.createElement('div');
+    d.className='cell default';
+    d.textContent=Math.floor(i/N)+','+i%N;
+    el.appendChild(d);
+  }
+}
+
+function makeCache(){return{lines:[],hits:0,misses:0};}
+
+function cacheAccess(cache,r,c,cap){
+  var lid=lineId(r,c);
+  if(cache.lines.indexOf(lid)>=0){cache.hits++;return'hit';}
+  cache.misses++;
+  if(cache.lines.length>=cap)cache.lines.shift();
+  cache.lines.push(lid);
+  return'miss';
+}
+
+function refreshGrid(gridId,cache,curR,curC,result){
+  var el=document.getElementById(gridId);
+  for(var i=0;i<N*N;i++){
+    var r=Math.floor(i/N),c=i%N;
+    var lid=lineId(r,c);
+    var cell=el.children[i];
+    var isCur=(r===curR&&c===curC);
+    if(isCur) cell.className='cell '+(result==='hit'?'hit':'miss');
+    else if(cache.lines.indexOf(lid)>=0) cell.className='cell in-cache';
+    else cell.className='cell default';
+  }
+}
+
+function updateSlots(slotsId,cache,type,cap){
+  var el=document.getElementById(slotsId);
+  for(var i=0;i<cap;i++){
+    var s=el.children[i];
+    if(i<cache.lines.length){
+      s.className='cache-slot occupied-'+type;
+      s.textContent='행'+cache.lines[i];
+    }else{
+      s.className='cache-slot';
+      s.textContent='빈';
+    }
+  }
+}
+
+function updateStats(prefix,cache){
+  document.getElementById(prefix+'-hits').textContent=cache.hits;
+  document.getElementById(prefix+'-misses').textContent=cache.misses;
+  var t=cache.hits+cache.misses;
+  document.getElementById(prefix+'-rate').textContent=t>0?Math.round(cache.hits/t*100)+'%':'—';
+}
+
+function setStepInfo(infoId,r,c,result){
+  var el=document.getElementById(infoId);
+  var lid=lineId(r,c);
+  var res=result==='hit'
+    ?'<span class="result-hit">→ 히트</span>'
+    :'<span class="result-miss">→ 미스 (행'+lid+' 로드)</span>';
+  el.innerHTML='접근: <span class="cur">['+r+']['+c+']</span> '+res;
+}
+
+function setMode(mode){
+  currentMode=mode;
+  var m=MODES[mode];
+
+  // 버튼 상태
+  document.getElementById('btn-enough').className='mode-btn'+(mode==='enough'?' active-enough':'');
+  document.getElementById('btn-small').className='mode-btn'+(mode==='small'?' active-small':'');
+
+  // 설명 박스
+  var ex=document.getElementById('explain-box');
+  ex.className='explain '+m.explainClass;
+  ex.innerHTML=m.explainHtml;
+
+  resetDemo();
+}
+
+function resetDemo(){
+  var cap=MODES[currentMode].cap;
+  S={
+    step:0,
+    cap:cap,
+    rowSeq:(function(){var a=[];for(var i=0;i<N;i++)for(var j=0;j<N;j++)a.push([i,j]);return a;})(),
+    colSeq:(function(){var a=[];for(var j=0;j<N;j++)for(var i=0;i<N;i++)a.push([i,j]);return a;})(),
+    rowCache:makeCache(),
+    colCache:makeCache()
+  };
+  initGrid('row-grid');
+  initGrid('col-grid');
+  buildSlots('row-slots',cap);
+  buildSlots('col-slots',cap);
+  updateStats('row',S.rowCache);
+  updateStats('col',S.colCache);
+  document.getElementById('row-cap-label').textContent='캐시 슬롯 ('+cap+'개)';
+  document.getElementById('col-cap-label').textContent='캐시 슬롯 ('+cap+'개)';
+  document.getElementById('step-counter').textContent='0';
+  document.getElementById('step-btn').disabled=false;
+  document.getElementById('row-step-info').innerHTML='—';
+  document.getElementById('col-step-info').innerHTML='—';
+  var dm=document.getElementById('done-msg');
+  dm.className='done-msg';
+  dm.style.display='none';
+}
+
+function stepDemo(){
+  if(S.step>=N*N)return;
+  var cap=S.cap;
+  var rp=S.rowSeq[S.step],cp=S.colSeq[S.step];
+  var rRes=cacheAccess(S.rowCache,rp[0],rp[1],cap);
+  var cRes=cacheAccess(S.colCache,cp[0],cp[1],cap);
+
+  refreshGrid('row-grid',S.rowCache,rp[0],rp[1],rRes);
+  refreshGrid('col-grid',S.colCache,cp[0],cp[1],cRes);
+  updateSlots('row-slots',S.rowCache,'row',cap);
+  updateSlots('col-slots',S.colCache,'col',cap);
+  updateStats('row',S.rowCache);
+  updateStats('col',S.colCache);
+  setStepInfo('row-step-info',rp[0],rp[1],rRes);
+  setStepInfo('col-step-info',cp[0],cp[1],cRes);
+
+  S.step++;
+  document.getElementById('step-counter').textContent=S.step;
+
+  if(S.step>=N*N){
+    document.getElementById('step-btn').disabled=true;
+    var m=MODES[currentMode];
+    var dm=document.getElementById('done-msg');
+    dm.className='done-msg visible '+m.doneClass;
+    dm.innerHTML=m.doneHtml;
+  }
+}
+
+// 초기화
+setMode('enough');
+</script>
+</body>
+</html>
