@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>inode 간접 블록 포인터</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+      --pu:#a855f7;--pub:#2e1065;--pul:#d8b4fe;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 40px;max-width:700px;margin:0 auto}
+    h1{font-size:1.0rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:18px}
+
+    .preset-bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+    .preset-btn{padding:7px 15px;border:1px solid var(--bd);border-radius:6px;background:var(--s2);color:#94a3b8;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+    .preset-btn:hover{background:#334155;color:var(--tx)}
+    .preset-btn.active{background:var(--blb);border-color:var(--bl);color:var(--bll)}
+
+    .info-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+    .info-chip{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:5px 11px;font-size:0.73rem}
+    .am{color:var(--aml);font-weight:700;font-family:'Consolas',monospace}
+    .bl{color:var(--bll);font-weight:700;font-family:'Consolas',monospace}
+    .gr{color:var(--grl);font-weight:700;font-family:'Consolas',monospace}
+
+    /* ─── 수직 다이어그램 ─── */
+    .diagram{display:flex;flex-direction:column;align-items:flex-start;gap:0;font-family:'Consolas',monospace}
+
+    /* inode 박스 */
+    .inode-box{border:1px solid var(--bl);border-radius:8px;overflow:hidden;width:100%}
+    .inode-hdr{background:var(--blb);color:var(--bll);padding:5px 12px;font-size:0.75rem;font-weight:700}
+    .inode-meta{padding:5px 12px;font-size:0.7rem;color:var(--mu);border-bottom:1px solid #21262d}
+    .inode-body{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+
+    /* 슬롯 그룹 */
+    .slot-group-lbl{font-size:0.64rem;color:var(--mu);margin-bottom:4px;letter-spacing:.3px}
+    .slots{display:flex;gap:3px;flex-wrap:wrap}
+    .slot{
+      width:33px;height:26px;border:1px solid #21262d;border-radius:3px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.57rem;color:#21262d;background:#0d1117;transition:all .25s;
+    }
+    .slot.d-used{border-color:var(--gr);color:var(--grl);background:var(--grb)}
+    .slot.s-used{border-color:var(--am);color:var(--aml);background:var(--amb)}
+    .slot.p-used{border-color:var(--pu);color:var(--pul);background:var(--pub)}
+    .slot-sep{width:100%;height:1px;background:#21262d;margin:2px 0}
+
+    /* 연결선 */
+    .connector{display:flex;flex-direction:column;align-items:flex-start;padding-left:16px;gap:0}
+    .conn-line{width:2px;height:16px;background:var(--bd)}
+    .conn-label{font-size:0.63rem;color:var(--mu);padding-left:8px;line-height:1.4;margin-bottom:2px}
+
+    /* 포인터 블록 (배열) */
+    .ptr-block{border:1px solid;border-radius:7px;overflow:hidden;width:100%}
+    .ptr-block.lv-s{border-color:var(--am)}
+    .ptr-block.lv-d{border-color:var(--pu)}
+    .ptr-hdr{padding:4px 10px;font-size:0.68rem;font-weight:700}
+    .ptr-block.lv-s .ptr-hdr{background:var(--amb);color:var(--aml)}
+    .ptr-block.lv-d .ptr-hdr{background:var(--pub);color:var(--pul)}
+    .ptr-cells{display:flex;gap:2px;flex-wrap:wrap;padding:7px 8px}
+    .pcell{
+      width:30px;height:22px;border:1px solid #21262d;border-radius:2px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.52rem;color:#21262d;background:#0d1117;transition:all .2s;
+    }
+    .pcell.filled-s{border-color:var(--gr);color:var(--grl);background:var(--grb)}
+    .pcell.filled-d{border-color:var(--am);color:var(--aml);background:var(--amb)}
+    .pcell.ellip{border-color:transparent;background:transparent;color:#334155;font-size:0.68rem}
+
+    /* 데이터 블록 행 */
+    .data-row{border:1px solid var(--gr);border-radius:7px;overflow:hidden;width:100%}
+    .data-hdr{background:var(--grb);color:var(--grl);padding:4px 10px;font-size:0.68rem;font-weight:700}
+    .data-cells{display:flex;gap:3px;flex-wrap:wrap;padding:7px 8px}
+    .dcell{
+      width:38px;height:32px;border:1px solid var(--gr);border-radius:3px;
+      background:var(--grb);display:flex;flex-direction:column;align-items:center;
+      justify-content:center;font-size:0.52rem;color:var(--grl);gap:1px;
+    }
+    .dcell-more{
+      height:32px;padding:0 8px;border:1px dashed #334155;border-radius:3px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.65rem;color:#334155;
+    }
+
+    /* 접근 경로 요약 */
+    .access-box{margin-top:18px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px}
+    .access-path{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .anode{padding:4px 9px;border-radius:5px;font-size:0.72rem;border:1px solid}
+    .an-i{border-color:var(--bl);background:var(--blb);color:var(--bll)}
+    .an-s{border-color:var(--am);background:var(--amb);color:var(--aml)}
+    .an-d{border-color:var(--pu);background:var(--pub);color:var(--pul)}
+    .an-g{border-color:var(--gr);background:var(--grb);color:var(--grl)}
+    .arr{color:#334155;font-size:0.85rem}
+    .access-note{font-size:0.75rem;color:#94a3b8}
+    .access-note strong{color:var(--aml)}
+  </style>
+</head>
+<body>
+  <h1>inode 간접 블록 포인터 구조</h1>
+  <p class="sub">파일 크기를 선택하면 inode 슬롯과 포인터 블록 배열이 어떻게 채워지는지 보여준다</p>
+
+  <div class="preset-bar">
+    <button class="preset-btn" data-idx="0">4 KB</button>
+    <button class="preset-btn" data-idx="1">48 KB</button>
+    <button class="preset-btn" data-idx="2">100 KB</button>
+    <button class="preset-btn" data-idx="3">10 MB</button>
+    <button class="preset-btn" data-idx="4">2 GB</button>
+  </div>
+
+  <div class="info-row" id="infoRow"></div>
+  <div class="diagram" id="diagram"></div>
+  <div class="access-box" id="accessBox"></div>
+
+  <script>
+    const P = [
+      {label:'4 KB',  bytes:4096,            d:1,  s:false, sf:0,    db:false, df:0},
+      {label:'48 KB', bytes:48*1024,          d:12, s:false, sf:0,    db:false, df:0},
+      {label:'100 KB',bytes:100*1024,         d:12, s:true,  sf:13,   db:false, df:0},
+      {label:'10 MB', bytes:10*1024*1024,     d:12, s:true,  sf:1024, db:true,  df:200},
+      {label:'2 GB',  bytes:2*1024*1024*1024, d:12, s:true,  sf:1024, db:true,  df:1024},
+    ];
+
+    function pCells(count, filled, cls, total=20) {
+      let h = '';
+      for(let i=0;i<Math.min(total,16);i++){
+        h += `<div class="pcell ${i<filled?cls:''}">${i<filled?(i===0?'#'+200:'···'):'—'}</div>`;
+      }
+      if(total>16) h += `<div class="pcell ellip">…</div>`;
+      return h;
+    }
+
+    function conn(label, color) {
+      return `<div class="connector">
+        <div class="conn-line" style="background:var(--${color})"></div>
+        <div class="conn-label" style="color:var(--${color})">${label}</div>
+        <div class="conn-line" style="background:var(--${color})"></div>
+      </div>`;
+    }
+
+    function dataRow(count, label) {
+      let cells = '';
+      const show = Math.min(count, 5);
+      for(let i=0;i<show;i++) cells+=`<div class="dcell"><div>#${7+i}</div><div style="font-size:.48rem">4KB</div></div>`;
+      if(count>show) cells+=`<div class="dcell-more">+${count-show}개</div>`;
+      return `<div class="data-row">
+        <div class="data-hdr">${label}</div>
+        <div class="data-cells">${cells}</div>
+      </div>`;
+    }
+
+    function render(idx) {
+      document.querySelectorAll('.preset-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+      const p = P[idx];
+      const totalBlocks = Math.ceil(p.bytes/4096);
+
+      document.getElementById('infoRow').innerHTML = `
+        <div class="info-chip">파일 크기: <span class="am">${p.label}</span></div>
+        <div class="info-chip">필요 블록: <span class="bl">${totalBlocks.toLocaleString()}개</span></div>
+        <div class="info-chip">최대 계층: <span class="gr">${p.db?'이중 간접':p.s?'단일 간접':'직접'}</span></div>
+      `;
+
+      // inode 박스
+      let dSlots = '';
+      for(let i=0;i<12;i++) dSlots+=`<div class="slot ${i<p.d?'d-used':''}">${i<p.d?'→#'+(7+i):'—'}</div>`;
+      const sSlot = `<div class="slot ${p.s?'s-used':''}">${p.s?'→ptr':'—'}</div>`;
+      const dbSlot = `<div class="slot ${p.db?'p-used':''}">${p.db?'→ptr':'—'}</div>`;
+      const triSlot = `<div class="slot">—</div>`;
+
+      let html = `<div class="inode-box">
+        <div class="inode-hdr">inode #42 &nbsp;<span style="font-weight:400;opacity:.65;font-size:.65rem">(128 바이트, 고정 크기)</span></div>
+        <div class="inode-meta">크기 · 권한 · 소유자 · 타임스탬프</div>
+        <div class="inode-body">
+          <div>
+            <div class="slot-group-lbl">직접 포인터 ×12  (각 슬롯 → 4KB 데이터 블록 직접)</div>
+            <div class="slots">${dSlots}</div>
+          </div>
+          <div class="slot-sep"></div>
+          <div>
+            <div class="slot-group-lbl">단일 간접 포인터 ×1  (슬롯 → 포인터 블록 → 블록들)</div>
+            <div class="slots">${sSlot}</div>
+          </div>
+          <div>
+            <div class="slot-group-lbl">이중 간접 포인터 ×1  (슬롯 → 블록 → 블록 → 블록들)</div>
+            <div class="slots">${dbSlot}</div>
+          </div>
+          <div>
+            <div class="slot-group-lbl">삼중 간접 포인터 ×1  (3단계)</div>
+            <div class="slots">${triSlot}</div>
+          </div>
+        </div>
+      </div>`;
+
+      // 직접 포인터 → 데이터 블록
+      if(p.d > 0){
+        html += conn('직접 포인터가 가리키는 데이터 블록', 'gr');
+        html += dataRow(p.d, `데이터 블록 (직접, ${p.d}개)`);
+      }
+
+      // 단일 간접
+      if(p.s){
+        html += conn('단일 간접 포인터 슬롯 → 포인터 블록(배열, 1024개)', 'am');
+        html += `<div class="ptr-block lv-s">
+          <div class="ptr-hdr">단일 간접: 포인터 블록  [0 … 1023] (4KB 배열, 포인터 1024개)</div>
+          <div class="ptr-cells">${pCells(1024, Math.min(p.sf,1024), 'filled-s', 20)}</div>
+        </div>`;
+        if(!p.db){
+          html += conn('각 슬롯이 가리키는 데이터 블록', 'gr');
+          html += dataRow(Math.min(p.sf,1024), `데이터 블록 (단일 간접, 최대 1024개)`);
+        }
+      }
+
+      // 이중 간접
+      if(p.db){
+        html += conn('이중 간접 포인터 슬롯 → L1 포인터 블록', 'pu');
+        html += `<div class="ptr-block lv-d">
+          <div class="ptr-hdr">L1 포인터 블록  [0 … 1023]  (각 슬롯 → L2 포인터 블록)</div>
+          <div class="ptr-cells">${pCells(1024, Math.min(Math.ceil(p.df/1024)+1,1024), 'filled-d', 20)}</div>
+        </div>`;
+        html += conn('L1 슬롯 하나 → L2 포인터 블록', 'pu');
+        html += `<div class="ptr-block lv-d">
+          <div class="ptr-hdr">L2 포인터 블록  [0 … 1023]  (각 슬롯 → 실제 데이터 블록)</div>
+          <div class="ptr-cells">${pCells(1024, Math.min(p.df,1024), 'filled-s', 20)}</div>
+        </div>`;
+        html += conn('L2 슬롯이 가리키는 데이터 블록', 'gr');
+        html += dataRow(3, `데이터 블록 (이중 간접)`);
+      }
+
+      document.getElementById('diagram').innerHTML = html;
+
+      // 접근 경로
+      let hops = p.db ? 3 : p.s ? 2 : 1;
+      let pathNodes = `<span class="anode an-i">inode (캐시)</span>`;
+      if(p.s){ pathNodes += `<span class="arr">→</span><span class="anode an-s">포인터 블록</span>`; }
+      if(p.db){ pathNodes += `<span class="arr">→</span><span class="anode an-d">L1</span><span class="arr">→</span><span class="anode an-d">L2</span>`; }
+      pathNodes += `<span class="arr">→</span><span class="anode an-g">데이터 블록</span>`;
+
+      document.getElementById('accessBox').innerHTML = `
+        <div class="access-path">${pathNodes}</div>
+        <div class="access-note">임의 위치 읽기 시 디스크 접근 <strong>${hops}번</strong> 필요. 48KB 이내(직접 범위)라면 항상 <strong>1번</strong>으로 끝난다.</div>
+      `;
+    }
+
+    document.querySelectorAll('.preset-btn').forEach((b,i)=>b.addEventListener('click',()=>render(i)));
+    render(0);
+  </script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>디스크 레이아웃: inode 테이블 ↔ 데이터 블록</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:16px;max-width:860px;margin:0 auto}
+    h1{font-size:1rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:12px}
+
+    /* 경로 바 */
+    .path-bar{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:7px 12px;font-family:'Consolas',monospace;font-size:0.82rem;margin-bottom:12px}
+    .ps{padding:1px 4px;border-radius:3px;transition:all .3s}
+    .ps.active{background:var(--amb);color:var(--aml)}
+    .sep{color:var(--mu)}
+
+    /* 디스크 전체 */
+    .disk{border:2px solid #475569;border-radius:10px;padding:12px;margin-bottom:12px;background:var(--s2)}
+    .disk-title{font-size:0.68rem;color:var(--mu);text-align:center;margin-bottom:10px;letter-spacing:.8px;text-transform:uppercase}
+    .zones{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    /* 존 */
+    .zone{border:1px solid var(--bd);border-radius:8px;padding:10px;background:var(--bg);transition:border-color .3s,box-shadow .3s}
+    .zone-inode.glow{border-color:var(--bl);box-shadow:0 0 14px rgba(59,130,246,.35)}
+    .zone-data.glow{border-color:var(--gr);box-shadow:0 0 14px rgba(16,185,129,.35)}
+    .zone-label{font-size:0.68rem;font-weight:600;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--bd);letter-spacing:.4px}
+    .zone-inode .zone-label{color:var(--bll)}
+    .zone-data .zone-label{color:var(--grl)}
+    .cells{display:flex;flex-wrap:wrap;gap:6px}
+
+    /* 셀 */
+    .cell{border:1px solid var(--bd);border-radius:6px;padding:6px 8px;font-family:'Consolas',monospace;font-size:0.68rem;text-align:center;min-width:54px;background:var(--s2);transition:all .25s;color:#64748b}
+    .cell .cs{font-size:0.56rem;color:#475569;display:block;margin-top:2px}
+    .cell.hi-i{border-color:var(--bl);background:var(--blb);color:var(--bll)}
+    .cell.hi-i .cs{color:#60a5fa}
+    .cell.hi-d{border-color:var(--gr);background:var(--grb);color:var(--grl)}
+    .cell.hi-d .cs{color:#4ade80}
+
+    /* 스텝 패널 */
+    .panel{border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:12px;background:var(--s1);min-height:130px}
+    .badge{display:inline-block;font-size:0.65rem;font-weight:600;padding:2px 8px;border-radius:4px;margin-bottom:6px;letter-spacing:.4px}
+    .badge-start{background:#1f2937;color:#9ca3af}
+    .badge-inode{background:var(--blb);color:var(--bll)}
+    .badge-data{background:var(--grb);color:var(--grl)}
+    .step-title{font-size:0.85rem;font-weight:600;color:#cbd5e1;margin-bottom:6px}
+    .step-desc{font-size:0.76rem;color:#94a3b8;line-height:1.65;margin-bottom:8px}
+
+    /* 디테일 박스 */
+    .inode-box{background:#0d1117;border:1px solid var(--bl);border-radius:6px;padding:8px 12px;font-family:'Consolas',monospace;font-size:0.72rem;line-height:1.9}
+    .ir{display:flex;gap:8px}
+    .ik{color:var(--mu);min-width:110px}
+    .iv{color:#c9d1d9}
+    .iv.hi{color:var(--aml)}
+
+    .dir-wrap{background:#0d1117;border:1px solid var(--gr);border-radius:6px;overflow:hidden}
+    .dir-wrap table{width:100%;border-collapse:collapse;font-family:'Consolas',monospace;font-size:0.72rem}
+    .dir-wrap th{background:#161b22;color:var(--mu);padding:4px 10px;text-align:left;border-bottom:1px solid var(--bd);font-size:0.64rem}
+    .dir-wrap td{padding:4px 10px;border-bottom:1px solid #21262d;color:#c9d1d9}
+    .dir-wrap tr:last-child td{border-bottom:none}
+    .dir-wrap tr.hi td{background:var(--amb);color:var(--aml)}
+
+    .file-box{background:var(--grb);border:1px solid var(--gr);border-radius:6px;padding:8px 12px;font-family:'Consolas',monospace;font-size:0.74rem;color:var(--grl);line-height:1.7}
+    .note{font-size:0.69rem;color:var(--aml);margin-top:6px}
+
+    /* 컨트롤 */
+    .ctrl{display:flex;align-items:center;gap:10px}
+    .btn{padding:7px 16px;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid;transition:all .15s;white-space:nowrap}
+    .btn-n{background:var(--blb);border-color:var(--bl);color:var(--bll)}
+    .btn-n:hover:not(:disabled){background:#1d4ed8}
+    .btn-n:disabled{opacity:.4;cursor:not-allowed}
+    .btn-p{background:var(--s1);border-color:var(--bd);color:#94a3b8}
+    .btn-p:hover:not(:disabled){background:#334155;color:var(--tx)}
+    .btn-p:disabled{opacity:.4;cursor:not-allowed}
+    .btn-r{background:var(--s1);border-color:var(--bd);color:#94a3b8}
+    .btn-r:hover{background:#334155;color:var(--tx)}
+    .prog{font-size:0.72rem;color:var(--mu)}
+
+    .access-count{font-size:0.68rem;color:var(--mu);margin-left:auto;white-space:nowrap}
+    .ac-num{color:var(--aml);font-weight:600}
+  </style>
+</head>
+<body>
+  <h1>디스크 레이아웃: inode 테이블 ↔ 데이터 블록</h1>
+  <p class="sub">open("/home/alice/hello.txt") — 디스크 어느 영역을 어떤 순서로 오가는지 추적</p>
+
+  <div class="path-bar">
+    <span class="sep">/</span><span class="ps" id="ps-home">home</span><span class="sep">/</span><span class="ps" id="ps-alice">alice</span><span class="sep">/</span><span class="ps" id="ps-file">hello.txt</span>
+  </div>
+
+  <div class="disk">
+    <div class="disk-title">💾 물리 디스크</div>
+    <div class="zones">
+      <div class="zone zone-inode" id="zone-i">
+        <div class="zone-label">inode 테이블 영역</div>
+        <div class="cells">
+          <div class="cell" id="i2">#2<span class="cs">루트(/)</span></div>
+          <div class="cell" id="i5">#5<span class="cs">home/</span></div>
+          <div class="cell" id="i18">#18<span class="cs">alice/</span></div>
+          <div class="cell" id="i42">#42<span class="cs">hello.txt</span></div>
+        </div>
+      </div>
+      <div class="zone zone-data" id="zone-d">
+        <div class="zone-label">데이터 블록 영역</div>
+        <div class="cells">
+          <div class="cell" id="b3">blk3<span class="cs">루트 dir</span></div>
+          <div class="cell" id="b9">blk9<span class="cs">/home dir</span></div>
+          <div class="cell" id="b44">blk44<span class="cs">alice dir</span></div>
+          <div class="cell" id="b7">blk7<span class="cs">파일</span></div>
+          <div class="cell" id="b23">blk23<span class="cs">파일</span></div>
+          <div class="cell" id="b101">blk101<span class="cs">파일</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel"></div>
+
+  <div class="ctrl">
+    <button class="btn btn-p" id="bP" disabled>← 이전</button>
+    <button class="btn btn-n" id="bN">다음 →</button>
+    <button class="btn btn-r" id="bR">↺</button>
+    <div class="prog" id="prog">0 / 8</div>
+    <div class="access-count">디스크 접근: <span class="ac-num" id="ac">0</span>회</div>
+  </div>
+
+  <script>
+    const STEPS = [
+      {
+        phase:'start', badge:'시작',
+        title:'OS가 루트(/) inode 번호를 알고 있다',
+        desc:'Unix 파일 시스템에서 루트 디렉토리의 inode 번호는 항상 #2로 고정이다. 경로 탐색은 항상 여기서 출발한다.',
+        iCells:[], dCells:[], zone:null, path:[],
+        detail:null, accesses:0
+      },
+      {
+        phase:'inode', badge:'inode 테이블 영역 읽기',
+        title:'① inode #2 읽기',
+        desc:'inode 테이블에서 #2번 칸을 읽는다. 이 칸에는 루트 디렉토리의 메타데이터와 데이터 블록 위치가 적혀 있다.',
+        iCells:['i2'], dCells:[], zone:'i', path:[],
+        detail:{type:'inode', rows:[
+          {k:'inode 번호', v:'#2', hi:false},
+          {k:'파일 타입', v:'디렉토리', hi:false},
+          {k:'데이터 블록', v:'[blk3]', hi:true},
+        ], note:'→ blk3으로 이동. 루트 디렉토리 테이블을 읽는다.'},
+        accesses:1
+      },
+      {
+        phase:'data', badge:'데이터 블록 영역 읽기',
+        title:'② blk3 읽기 — 루트(/) 디렉토리 테이블',
+        desc:'blk3는 데이터 블록 영역에 있다. 내용은 파일 데이터가 아니라 {이름 → inode 번호} 테이블이다. 디렉토리의 실체가 이것이다.',
+        iCells:[], dCells:['b3'], zone:'d', path:['ps-home'],
+        detail:{type:'dir', rows:[
+          {n:'home/', i:'5', hi:true},
+          {n:'usr/', i:'6', hi:false},
+          {n:'etc/', i:'7', hi:false},
+        ], note:'→ "home/" 발견. 숫자 5를 얻었다. inode 18이 여기 있는 게 아니다 — 숫자 5만 있다. 이 숫자로 inode 테이블의 #5를 읽으러 간다.'},
+        accesses:2
+      },
+      {
+        phase:'inode', badge:'inode 테이블 영역 읽기',
+        title:'③ inode #5 읽기',
+        desc:'blk3에서 얻은 숫자 5로 inode 테이블의 #5번 칸을 읽는다. /home 디렉토리의 데이터가 어떤 블록에 있는지 알 수 있다.',
+        iCells:['i5'], dCells:[], zone:'i', path:['ps-home'],
+        detail:{type:'inode', rows:[
+          {k:'inode 번호', v:'#5', hi:false},
+          {k:'파일 타입', v:'디렉토리', hi:false},
+          {k:'데이터 블록', v:'[blk9]', hi:true},
+        ], note:'→ blk9로 이동. /home 디렉토리 테이블을 읽는다.'},
+        accesses:3
+      },
+      {
+        phase:'data', badge:'데이터 블록 영역 읽기',
+        title:'④ blk9 읽기 — /home 디렉토리 테이블',
+        desc:'blk9도 데이터 블록 영역에 있다. inode #5의 데이터 블록이다. 내용은 마찬가지로 {이름 → inode 번호} 테이블이다.',
+        iCells:[], dCells:['b9'], zone:'d', path:['ps-home','ps-alice'],
+        detail:{type:'dir', rows:[
+          {n:'bob/', i:'17', hi:false},
+          {n:'alice/', i:'18', hi:true},
+          {n:'guest/', i:'19', hi:false},
+        ], note:'→ "alice/" 발견. 숫자 18을 얻었다. 이 블록에 inode #18 구조체가 들어있는 게 아니다 — 숫자 18만 있다. inode 테이블로 돌아가서 #18을 읽는다.'},
+        accesses:4
+      },
+      {
+        phase:'inode', badge:'inode 테이블 영역 읽기',
+        title:'⑤ inode #18 읽기',
+        desc:'blk9에서 얻은 숫자 18로 inode 테이블의 #18번 칸을 읽는다.',
+        iCells:['i18'], dCells:[], zone:'i', path:['ps-alice'],
+        detail:{type:'inode', rows:[
+          {k:'inode 번호', v:'#18', hi:false},
+          {k:'파일 타입', v:'디렉토리', hi:false},
+          {k:'데이터 블록', v:'[blk44]', hi:true},
+        ], note:'→ blk44로 이동. /home/alice 디렉토리 테이블을 읽는다.'},
+        accesses:5
+      },
+      {
+        phase:'data', badge:'데이터 블록 영역 읽기',
+        title:'⑥ blk44 읽기 — /home/alice 디렉토리 테이블',
+        desc:'blk44도 데이터 블록 영역에 있다. "hello.txt"에 해당하는 inode 번호를 찾는다.',
+        iCells:[], dCells:['b44'], zone:'d', path:['ps-home','ps-alice','ps-file'],
+        detail:{type:'dir', rows:[
+          {n:'hello.txt', i:'42', hi:true},
+          {n:'image.png', i:'77', hi:false},
+          {n:'notes/', i:'13', hi:false},
+        ], note:'→ "hello.txt" 발견. 숫자 42를 얻었다. inode 테이블로 돌아가서 #42를 읽는다.'},
+        accesses:6
+      },
+      {
+        phase:'inode', badge:'inode 테이블 영역 읽기',
+        title:'⑦ inode #42 읽기',
+        desc:'blk44에서 얻은 숫자 42로 inode #42를 읽는다. 이제 파일 타입이 "일반 파일"이다. 실제 파일 내용이 어떤 블록에 있는지 알 수 있다.',
+        iCells:['i42'], dCells:[], zone:'i', path:['ps-file'],
+        detail:{type:'inode', rows:[
+          {k:'inode 번호', v:'#42', hi:false},
+          {k:'파일 타입', v:'일반 파일 ← 처음으로 바뀜', hi:false},
+          {k:'크기', v:'3KB', hi:false},
+          {k:'데이터 블록', v:'[blk7, blk23, blk101]', hi:true},
+        ], note:'→ blk7, blk23, blk101을 읽으면 파일 내용을 얻는다.'},
+        accesses:7
+      },
+      {
+        phase:'data', badge:'데이터 블록 영역 읽기',
+        title:'⑧ blk7 + blk23 + blk101 읽기 — 파일 내용',
+        desc:'처음으로 "진짜 파일 내용"을 읽는다. 디렉토리 탐색 구간에서 데이터 블록은 항상 {이름→번호} 테이블이었지만, 일반 파일의 데이터 블록은 실제 데이터다.',
+        iCells:[], dCells:['b7','b23','b101'], zone:'d', path:['ps-file'],
+        detail:{type:'file', content:'blk7   → "Hello, "\nblk23  → "Alice!"\nblk101 → "..."\n\n조합 결과: "Hello, Alice!..."'},
+        accesses:10
+      },
+    ];
+
+    let cur = 0;
+    const total = STEPS.length - 1;
+
+    function render(idx) {
+      const s = STEPS[idx];
+
+      // 셀 초기화
+      document.querySelectorAll('.cell').forEach(c => c.className = 'cell');
+      s.iCells.forEach(id => document.getElementById(id).classList.add('hi-i'));
+      s.dCells.forEach(id => document.getElementById(id).classList.add('hi-d'));
+
+      // 존 글로우
+      document.getElementById('zone-i').classList.toggle('glow', s.zone === 'i');
+      document.getElementById('zone-d').classList.toggle('glow', s.zone === 'd');
+
+      // 경로 하이라이트
+      document.querySelectorAll('.ps').forEach(p => p.classList.remove('active'));
+      s.path.forEach(id => document.getElementById(id).classList.add('active'));
+
+      // 디스크 접근 카운터
+      document.getElementById('ac').textContent = s.accesses;
+
+      // 패널
+      const badgeClass = s.phase === 'inode' ? 'badge-inode' : s.phase === 'data' ? 'badge-data' : 'badge-start';
+      let detailHTML = '';
+      if (s.detail) {
+        if (s.detail.type === 'inode') {
+          const rows = s.detail.rows.map(r =>
+            `<div class="ir"><span class="ik">${r.k}</span><span class="iv${r.hi?' hi':''}">${r.v}</span></div>`
+          ).join('');
+          detailHTML = `<div class="inode-box">${rows}</div><div class="note">${s.detail.note}</div>`;
+        } else if (s.detail.type === 'dir') {
+          const rows = s.detail.rows.map(r =>
+            `<tr${r.hi?' class="hi"':''}><td>${r.n}</td><td>${r.i}</td></tr>`
+          ).join('');
+          detailHTML = `<div class="dir-wrap"><table><thead><tr><th>이름</th><th>inode 번호</th></tr></thead><tbody>${rows}</tbody></table></div><div class="note">${s.detail.note}</div>`;
+        } else if (s.detail.type === 'file') {
+          detailHTML = `<div class="file-box">${s.detail.content.replace(/\n/g,'<br>')}</div>`;
+        }
+      }
+
+      document.getElementById('panel').innerHTML =
+        `<span class="badge ${badgeClass}">${s.badge}</span>` +
+        `<div class="step-title">${s.title}</div>` +
+        `<div class="step-desc">${s.desc}</div>` +
+        detailHTML;
+
+      document.getElementById('bP').disabled = idx === 0;
+      document.getElementById('bN').disabled = idx === total;
+      document.getElementById('prog').textContent = `${idx} / ${total}`;
+    }
+
+    document.getElementById('bN').addEventListener('click', () => { if (cur < total) render(++cur); });
+    document.getElementById('bP').addEventListener('click', () => { if (cur > 0) render(--cur); });
+    document.getElementById('bR').addEventListener('click', () => { cur = 0; render(0); });
+
+    render(0);
+  </script>
+</body>
+</html>

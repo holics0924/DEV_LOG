@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>파일 열기 흐름</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:16px;max-width:860px;margin:0 auto}
+    h1{font-size:1.0rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:12px}
+
+    /* 상단 고정 컨트롤 바 */
+    .ctrl-bar{
+      position:sticky;top:0;z-index:100;
+      background:var(--bg);
+      border-bottom:1px solid var(--bd);
+      padding:10px 0 10px;
+      margin-bottom:14px;
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .path-bar{
+      flex:1;min-width:200px;
+      background:var(--s2);border:1px solid var(--bd);border-radius:6px;
+      padding:8px 12px;font-family:'Consolas',monospace;font-size:0.82rem;
+    }
+    .path-seg{display:inline;padding:1px 4px;border-radius:3px;transition:all .3s}
+    .path-seg.active{background:var(--amb);color:var(--aml)}
+    .path-sep{color:var(--mu)}
+
+    .btns{display:flex;gap:8px;flex-shrink:0}
+    .btn{padding:7px 16px;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid;transition:all .15s;white-space:nowrap}
+    .btn-next{background:var(--blb);border-color:var(--bl);color:var(--bll)}
+    .btn-next:hover:not(:disabled){background:#1d4ed8}
+    .btn-next:disabled{opacity:0.4;cursor:not-allowed}
+    .btn-reset{background:var(--s1);border-color:var(--bd);color:#94a3b8}
+    .btn-reset:hover{background:#334155;color:var(--tx)}
+    .progress{font-size:0.72rem;color:var(--mu);white-space:nowrap}
+
+    /* 단계 카드들 */
+    .step-track{display:flex;flex-direction:column;gap:8px}
+    .step{border:1px solid var(--bd);border-radius:8px;padding:12px 14px;transition:all .3s;opacity:0.3}
+    .step.active{opacity:1;border-color:var(--bl);background:var(--blb)}
+    .step.done{opacity:0.65;border-color:var(--gr);background:var(--grb)}
+    .step-num{font-size:0.68rem;color:var(--mu);margin-bottom:3px;letter-spacing:.4px}
+    .step-title{font-size:0.83rem;font-weight:600;margin-bottom:5px;color:#cbd5e1}
+    .step.active .step-title{color:var(--bll)}
+    .step.done .step-title{color:var(--grl)}
+    .step-body{font-size:0.76rem;color:#94a3b8;line-height:1.65}
+    .step.active .step-body,.step.done .step-body{color:#cbd5e1}
+
+    .table-box{margin-top:8px;background:#0d1117;border-radius:6px;overflow:hidden;border:1px solid var(--bd)}
+    .table-box table{width:100%;border-collapse:collapse;font-family:'Consolas',monospace;font-size:0.73rem}
+    .table-box th{background:#161b22;color:var(--mu);padding:4px 10px;text-align:left;border-bottom:1px solid var(--bd)}
+    .table-box td{padding:4px 10px;border-bottom:1px solid #21262d;color:#c9d1d9}
+    .table-box tr.highlight td{background:var(--amb);color:var(--aml)}
+    .table-box tr:last-child td{border-bottom:none}
+
+    .inode-box{margin-top:8px;background:#0d1117;border-radius:6px;padding:8px 12px;border:1px solid var(--bd);font-family:'Consolas',monospace;font-size:0.73rem;line-height:1.8}
+    .inode-row{display:flex;gap:8px}
+    .inode-key{color:var(--mu);min-width:110px}
+    .inode-val{color:#c9d1d9}
+    .inode-val.highlight{color:var(--aml)}
+
+    .disk-box{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+    .block{width:72px;height:46px;border:1px solid var(--bd);border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:0.63rem;gap:2px;background:var(--s2)}
+    .block.active{border-color:var(--gr);background:var(--grb)}
+    .block-num{color:var(--mu)}
+    .block-data{color:#64748b;font-size:0.58rem}
+    .block.active .block-num{color:var(--grl)}
+    .block.active .block-data{color:var(--grl)}
+
+    .result-box{margin-top:8px;background:var(--grb);border:1px solid var(--gr);border-radius:6px;padding:8px 12px;font-family:'Consolas',monospace;font-size:0.76rem;color:var(--grl);line-height:1.7}
+  </style>
+</head>
+<body>
+  <h1>파일 열기 흐름 시뮬레이터</h1>
+  <p class="sub">open("/home/alice/hello.txt") 호출 시 OS가 거치는 단계</p>
+
+  <div class="ctrl-bar">
+    <div class="path-bar">
+      <span class="path-sep">/</span><span class="path-seg" id="ps-home">home</span><span class="path-sep">/</span><span class="path-seg" id="ps-user">alice</span><span class="path-sep">/</span><span class="path-seg" id="ps-file">hello.txt</span>
+    </div>
+    <div class="btns">
+      <button class="btn btn-next" id="btnNext">다음 단계 →</button>
+      <button class="btn btn-reset" id="btnReset">↺</button>
+    </div>
+    <div class="progress" id="progress">0 / 6</div>
+  </div>
+
+  <div class="step-track">
+
+    <div class="step" id="step0">
+      <div class="step-num">STEP 1</div>
+      <div class="step-title">루트(/) 디렉토리 읽기 → "home" 탐색</div>
+      <div class="step-body">
+        경로를 왼쪽부터 파싱한다. 루트(/) 디렉토리를 읽어 "home"에 해당하는 inode 번호를 찾는다.
+        <div class="table-box">
+          <table>
+            <thead><tr><th>이름</th><th>inode 번호</th></tr></thead>
+            <tbody>
+              <tr class="highlight"><td>home/</td><td>5</td></tr>
+              <tr><td>usr/</td><td>6</td></tr>
+              <tr><td>etc/</td><td>7</td></tr>
+            </tbody>
+          </table>
+        </div>
+        → "home" 발견. inode #5 획득.
+      </div>
+    </div>
+
+    <div class="step" id="step1">
+      <div class="step-num">STEP 2</div>
+      <div class="step-title">inode #5 읽기 → /home 디렉토리에서 "alice" 탐색</div>
+      <div class="step-body">
+        inode #5를 읽어 /home의 데이터 블록 위치를 얻고, 그 안에서 "alice"를 찾는다.
+        <div class="table-box">
+          <table>
+            <thead><tr><th>이름</th><th>inode 번호</th></tr></thead>
+            <tbody>
+              <tr><td>bob/</td><td>17</td></tr>
+              <tr class="highlight"><td>alice/</td><td>18</td></tr>
+              <tr><td>guest/</td><td>19</td></tr>
+            </tbody>
+          </table>
+        </div>
+        → "alice" 발견. inode #18 획득.
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="step-num">STEP 3</div>
+      <div class="step-title">inode #18 읽기 → /home/alice 디렉토리에서 "hello.txt" 탐색</div>
+      <div class="step-body">
+        inode #18을 읽어 /home/alice의 데이터 블록을 얻고, 그 안에서 "hello.txt"를 찾는다.
+        <div class="table-box">
+          <table>
+            <thead><tr><th>이름</th><th>inode 번호</th></tr></thead>
+            <tbody>
+              <tr class="highlight"><td>hello.txt</td><td>42</td></tr>
+              <tr><td>image.png</td><td>77</td></tr>
+              <tr><td>notes/</td><td>13</td></tr>
+            </tbody>
+          </table>
+        </div>
+        → "hello.txt" 발견. inode #42 획득.
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <div class="step-num">STEP 4</div>
+      <div class="step-title">inode #42 읽기 → 메타데이터 + 블록 위치 획득</div>
+      <div class="step-body">
+        inode #42에서 파일 크기, 권한, 실제 데이터 블록 번호를 읽는다.
+        <div class="inode-box">
+          <div class="inode-row"><span class="inode-key">크기</span><span class="inode-val">3KB</span></div>
+          <div class="inode-row"><span class="inode-key">권한</span><span class="inode-val">rw-r--r--</span></div>
+          <div class="inode-row"><span class="inode-key">소유자</span><span class="inode-val">alice</span></div>
+          <div class="inode-row"><span class="inode-key">데이터 블록</span><span class="inode-val highlight">[7, 23, 101]</span></div>
+        </div>
+        → 블록 #7, #23, #101에 실제 내용이 있음.
+      </div>
+    </div>
+
+    <div class="step" id="step4">
+      <div class="step-num">STEP 5</div>
+      <div class="step-title">데이터 블록 #7, #23, #101 읽기</div>
+      <div class="step-body">
+        세 블록을 순서대로 읽어 파일 내용을 조합한다. 블록들은 디스크 어디에나 흩어져 있을 수 있다.
+        <div class="disk-box">
+          <div class="block active"><div class="block-num">#7</div><div class="block-data">"Hello, "</div></div>
+          <div class="block active"><div class="block-num">#23</div><div class="block-data">"Alice!"</div></div>
+          <div class="block active"><div class="block-num">#101</div><div class="block-data">"..."</div></div>
+          <div class="block"><div class="block-num">#8</div><div class="block-data">(다른파일)</div></div>
+          <div class="block"><div class="block-num">#44</div><div class="block-data">(비어있음)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step" id="step5">
+      <div class="step-num">완료</div>
+      <div class="step-title">파일 내용 반환 + 파일 디스크립터 발급</div>
+      <div class="step-body">
+        세 블록의 내용을 조합해 프로세스에 반환한다. OS는 파일 디스크립터(fd)를 발급해 이후 read()/write() 호출에 사용한다.
+        <div class="result-box">fd = 3  →  "Hello, Alice!..."<br>총 디스크 접근: 최소 8번 (디렉토리 조회 3 + inode 읽기 3 + 데이터 블록 3)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const steps = document.querySelectorAll('.step');
+    const pathMap = {
+      0: ['ps-home'],
+      1: ['ps-home','ps-user'],
+      2: ['ps-home','ps-user','ps-file'],
+      3: ['ps-file'],
+      4: ['ps-file'],
+      5: ['ps-file'],
+    };
+    let cur = -1;
+
+    function update() {
+      steps.forEach((s,i) => {
+        s.classList.remove('active','done');
+        if (i < cur) s.classList.add('done');
+        if (i === cur) s.classList.add('active');
+      });
+      document.querySelectorAll('.path-seg').forEach(s => s.classList.remove('active'));
+      if (cur >= 0 && pathMap[cur]) pathMap[cur].forEach(id => document.getElementById(id).classList.add('active'));
+      document.getElementById('progress').textContent = `${Math.max(0,cur+1)} / 6`;
+      document.getElementById('btnNext').disabled = cur >= steps.length - 1;
+    }
+
+    document.getElementById('btnNext').addEventListener('click', () => { if (cur < steps.length-1) { cur++; update(); } });
+    document.getElementById('btnReset').addEventListener('click', () => { cur = -1; update(); });
+
+    update();
+  </script>
+</body>
+</html>

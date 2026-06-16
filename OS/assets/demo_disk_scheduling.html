@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>디스크 스케줄링 시뮬레이터</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+      --rd:#ef4444;--rdb:#450a0a;--rdl:#fca5a5;
+      --pu:#a855f7;--pub:#2e1065;--pul:#d8b4fe;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 40px;max-width:860px;margin:0 auto}
+    h1{font-size:1.0rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:20px}
+
+    .algo-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .algo-btn{padding:8px 18px;border:1px solid var(--bd);border-radius:7px;background:var(--s2);color:#94a3b8;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+    .algo-btn:hover{background:#334155;color:var(--tx)}
+    .algo-btn.active{background:var(--blb);border-color:var(--bl);color:var(--bll)}
+
+    .algo-desc{font-size:0.78rem;color:#94a3b8;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.6}
+
+    /* 트랙 시각화 */
+    .track-wrap{position:relative;margin-bottom:16px}
+    .track-bar{height:8px;background:#1e293b;border-radius:4px;border:1px solid var(--bd);position:relative;margin:24px 0 8px}
+    .track-marks{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--mu);font-family:'Consolas',monospace;padding:0 2px;margin-bottom:6px}
+    .track-head{position:absolute;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:var(--am);border:2px solid var(--aml);transition:left 0.4s ease;z-index:10}
+    .track-requests{position:relative;height:32px;margin-top:4px}
+    .track-req{position:absolute;top:50%;transform:translate(-50%,-50%);width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;font-family:'Consolas',monospace;border:2px solid;transition:all .3s;cursor:default}
+    .track-req.pending{background:var(--s1);border-color:var(--bd);color:#94a3b8}
+    .track-req.current{background:var(--amb);border-color:var(--am);color:var(--aml);transform:translate(-50%,-50%) scale(1.15)}
+    .track-req.done{background:var(--grb);border-color:var(--gr);color:var(--grl)}
+
+    /* 이동 경로 캔버스 */
+    canvas{display:block;width:100%;border-radius:6px;margin-bottom:12px}
+
+    /* 큐 & 통계 */
+    .stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+    .stat-box{flex:1;min-width:120px;background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px}
+    .stat-label{font-size:0.7rem;color:var(--mu);margin-bottom:4px;letter-spacing:.3px}
+    .stat-val{font-size:1.1rem;font-weight:700;font-family:'Consolas',monospace}
+    .stat-val.am{color:var(--aml)}
+    .stat-val.gr{color:var(--grl)}
+    .stat-val.bl{color:var(--bll)}
+
+    .queue-box{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin-bottom:16px}
+    .queue-label{font-size:0.7rem;color:var(--mu);margin-bottom:8px;letter-spacing:.3px}
+    .queue-items{display:flex;gap:6px;flex-wrap:wrap}
+    .q-item{padding:4px 10px;border-radius:5px;font-size:0.75rem;font-family:'Consolas',monospace;font-weight:600;border:1px solid var(--bd);background:#0d1117;color:#64748b;transition:all .2s}
+    .q-item.next{border-color:var(--am);background:var(--amb);color:var(--aml)}
+    .q-item.done{border-color:var(--gr);background:var(--grb);color:var(--grl);text-decoration:line-through;opacity:0.6}
+
+    .log-box{background:#0d1117;border:1px solid var(--bd);border-radius:8px;padding:10px 14px;max-height:120px;overflow-y:auto;font-size:0.73rem;color:#64748b;font-family:'Consolas',monospace;line-height:1.7;margin-bottom:16px}
+    .log-line{color:#94a3b8}
+    .log-line.ok{color:var(--grl)}
+    .log-line.done{color:var(--bll)}
+
+    .btns{display:flex;gap:10px}
+    .btn{padding:9px 22px;border-radius:7px;font-size:0.83rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid;transition:all .15s}
+    .btn-next{background:var(--blb);border-color:var(--bl);color:var(--bll)}
+    .btn-next:hover:not(:disabled){background:#1d4ed8}
+    .btn-next:disabled{opacity:0.4;cursor:not-allowed}
+    .btn-reset{background:var(--s1);border-color:var(--bd);color:#94a3b8}
+    .btn-reset:hover{background:#334155;color:var(--tx)}
+  </style>
+</head>
+<body>
+  <h1>디스크 스케줄링 시뮬레이터</h1>
+  <p class="sub">헤드 시작 위치: 20 / 요청 큐: [40, 5, 35, 15, 50]</p>
+
+  <div class="algo-bar">
+    <button class="algo-btn active" onclick="setAlgo('FCFS')">FCFS</button>
+    <button class="algo-btn" onclick="setAlgo('SSTF')">SSTF</button>
+    <button class="algo-btn" onclick="setAlgo('SCAN')">SCAN</button>
+    <button class="algo-btn" onclick="setAlgo('C-SCAN')">C-SCAN</button>
+  </div>
+
+  <div class="algo-desc" id="algoDesc"></div>
+
+  <div class="track-wrap">
+    <div class="track-bar">
+      <div class="track-head" id="trackHead" style="left:40%"></div>
+    </div>
+    <div class="track-marks">
+      <span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span>
+    </div>
+    <div class="track-requests" id="trackRequests"></div>
+  </div>
+
+  <canvas id="pathCanvas" height="100"></canvas>
+
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-label">현재 헤드</div><div class="stat-val am" id="statHead">20</div></div>
+    <div class="stat-box"><div class="stat-label">총 이동 거리</div><div class="stat-val gr" id="statMove">0</div></div>
+    <div class="stat-box"><div class="stat-label">남은 요청</div><div class="stat-val bl" id="statLeft">5</div></div>
+  </div>
+
+  <div class="queue-box">
+    <div class="queue-label">요청 큐</div>
+    <div class="queue-items" id="queueItems"></div>
+  </div>
+
+  <div class="log-box" id="logBox"><div class="log-line">→ 헤드 위치 20에서 시작</div></div>
+
+  <div class="btns">
+    <button class="btn btn-next" id="btnNext" onclick="nextStep()">다음 단계 →</button>
+    <button class="btn btn-reset" onclick="reset()">↺ 리셋</button>
+  </div>
+
+  <script>
+    const REQUESTS = [40, 5, 35, 15, 50];
+    const START = 20;
+    const MAX_TRACK = 50;
+
+    const ALGO_DESC = {
+      FCFS: '요청이 들어온 순서대로 처리한다. 구현이 단순하지만 헤드가 앞뒤로 오가며 이동 거리가 길어진다.',
+      SSTF: '현재 헤드에서 가장 가까운 요청을 먼저 처리한다. 이동 효율이 좋지만 먼 트랙에 기아(starvation)가 발생할 수 있다.',
+      SCAN: '한 방향으로 끝까지 이동하며 요청을 처리하고, 끝에서 방향을 바꾼다. 엘리베이터 알고리즘이라고도 부른다.',
+      'C-SCAN': '한 방향으로만 이동하고 끝에 닿으면 처음으로 점프한다. SCAN보다 이동 거리가 길지만 모든 트랙의 최대 대기 시간이 균일하다.',
+    };
+
+    let algo = 'FCFS';
+    let history = []; // {from, to} 이동 기록
+    let remaining = [];
+    let head = START;
+    let totalMove = 0;
+    let direction = 1; // SCAN/C-SCAN용 (1=오른쪽, -1=왼쪽)
+    let doneList = [];
+
+    function setAlgo(name) {
+      algo = name;
+      document.querySelectorAll('.algo-btn').forEach(b => b.classList.toggle('active', b.textContent===name));
+      document.getElementById('algoDesc').textContent = ALGO_DESC[name];
+      reset();
+    }
+
+    function computeOrder() {
+      const reqs = [...REQUESTS];
+      let pos = START;
+      const order = [];
+      if (algo === 'FCFS') {
+        return [...reqs];
+      }
+      if (algo === 'SSTF') {
+        const left = [...reqs];
+        while (left.length) {
+          let best = left.reduce((a,b) => Math.abs(b-pos)<Math.abs(a-pos)?b:a);
+          order.push(best);
+          left.splice(left.indexOf(best),1);
+          pos = best;
+        }
+        return order;
+      }
+      if (algo === 'SCAN') {
+        const right = reqs.filter(r=>r>=pos).sort((a,b)=>a-b);
+        const left = reqs.filter(r=>r<pos).sort((a,b)=>b-a);
+        return [...right, ...left];
+      }
+      if (algo === 'C-SCAN') {
+        const right = reqs.filter(r=>r>=pos).sort((a,b)=>a-b);
+        const left = reqs.filter(r=>r<pos).sort((a,b)=>a-b);
+        return [...right, ...left];
+      }
+      return reqs;
+    }
+
+    let order = [];
+    let step = 0;
+
+    function reset() {
+      head = START;
+      totalMove = 0;
+      step = 0;
+      order = computeOrder();
+      doneList = [];
+      history = [{pos: START}];
+      renderTrack();
+      renderQueue();
+      renderStats();
+      drawCanvas();
+      document.getElementById('logBox').innerHTML = '<div class="log-line">→ 헤드 위치 ' + START + '에서 시작</div>';
+      document.getElementById('btnNext').disabled = false;
+    }
+
+    function nextStep() {
+      if (step >= order.length) return;
+      const target = order[step];
+      const from = head;
+      let move;
+
+      if (algo === 'C-SCAN' && step > 0 && target < from) {
+        // 점프 표시
+        log(`[점프] ${from} → 0 → ${target}  (이동: ${from} + ${target})`, 'ok');
+        move = from + target; // 끝까지 가고 처음부터 다시
+      } else {
+        move = Math.abs(target - from);
+        log(`${from} → ${target}  (이동: ${move})`, 'ok');
+      }
+
+      totalMove += move;
+      head = target;
+      doneList.push(target);
+      history.push({pos: target});
+      step++;
+
+      renderTrack();
+      renderQueue();
+      renderStats();
+      drawCanvas();
+
+      if (step >= order.length) {
+        document.getElementById('btnNext').disabled = true;
+        log(`완료. 총 이동 거리: ${totalMove}`, 'done');
+      }
+    }
+
+    function renderTrack() {
+      const headEl = document.getElementById('trackHead');
+      headEl.style.left = (head / MAX_TRACK * 100) + '%';
+
+      const container = document.getElementById('trackRequests');
+      container.innerHTML = '';
+      REQUESTS.forEach(r => {
+        const el = document.createElement('div');
+        el.className = 'track-req';
+        const isDone = doneList.includes(r);
+        const isNext = !isDone && order[step] === r;
+        el.classList.add(isDone ? 'done' : isNext ? 'current' : 'pending');
+        el.style.left = (r / MAX_TRACK * 100) + '%';
+        el.textContent = r;
+        container.appendChild(el);
+      });
+    }
+
+    function renderQueue() {
+      const container = document.getElementById('queueItems');
+      container.innerHTML = '';
+      order.forEach((r, i) => {
+        const el = document.createElement('div');
+        el.className = 'q-item';
+        if (i < step) el.classList.add('done');
+        else if (i === step) el.classList.add('next');
+        el.textContent = r;
+        container.appendChild(el);
+      });
+    }
+
+    function renderStats() {
+      document.getElementById('statHead').textContent = head;
+      document.getElementById('statMove').textContent = totalMove;
+      document.getElementById('statLeft').textContent = order.length - step;
+    }
+
+    function drawCanvas() {
+      const canvas = document.getElementById('pathCanvas');
+      const W = canvas.offsetWidth || 700;
+      canvas.width = W;
+      canvas.height = 100;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,W,100);
+
+      const pad = 20;
+      const w = W - pad*2;
+
+      function tx(track) { return pad + (track / MAX_TRACK) * w; }
+
+      // 배경 그리드
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let t = 0; t <= MAX_TRACK; t+=10) {
+        ctx.beginPath();
+        ctx.moveTo(tx(t), 10);
+        ctx.lineTo(tx(t), 90);
+        ctx.stroke();
+      }
+
+      if (history.length < 2) {
+        // 헤드만 표시
+        ctx.fillStyle = '#f59e0b';
+        ctx.beginPath();
+        ctx.arc(tx(START), 50, 6, 0, Math.PI*2);
+        ctx.fill();
+        return;
+      }
+
+      // 이동 경로 선
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      const positions = history.map(h => h.pos);
+
+      // C-SCAN의 점프는 점선으로
+      for (let i = 0; i < positions.length - 1; i++) {
+        const x1 = tx(positions[i]);
+        const x2 = tx(positions[i+1]);
+        const y1 = 20 + (i % 2) * 30;
+        const y2 = 20 + ((i+1) % 2) * 30;
+
+        const isJump = algo === 'C-SCAN' && i >= 1 && positions[i+1] < positions[i];
+        ctx.setLineDash(isJump ? [4,4] : []);
+        ctx.strokeStyle = isJump ? '#64748b' : '#3b82f6';
+        ctx.beginPath();
+        ctx.moveTo(x1, 50);
+        ctx.lineTo(x2, 50);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // 방문한 트랙 점
+      positions.forEach((p, i) => {
+        const isLast = i === positions.length - 1;
+        ctx.fillStyle = isLast ? '#f59e0b' : i === 0 ? '#a855f7' : '#10b981';
+        ctx.beginPath();
+        ctx.arc(tx(p), 50, isLast ? 7 : 5, 0, Math.PI*2);
+        ctx.fill();
+        // 트랙 번호
+        ctx.fillStyle = '#64748b';
+        ctx.font = '9px Consolas';
+        ctx.textAlign = 'center';
+        ctx.fillText(p, tx(p), 80);
+      });
+    }
+
+    function log(msg, cls='') {
+      const box = document.getElementById('logBox');
+      const div = document.createElement('div');
+      div.className = 'log-line' + (cls ? ' '+cls : '');
+      div.textContent = '→ ' + msg;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // 초기화
+    document.getElementById('algoDesc').textContent = ALGO_DESC['FCFS'];
+    reset();
+
+    window.addEventListener('resize', drawCanvas);
+  </script>
+</body>
+</html>

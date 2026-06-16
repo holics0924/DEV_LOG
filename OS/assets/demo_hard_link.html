@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hard link vs Soft link</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+      --rd:#ef4444;--rdb:#450a0a;--rdl:#fca5a5;
+      --pu:#a855f7;--pub:#2e1065;--pul:#d8b4fe;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 40px;max-width:860px;margin:0 auto}
+    h1{font-size:1.0rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:20px}
+
+    .tabs{display:flex;gap:0;margin-bottom:0;border-radius:8px 8px 0 0;overflow:hidden;border:1px solid var(--bd);border-bottom:none}
+    .tab{flex:1;padding:10px;text-align:center;font-size:0.82rem;font-weight:600;cursor:pointer;background:var(--s2);color:#64748b;border:none;font-family:inherit;transition:all .15s}
+    .tab.active{background:var(--s1);color:var(--tx);border-bottom:2px solid var(--bl)}
+    .tab-panel{display:none;border:1px solid var(--bd);border-radius:0 0 8px 8px;padding:20px;background:var(--s1)}
+    .tab-panel.active{display:block}
+
+    /* Hard link panel */
+    .hl-scene{display:flex;flex-direction:column;gap:16px}
+    .dir-box{background:#0d1117;border:1px solid var(--bd);border-radius:8px;padding:14px;font-family:'Consolas',monospace;font-size:0.8rem}
+    .dir-title{font-size:0.72rem;color:var(--mu);margin-bottom:8px;letter-spacing:.3px}
+    .dir-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #21262d;transition:all .3s}
+    .dir-row:last-child{border-bottom:none}
+    .dir-name{min-width:110px;color:#c9d1d9}
+    .dir-arrow{color:var(--mu)}
+    .dir-inode{color:var(--bll)}
+    .dir-row.deleted .dir-name{text-decoration:line-through;color:#334155}
+    .dir-row.deleted .dir-inode{color:#334155}
+    .dir-row.deleted .dir-arrow{color:#334155}
+    .dir-row.new{animation:fadeIn .3s}
+    .dir-row.broken .dir-inode{color:var(--rdl)}
+    .dir-row.broken .dir-name{color:#94a3b8}
+
+    .inode-box{background:#0d1117;border:1px solid var(--bd);border-radius:8px;padding:14px;font-family:'Consolas',monospace;font-size:0.8rem;transition:all .3s}
+    .inode-box.alive{border-color:var(--gr)}
+    .inode-box.dead{border-color:var(--rd);opacity:0.5}
+    .inode-title{font-size:0.72rem;color:var(--mu);margin-bottom:8px;letter-spacing:.3px}
+    .inode-row{display:flex;gap:8px;padding:3px 0}
+    .inode-key{color:var(--mu);min-width:110px}
+    .inode-val{color:#c9d1d9}
+    .refcount{font-size:1.1rem;font-weight:700;transition:all .3s}
+    .refcount.high{color:var(--grl)}
+    .refcount.zero{color:var(--rdl)}
+
+    .data-box{background:var(--grb);border:1px solid var(--gr);border-radius:8px;padding:12px 14px;font-family:'Consolas',monospace;font-size:0.78rem;color:var(--grl);transition:all .3s}
+    .data-box.dead{background:var(--rdb);border-color:var(--rd);color:var(--rdl)}
+
+    .log-box{background:#0d1117;border:1px solid var(--bd);border-radius:8px;padding:12px 14px;min-height:52px;font-size:0.75rem;color:#94a3b8;line-height:1.6;font-family:'Consolas',monospace}
+    .log-line{color:#cbd5e1}
+    .log-line.ok{color:var(--grl)}
+    .log-line.warn{color:var(--rdl)}
+
+    .hl-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .btn{padding:8px 16px;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid;transition:all .15s}
+    .btn:disabled{opacity:0.3;cursor:not-allowed}
+    .btn-gr{background:var(--grb);border-color:var(--gr);color:var(--grl)}
+    .btn-gr:hover:not(:disabled){background:#065f46}
+    .btn-rd{background:var(--rdb);border-color:var(--rd);color:var(--rdl)}
+    .btn-rd:hover:not(:disabled){background:#7f1d1d}
+    .btn-reset{background:var(--s2);border-color:var(--bd);color:#94a3b8}
+    .btn-reset:hover{background:#334155;color:var(--tx)}
+
+    /* Soft link panel */
+    .sl-scene{display:flex;flex-direction:column;gap:14px}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  </style>
+</head>
+<body>
+  <h1>Hard link vs Soft link 시뮬레이터</h1>
+  <p class="sub">링크를 생성하고 삭제하며 동작 차이를 확인해보자</p>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('hard')">Hard Link</button>
+    <button class="tab" onclick="showTab('soft')">Soft Link</button>
+  </div>
+
+  <!-- HARD LINK PANEL -->
+  <div class="tab-panel active" id="panel-hard">
+    <div class="hl-btns">
+      <button class="btn btn-gr" id="hl-add" onclick="hlAdd()">+ 하드링크 생성 (backup.txt)</button>
+      <button class="btn btn-rd" id="hl-del1" onclick="hlDel1()" disabled>hello.txt 삭제</button>
+      <button class="btn btn-rd" id="hl-del2" onclick="hlDel2()" disabled>backup.txt 삭제</button>
+      <button class="btn btn-reset" onclick="hlReset()">↺ 리셋</button>
+    </div>
+
+    <div class="hl-scene">
+      <div>
+        <div class="dir-box">
+          <div class="dir-title">디렉토리 /home/alice/</div>
+          <div class="dir-row" id="hl-row1">
+            <span class="dir-name">hello.txt</span>
+            <span class="dir-arrow">→</span>
+            <span class="dir-inode">inode #42</span>
+          </div>
+          <div class="dir-row" id="hl-row2" style="display:none">
+            <span class="dir-name">backup.txt</span>
+            <span class="dir-arrow">→</span>
+            <span class="dir-inode">inode #42</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="inode-box alive" id="hl-inode">
+        <div class="inode-title">inode #42</div>
+        <div class="inode-row"><span class="inode-key">크기</span><span class="inode-val">3KB</span></div>
+        <div class="inode-row"><span class="inode-key">권한</span><span class="inode-val">rw-r--r--</span></div>
+        <div class="inode-row">
+          <span class="inode-key">참조 카운트</span>
+          <span class="refcount high" id="hl-refcount">1</span>
+        </div>
+        <div class="inode-row"><span class="inode-key">데이터 블록</span><span class="inode-val">[7, 23, 101]</span></div>
+      </div>
+
+      <div class="data-box" id="hl-data">
+        블록 #7, #23, #101 — "Hello, Junwoo! This is the file content."
+      </div>
+
+      <div class="log-box" id="hl-log">
+        <div class="log-line">→ hello.txt 생성. inode #42 참조카운트: 1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOFT LINK PANEL -->
+  <div class="tab-panel" id="panel-soft">
+    <div class="hl-btns">
+      <button class="btn btn-gr" id="sl-add" onclick="slAdd()">+ 소프트링크 생성 (shortcut.txt)</button>
+      <button class="btn btn-rd" id="sl-del1" onclick="slDel1()" disabled>hello.txt 삭제</button>
+      <button class="btn btn-rd" id="sl-del2" onclick="slDel2()" disabled>shortcut.txt 읽기 시도</button>
+      <button class="btn btn-reset" onclick="slReset()">↺ 리셋</button>
+    </div>
+
+    <div class="sl-scene">
+      <div class="dir-box">
+        <div class="dir-title">디렉토리 /home/alice/</div>
+        <div class="dir-row" id="sl-row1">
+          <span class="dir-name">hello.txt</span>
+          <span class="dir-arrow">→</span>
+          <span class="dir-inode">inode #42</span>
+        </div>
+        <div class="dir-row" id="sl-row2" style="display:none">
+          <span class="dir-name">shortcut.txt</span>
+          <span class="dir-arrow">→</span>
+          <span class="dir-inode">inode #99 (soft link)</span>
+        </div>
+      </div>
+
+      <div id="sl-inode-area" style="display:none">
+        <div class="inode-box alive" id="sl-inode99">
+          <div class="inode-title">inode #99 (Soft Link)</div>
+          <div class="inode-row"><span class="inode-key">타입</span><span class="inode-val" style="color:var(--pul)">symbolic link</span></div>
+          <div class="inode-row"><span class="inode-key">데이터 블록</span><span class="inode-val">"/home/alice/hello.txt"</span></div>
+        </div>
+      </div>
+
+      <div class="inode-box alive" id="sl-inode42">
+        <div class="inode-title">inode #42 (hello.txt)</div>
+        <div class="inode-row"><span class="inode-key">크기</span><span class="inode-val">3KB</span></div>
+        <div class="inode-row"><span class="inode-key">참조 카운트</span><span class="refcount high">1</span></div>
+        <div class="inode-row"><span class="inode-key">데이터 블록</span><span class="inode-val">[7, 23, 101]</span></div>
+      </div>
+
+      <div class="data-box" id="sl-data">
+        블록 #7, #23, #101 — "Hello, Junwoo! This is the file content."
+      </div>
+
+      <div class="log-box" id="sl-log">
+        <div class="log-line">→ hello.txt 생성. inode #42 참조카운트: 1</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['hard','soft'][i]===name));
+      document.getElementById('panel-hard').classList.toggle('active', name==='hard');
+      document.getElementById('panel-soft').classList.toggle('active', name==='soft');
+    }
+
+    function log(id, msg, cls='') {
+      const box = document.getElementById(id);
+      const div = document.createElement('div');
+      div.className = 'log-line' + (cls ? ' '+cls : '');
+      div.textContent = '→ ' + msg;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // HARD LINK
+    let hlState = {linked: false, del1: false, del2: false};
+
+    function hlAdd() {
+      if (hlState.linked) return;
+      hlState.linked = true;
+      const row2 = document.getElementById('hl-row2');
+      row2.style.display = 'flex';
+      row2.classList.add('new');
+      document.getElementById('hl-refcount').textContent = '2';
+      document.getElementById('hl-add').disabled = true;
+      document.getElementById('hl-del1').disabled = false;
+      document.getElementById('hl-del2').disabled = false;
+      log('hl-log', 'backup.txt → inode #42. 참조카운트: 2', 'ok');
+    }
+
+    function hlDel1() {
+      if (hlState.del1) return;
+      hlState.del1 = true;
+      document.getElementById('hl-row1').classList.add('deleted');
+      document.getElementById('hl-del1').disabled = true;
+      const ref = hlState.del2 ? 0 : (hlState.linked ? 1 : 0);
+      const count = hlState.linked ? 1 : 0;
+      document.getElementById('hl-refcount').textContent = count;
+      if (count === 0) {
+        document.getElementById('hl-refcount').classList.replace('high', 'zero');
+        document.getElementById('hl-inode').classList.replace('alive', 'dead');
+        document.getElementById('hl-data').classList.add('dead');
+        document.getElementById('hl-data').textContent = '데이터 블록 해제됨 (참조카운트 0)';
+        log('hl-log', 'hello.txt 삭제. 참조카운트 0 → 데이터 블록 해제', 'warn');
+      } else {
+        log('hl-log', `hello.txt 삭제. 참조카운트: ${count} → 데이터 유지 (backup.txt가 아직 가리킴)`, 'ok');
+      }
+    }
+
+    function hlDel2() {
+      if (hlState.del2) return;
+      hlState.del2 = true;
+      document.getElementById('hl-row2').classList.add('deleted');
+      document.getElementById('hl-del2').disabled = true;
+      const count = hlState.del1 ? 0 : 1;
+      document.getElementById('hl-refcount').textContent = count;
+      if (count === 0) {
+        document.getElementById('hl-refcount').classList.replace('high', 'zero');
+        document.getElementById('hl-inode').classList.replace('alive', 'dead');
+        document.getElementById('hl-data').classList.add('dead');
+        document.getElementById('hl-data').textContent = '데이터 블록 해제됨 (참조카운트 0)';
+        log('hl-log', 'backup.txt 삭제. 참조카운트 0 → 데이터 블록 해제', 'warn');
+      } else {
+        log('hl-log', `backup.txt 삭제. 참조카운트: ${count} → 데이터 유지 (hello.txt가 아직 가리킴)`, 'ok');
+      }
+    }
+
+    function hlReset() {
+      hlState = {linked: false, del1: false, del2: false};
+      ['hl-row1','hl-row2'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('deleted','new');
+      });
+      document.getElementById('hl-row2').style.display = 'none';
+      document.getElementById('hl-refcount').textContent = '1';
+      document.getElementById('hl-refcount').className = 'refcount high';
+      document.getElementById('hl-inode').className = 'inode-box alive';
+      document.getElementById('hl-data').className = 'data-box';
+      document.getElementById('hl-data').textContent = '블록 #7, #23, #101 — "Hello, Junwoo! This is the file content."';
+      document.getElementById('hl-add').disabled = false;
+      document.getElementById('hl-del1').disabled = true;
+      document.getElementById('hl-del2').disabled = true;
+      document.getElementById('hl-log').innerHTML = '<div class="log-line">→ hello.txt 생성. inode #42 참조카운트: 1</div>';
+    }
+
+    // SOFT LINK
+    let slState = {linked: false, del1: false};
+
+    function slAdd() {
+      if (slState.linked) return;
+      slState.linked = true;
+      document.getElementById('sl-row2').style.display = 'flex';
+      document.getElementById('sl-inode-area').style.display = 'block';
+      document.getElementById('sl-add').disabled = true;
+      document.getElementById('sl-del1').disabled = false;
+      document.getElementById('sl-del2').disabled = false;
+      log('sl-log', 'shortcut.txt → inode #99 생성 (경로 "/home/alice/hello.txt" 저장)', 'ok');
+    }
+
+    function slDel1() {
+      if (slState.del1) return;
+      slState.del1 = true;
+      document.getElementById('sl-row1').classList.add('deleted');
+      document.getElementById('sl-inode42').classList.replace('alive', 'dead');
+      document.getElementById('sl-data').classList.add('dead');
+      document.getElementById('sl-data').textContent = '데이터 블록 해제됨 (참조카운트 0)';
+      // soft link row becomes broken
+      const row2 = document.getElementById('sl-row2');
+      row2.classList.add('broken');
+      row2.querySelector('.dir-inode').textContent = 'inode #99 (dangling!)';
+      document.getElementById('sl-del1').disabled = true;
+      log('sl-log', 'hello.txt 삭제. inode #42 참조카운트 0 → 데이터 해제', 'warn');
+      log('sl-log', 'shortcut.txt는 "/home/alice/hello.txt" 가리키지만 파일 없음 → dangling symlink!', 'warn');
+    }
+
+    function slDel2() {
+      const box = document.getElementById('sl-log');
+      if (slState.del1) {
+        log('sl-log', '읽기 실패: No such file or directory ("/home/alice/hello.txt" 존재하지 않음)', 'warn');
+      } else {
+        log('sl-log', '읽기 성공: "/home/alice/hello.txt" 경로 따라가 inode #42 접근 → 데이터 반환', 'ok');
+      }
+    }
+
+    function slReset() {
+      slState = {linked: false, del1: false};
+      ['sl-row1','sl-row2'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('deleted','broken','new');
+        if (id==='sl-row2') {
+          el.style.display='none';
+          el.querySelector('.dir-inode').textContent = 'inode #99 (soft link)';
+        }
+      });
+      document.getElementById('sl-inode-area').style.display = 'none';
+      document.getElementById('sl-inode42').className = 'inode-box alive';
+      document.getElementById('sl-data').className = 'data-box';
+      document.getElementById('sl-data').textContent = '블록 #7, #23, #101 — "Hello, Junwoo! This is the file content."';
+      document.getElementById('sl-add').disabled = false;
+      document.getElementById('sl-del1').disabled = true;
+      document.getElementById('sl-del2').disabled = true;
+      document.getElementById('sl-log').innerHTML = '<div class="log-line">→ hello.txt 생성. inode #42 참조카운트: 1</div>';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I/O 모델 4가지 조합</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+      --tx:#e2e8f0;--mu:#64748b;
+      --gr:#10b981;--grb:#052e16;--grl:#6ee7b7;
+      --bl:#3b82f6;--blb:#172554;--bll:#93c5fd;
+      --am:#f59e0b;--amb:#451a03;--aml:#fcd34d;
+      --pu:#a855f7;--pub:#2e1065;--pul:#d8b4fe;
+      --rd:#ef4444;--rdb:#450a0a;--rdl:#fca5a5;
+    }
+    body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 40px;max-width:860px;margin:0 auto}
+    h1{font-size:1.0rem;color:#cbd5e1;margin-bottom:4px}
+    .sub{font-size:0.78rem;color:var(--mu);margin-bottom:20px}
+
+    /* ── 2×2 그리드 ── */
+    .axis-labels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+    .axis-label{text-align:center;font-size:0.7rem;color:var(--mu);padding:4px}
+
+    .grid2x2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+
+    /* 모든 셀 기본 동일 스타일 */
+    .cell{
+      border:2px solid var(--bd);border-radius:10px;padding:14px;
+      cursor:pointer;transition:all .2s;background:var(--s2);
+    }
+    .cell:hover{border-color:#4b5563;background:#1e2a3a}
+    .cell.active{border-color:var(--bl);background:var(--blb)}
+    .cell-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .cell-title{font-size:0.8rem;font-weight:700;color:#94a3b8;transition:color .2s}
+    .cell.active .cell-title{color:var(--bll)}
+    .cell-badge{font-size:0.65rem;padding:2px 8px;border-radius:10px;font-weight:700}
+    .badge-good{background:var(--grb);color:var(--grl);border:1px solid var(--gr)}
+    .badge-bad{background:var(--rdb);color:var(--rdl);border:1px solid var(--rd)}
+    .cell-desc{font-size:0.72rem;color:#64748b;line-height:1.6;transition:color .2s}
+    .cell.active .cell-desc{color:#94a3b8}
+
+    /* ── 타임라인 패널 ── */
+    .tl-panel{border:1px solid var(--bd);border-radius:10px;padding:18px;background:var(--s2)}
+    .tl-title{font-size:0.85rem;font-weight:700;color:#cbd5e1;margin-bottom:14px}
+    .tl-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+    .tl-row{display:flex;align-items:center;gap:10px}
+    .tl-label{font-size:0.72rem;min-width:64px;color:var(--mu);text-align:right;flex-shrink:0}
+    .tl-track{flex:1;height:30px;background:#0d1117;border-radius:4px;position:relative;overflow:hidden;border:1px solid #21262d}
+    .tl-block{
+      position:absolute;top:4px;height:22px;border-radius:3px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.62rem;font-weight:600;white-space:nowrap;overflow:hidden;
+      transition:width .35s ease;
+    }
+    .tl-work  {background:var(--grb);border:1px solid var(--gr);color:var(--grl)}
+    .tl-wait  {background:#111827;border:1px dashed #334155;color:#4b5563}
+    .tl-io    {background:var(--blb);border:1px solid var(--bl);color:var(--bll)}
+    .tl-busy  {background:#1c0a0a;border:1px solid #7f1d1d;color:#f87171}
+    .tl-cb    {background:var(--pub);border:1px solid var(--pu);color:var(--pul)}
+
+    .tl-cursor{
+      position:absolute;top:0;bottom:0;width:2px;background:var(--am);
+      transition:left .35s ease;z-index:5;
+    }
+
+    /* 단계 설명 */
+    .step-desc{
+      background:#0d1117;border:1px solid var(--bd);border-radius:6px;
+      padding:10px 14px;font-size:0.76rem;color:#94a3b8;line-height:1.65;
+      min-height:56px;margin-bottom:14px;
+    }
+    .step-desc .step-num{color:var(--aml);font-weight:700;margin-right:6px}
+
+    /* 버튼 & 진행 */
+    .ctrl-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+    .btn{padding:8px 18px;border-radius:7px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid;transition:all .15s}
+    .btn-next{background:var(--blb);border-color:var(--bl);color:var(--bll)}
+    .btn-next:hover:not(:disabled){background:#1d4ed8}
+    .btn-next:disabled{opacity:0.4;cursor:not-allowed}
+    .btn-reset{background:var(--s1);border-color:var(--bd);color:#94a3b8}
+    .btn-reset:hover{background:#334155;color:var(--tx)}
+    .progress-txt{font-size:0.74rem;color:var(--mu)}
+
+    /* 범례 */
+    .legend{display:flex;gap:14px;flex-wrap:wrap;padding-top:4px;border-top:1px solid var(--bd)}
+    .leg{display:flex;align-items:center;gap:5px;font-size:0.68rem;color:var(--mu)}
+    .leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+  </style>
+</head>
+<body>
+  <h1>I/O 모델 4가지 조합</h1>
+  <p class="sub">셀을 클릭해 선택하고, 단계별로 타임라인을 확인하자</p>
+
+  <div class="axis-labels">
+    <div class="axis-label">← Blocking</div>
+    <div class="axis-label">Non-blocking →</div>
+  </div>
+
+  <div class="grid2x2">
+    <div class="cell active" id="cell-sb" onclick="selectCell('sb')">
+      <div class="cell-header">
+        <span class="cell-title">Sync + Blocking</span>
+        <span class="cell-badge badge-good">많이 씀</span>
+      </div>
+      <div class="cell-desc">요청 → 멈춤 → 결과 수신 → 직접 처리.<br>가장 단순하고 직관적.</div>
+    </div>
+    <div class="cell" id="cell-snb" onclick="selectCell('snb')">
+      <div class="cell-header">
+        <span class="cell-title">Sync + Non-blocking</span>
+        <span class="cell-badge badge-bad">비효율</span>
+      </div>
+      <div class="cell-desc">결과 없으면 즉시 반환. 루프 돌며 직접 확인.<br>CPU 낭비.</div>
+    </div>
+    <div class="cell" id="cell-ab" onclick="selectCell('ab')">
+      <div class="cell-header">
+        <span class="cell-title">Async + Blocking</span>
+        <span class="cell-badge badge-bad">모순</span>
+      </div>
+      <div class="cell-desc">콜백 등록했는데 어차피 기다림.<br>거의 쓰이지 않음.</div>
+    </div>
+    <div class="cell" id="cell-anb" onclick="selectCell('anb')">
+      <div class="cell-header">
+        <span class="cell-title">Async + Non-blocking</span>
+        <span class="cell-badge badge-good">고성능</span>
+      </div>
+      <div class="cell-desc">요청 후 즉시 다른 일. OS가 완료 시 콜백 호출.<br>Node.js, Nginx, epoll.</div>
+    </div>
+  </div>
+
+  <div class="tl-panel">
+    <div class="tl-title" id="tlTitle">Sync + Blocking</div>
+    <div class="ctrl-bar">
+      <button class="btn btn-next" id="btnNext" onclick="nextStep()">다음 단계 →</button>
+      <button class="btn btn-reset" onclick="resetSteps()">↺ 리셋</button>
+      <span class="progress-txt" id="progressTxt">0 / 0</span>
+    </div>
+    <div class="tl-rows" id="tlRows"></div>
+    <div class="step-desc" id="stepDesc"><span style="color:#334155">셀을 선택하고 단계를 진행하세요.</span></div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#052e16;border:1px solid #10b981"></div>실제 작업</div>
+      <div class="leg"><div class="leg-dot" style="background:#172554;border:1px solid #3b82f6"></div>I/O 진행 중</div>
+      <div class="leg"><div class="leg-dot" style="background:#111827;border:1px dashed #334155"></div>Waiting (잠듦)</div>
+      <div class="leg"><div class="leg-dot" style="background:#1c0a0a;border:1px solid #7f1d1d"></div>busy-wait (CPU 낭비)</div>
+      <div class="leg"><div class="leg-dot" style="background:#2e1065;border:1px solid #a855f7"></div>콜백 실행</div>
+    </div>
+  </div>
+
+  <script>
+  // ── 타임라인 데이터 ──
+  // s, e: 0~80 범위 (트랙 너비 기준)
+  const CONFIGS = {
+    sb: {
+      title: 'Sync + Blocking',
+      rows: [
+        { label: '스레드', blocks: [
+          {s:0,  e:10, cls:'tl-work', text:'I/O 요청'},
+          {s:10, e:60, cls:'tl-wait', text:'Waiting (잠듦, CPU 0%)'},
+          {s:60, e:80, cls:'tl-work', text:'결과 처리'},
+        ]},
+        { label: 'I/O', blocks: [
+          {s:10, e:60, cls:'tl-io', text:'I/O 진행 중'},
+        ]},
+      ],
+      // 각 단계가 끝나는 progress 값 (0~1)
+      checkpoints: [0.125, 0.75, 1.0],
+      stepDescs: [
+        'STEP 1: 스레드가 I/O를 요청한다 (예: 디스크 read()).',
+        'STEP 2: OS가 스레드를 Waiting 상태로 전환한다. I/O가 완료될 때까지 CPU를 전혀 사용하지 않는다.',
+        'STEP 3: I/O 완료. OS가 인터럽트로 스레드를 깨운다. 스레드가 직접 결과를 받아 처리한다.',
+      ],
+    },
+    snb: {
+      title: 'Sync + Non-blocking',
+      rows: [
+        { label: '스레드', blocks: [
+          {s:0,  e:5,  cls:'tl-work', text:'요청'},
+          {s:5,  e:17, cls:'tl-busy', text:'poll (None)'},
+          {s:17, e:29, cls:'tl-busy', text:'poll (None)'},
+          {s:29, e:41, cls:'tl-busy', text:'poll (None)'},
+          {s:41, e:53, cls:'tl-busy', text:'poll (None)'},
+          {s:53, e:62, cls:'tl-busy', text:'poll (None)'},
+          {s:62, e:80, cls:'tl-work', text:'결과 처리'},
+        ]},
+        { label: 'I/O', blocks: [
+          {s:0, e:60, cls:'tl-io', text:'I/O 진행 중'},
+        ]},
+      ],
+      checkpoints: [0.0625, 0.2125, 0.3625, 0.5125, 0.6625, 0.775, 1.0],
+      stepDescs: [
+        'STEP 1: I/O를 요청한다. Non-blocking이라 데이터가 없어도 즉시 반환된다 (결과: None).',
+        'STEP 2: 결과가 없으니 직접 루프를 돌며 확인한다. 이 동안 CPU를 100% 사용한다 (busy-wait).',
+        'STEP 3: 아직 데이터 없음. 계속 polling...',
+        'STEP 4: 아직 데이터 없음. 계속 polling...',
+        'STEP 5: 아직 데이터 없음. 계속 polling...',
+        'STEP 6: 아직 데이터 없음. 계속 polling...',
+        'STEP 7: I/O 완료. 루프에서 감지해 처리한다. 그동안 CPU를 낭비했다.',
+      ],
+    },
+    ab: {
+      title: 'Async + Blocking',
+      rows: [
+        { label: '스레드', blocks: [
+          {s:0,  e:10, cls:'tl-work', text:'콜백 등록'},
+          {s:10, e:60, cls:'tl-wait', text:'어차피 Waiting... (Async 의미 없음)'},
+          {s:60, e:80, cls:'tl-cb',   text:'콜백 실행'},
+        ]},
+        { label: 'I/O', blocks: [
+          {s:10, e:60, cls:'tl-io', text:'I/O 진행 중'},
+        ]},
+      ],
+      checkpoints: [0.125, 0.75, 1.0],
+      stepDescs: [
+        'STEP 1: 콜백을 등록한다. "I/O가 끝나면 이 함수를 불러줘."',
+        'STEP 2: 그런데 스레드는 어차피 Blocking 상태로 기다리고 있다. Async를 쓴 이유가 없다.',
+        'STEP 3: I/O 완료. 콜백이 실행된다. 결과는 Sync+Blocking과 다를 게 없다.',
+      ],
+    },
+    anb: {
+      title: 'Async + Non-blocking',
+      rows: [
+        { label: '스레드', blocks: [
+          {s:0,  e:8,  cls:'tl-work', text:'요청+콜백등록'},
+          {s:8,  e:30, cls:'tl-work', text:'다른 작업 A'},
+          {s:30, e:58, cls:'tl-work', text:'다른 작업 B'},
+          {s:60, e:80, cls:'tl-cb',   text:'콜백 실행'},
+        ]},
+        { label: 'I/O', blocks: [
+          {s:8, e:60, cls:'tl-io', text:'I/O 진행 중 (백그라운드)'},
+        ]},
+      ],
+      checkpoints: [0.1, 0.375, 0.725, 1.0],
+      stepDescs: [
+        'STEP 1: I/O를 요청하고 콜백을 등록한다. 즉시 반환된다. 스레드는 잠들지 않는다.',
+        'STEP 2: I/O가 백그라운드에서 진행되는 동안 스레드는 다른 작업 A를 처리한다.',
+        'STEP 3: 스레드가 다른 작업 B도 처리한다. 스레드 1개로 여러 I/O를 동시에 처리 가능하다.',
+        'STEP 4: I/O 완료. OS가 인터럽트 → 콜백 호출. 스레드는 기다린 시간 없이 완료 통보만 받는다.',
+      ],
+    },
+  };
+
+  let curKey = 'sb';
+  let curStep = -1; // -1 = 아무것도 안 보인 초기 상태
+
+  function selectCell(key) {
+    curKey = key;
+    curStep = -1;
+    // 모든 셀 active 제거 후 선택만 active
+    document.querySelectorAll('.cell').forEach(c => c.classList.remove('active'));
+    document.getElementById('cell-' + key).classList.add('active');
+    document.getElementById('tlTitle').textContent = CONFIGS[key].title;
+    renderTimeline(-1);
+    updateDesc();
+    updateBtn();
+  }
+
+  function nextStep() {
+    const cfg = CONFIGS[curKey];
+    if (curStep < cfg.checkpoints.length - 1) {
+      curStep++;
+      renderTimeline(curStep);
+      updateDesc();
+      updateBtn();
+    }
+  }
+
+  function resetSteps() {
+    curStep = -1;
+    renderTimeline(-1);
+    updateDesc();
+    updateBtn();
+  }
+
+  function renderTimeline(stepIdx) {
+    const cfg = CONFIGS[curKey];
+    const progress = stepIdx < 0 ? 0 : cfg.checkpoints[stepIdx]; // 0~1
+    const pos = progress * 80; // 0~80 범위로 변환
+
+    const container = document.getElementById('tlRows');
+    container.innerHTML = '';
+
+    cfg.rows.forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'tl-row';
+
+      const lbl = document.createElement('div');
+      lbl.className = 'tl-label';
+      lbl.textContent = row.label;
+      rowEl.appendChild(lbl);
+
+      const track = document.createElement('div');
+      track.className = 'tl-track';
+
+      row.blocks.forEach(b => {
+        if (b.s >= pos) return; // 아직 안 나옴
+        const el = document.createElement('div');
+        el.className = 'tl-block ' + b.cls;
+        el.style.left = (b.s / 80 * 92) + '%';
+        const visibleWidth = (Math.min(b.e, pos) - b.s) / 80 * 92;
+        el.style.width = Math.max(0, visibleWidth) + '%';
+        el.textContent = b.text;
+        track.appendChild(el);
+      });
+
+      // 커서
+      const cursor = document.createElement('div');
+      cursor.className = 'tl-cursor';
+      cursor.style.left = (progress * 92) + '%';
+      track.appendChild(cursor);
+
+      rowEl.appendChild(track);
+      container.appendChild(rowEl);
+    });
+  }
+
+  function updateDesc() {
+    const cfg = CONFIGS[curKey];
+    const el = document.getElementById('stepDesc');
+    if (curStep < 0) {
+      el.innerHTML = '<span style="color:#334155">↑ 단계 버튼을 눌러 시작하세요.</span>';
+    } else {
+      const desc = cfg.stepDescs[curStep];
+      const numEnd = desc.indexOf(':');
+      const num = desc.substring(0, numEnd + 1);
+      const rest = desc.substring(numEnd + 1);
+      el.innerHTML = `<span class="step-num">${num}</span>${rest}`;
+    }
+  }
+
+  function updateBtn() {
+    const cfg = CONFIGS[curKey];
+    const total = cfg.checkpoints.length;
+    document.getElementById('btnNext').disabled = curStep >= total - 1;
+    document.getElementById('progressTxt').textContent = `${Math.max(0, curStep + 1)} / ${total}`;
+  }
+
+  // 초기화
+  selectCell('sb');
+  </script>
+</body>
+</html>

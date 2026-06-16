@@ -13,7 +13,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#172554;color:#58a6ff">OS</span>
         Operating System
       </span>
-      <span class="subject-count">11 chapters</span>
+      <span class="subject-count">13 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/OS/ch1-process-thread/" class="chapter-link">
@@ -48,6 +48,12 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/OS/ch11-cache-memory/" class="chapter-link">
         <span class="ch-num">CH11</span>캐시 메모리 계층과 지역성
+      </a>
+      <a href="/DEV_LOG/OS/ch12-io-model/" class="chapter-link">
+        <span class="ch-num">CH12</span>I/O 모델
+      </a>
+      <a href="/DEV_LOG/OS/ch13-file-system/" class="chapter-link">
+        <span class="ch-num">CH13</span>파일 시스템
       </a>
     </div>
   </div>
