@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>패킷 여행</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--am:#f59e0b;--rd:#ef4444}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+  .sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+
+  /* 네트워크 다이어그램 */
+  .network{display:flex;align-items:flex-start;justify-content:center;margin-bottom:20px;gap:0}
+  .node{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:80px}
+  .node-icon{width:54px;height:54px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--s1);border:2px solid var(--bd);transition:border-color .3s,background .3s,box-shadow .3s}
+  .node-icon.active{border-color:var(--bl);background:#1e3a5f;box-shadow:0 0 14px rgba(59,130,246,.35)}
+  .node-label{font-size:.7rem;color:#94a3b8;text-align:center;line-height:1.4;font-family:monospace}
+  .connector{flex:1;display:flex;align-items:center;padding-bottom:28px;min-width:20px}
+  .wire{height:2px;width:100%;background:var(--bd)}
+
+  /* 헤더 상태 */
+  .header-table{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:.82rem}
+  .header-table .label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:10px}
+  .hrow{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-family:monospace}
+  .hrow:last-child{margin-bottom:0}
+  .hbadge{font-size:.68rem;padding:2px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+  .bip{background:#1e1b4b;color:#a78bfa}
+  .bmac{background:#1c1917;color:#a3a3a3}
+  .hval{color:#cbd5e1;flex:1;font-size:.8rem}
+  .tag{font-size:.68rem;margin-left:auto;white-space:nowrap}
+  .tag-stable{color:var(--gr)}
+  .tag-changed{color:var(--am)}
+  .tag-done{color:var(--bl)}
+
+  /* step card */
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+  .step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+
+  .controls{display:flex;gap:9px;flex-wrap:wrap}
+  button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit;transition:all .12s}
+  #btnNext{background:var(--bl);color:#fff;flex:1}
+  #btnNext:hover:not(:disabled){background:#2563eb}
+  #btnNext:disabled{background:#1e3a5f;color:#334155;cursor:not-allowed}
+  #btnReset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  #btnReset:hover{background:#334155}
+</style>
+</head>
+<body>
+
+<h1>패킷 여행 — IP는 끝까지 유지, MAC은 구간마다 교체</h1>
+<p class="sub">각 라우터가 MAC 헤더를 교체하며 릴레이한다 — IP는 처음부터 끝까지 변하지 않는다</p>
+
+<div class="network">
+  <div class="node">
+    <div class="node-icon active" id="n0">💻</div>
+    <div class="node-label">내 PC<br>192.168.0.5</div>
+  </div>
+  <div class="connector"><div class="wire"></div></div>
+  <div class="node">
+    <div class="node-icon" id="n1">📡</div>
+    <div class="node-label">공유기<br>192.168.0.1</div>
+  </div>
+  <div class="connector"><div class="wire"></div></div>
+  <div class="node">
+    <div class="node-icon" id="n2">🔀</div>
+    <div class="node-label">KT 라우터<br>1.1.1.1</div>
+  </div>
+  <div class="connector"><div class="wire"></div></div>
+  <div class="node">
+    <div class="node-icon" id="n3">🖥️</div>
+    <div class="node-label">구글 서버<br>142.250.196.78</div>
+  </div>
+</div>
+
+<div class="header-table">
+  <div class="label">현재 패킷 헤더 상태</div>
+  <div class="hrow">
+    <span class="hbadge bip">IP 출발</span>
+    <span class="hval" id="ip-src">192.168.0.5</span>
+    <span class="tag tag-stable" id="t-ip-src">유지</span>
+  </div>
+  <div class="hrow">
+    <span class="hbadge bip">IP 목적지</span>
+    <span class="hval" id="ip-dst">142.250.196.78</span>
+    <span class="tag tag-stable" id="t-ip-dst">유지</span>
+  </div>
+  <div class="hrow">
+    <span class="hbadge bmac">MAC 출발</span>
+    <span class="hval" id="mac-src">AA:BB:CC (내 PC)</span>
+    <span class="tag" id="t-mac-src"></span>
+  </div>
+  <div class="hrow">
+    <span class="hbadge bmac">MAC 목적지</span>
+    <span class="hval" id="mac-dst">11:22:33 (공유기)</span>
+    <span class="tag" id="t-mac-dst"></span>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">내 PC — 단계 1 / 4</div>
+  <div class="step-desc"  id="stepDesc">내 PC가 패킷을 생성했다. IP 헤더에 출발지(192.168.0.5)와 목적지(142.250.196.78)를 기록한다. MAC 헤더의 목적지는 구글 서버가 아니라 바로 다음 장치인 공유기다.</div>
+</div>
+
+<div class="controls">
+  <button id="btnReset">↺</button>
+  <button id="btnNext">다음 단계 →</button>
+</div>
+
+<script>
+let step = 0;
+
+const steps = [
+  { node:1, label:'공유기 — 단계 2 / 4',
+    ipSrc:'192.168.0.5', ipDst:'142.250.196.78',
+    macSrc:'11:22:33 (공유기)', macDst:'CC:DD:EE (KT 라우터)',
+    macStatus:'changed',
+    desc:'공유기가 프레임을 받았다. MAC 목적지가 자신 → 수락. IP를 보니 목적지 142.250.196.78은 자신이 아니다. MAC 헤더를 새로 만들어 KT 라우터로 전달한다. IP는 바뀌지 않는다.'
+  },
+  { node:2, label:'KT 라우터 — 단계 3 / 4',
+    ipSrc:'192.168.0.5', ipDst:'142.250.196.78',
+    macSrc:'CC:DD:EE (KT 라우터)', macDst:'EE:FF:00 (구글 서버)',
+    macStatus:'changed',
+    desc:'KT 라우터가 프레임을 받았다. IP를 확인하니 목적지가 구글 서버다. MAC 헤더를 다시 교체해 구글 서버 쪽으로 포워딩한다. IP는 여전히 그대로다.'
+  },
+  { node:3, label:'구글 서버 도착 — 단계 4 / 4',
+    ipSrc:'192.168.0.5', ipDst:'142.250.196.78',
+    macSrc:'—', macDst:'도달',
+    macStatus:'done',
+    desc:'구글 서버가 프레임을 받았다. MAC 확인 → 자신이다. IP 확인 → 142.250.196.78, 자신이다. 모든 헤더를 뜯어내고 HTTP 요청을 처리한다. IP 주소는 처음부터 끝까지 바뀌지 않았다.',
+    final: true
+  }
+];
+
+function next() {
+  if (step >= steps.length) return;
+  const s = steps[step];
+  document.querySelectorAll('.node-icon').forEach((n,i) => n.classList.toggle('active', i===s.node));
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').textContent = s.desc;
+  document.getElementById('ip-src').textContent = s.ipSrc;
+  document.getElementById('ip-dst').textContent = s.ipDst;
+  document.getElementById('mac-src').textContent = s.macSrc;
+  document.getElementById('mac-dst').textContent = s.macDst;
+
+  const ts = document.getElementById('t-mac-src');
+  const td = document.getElementById('t-mac-dst');
+  if (s.macStatus==='changed') {
+    ts.className='tag tag-changed'; ts.textContent='교체됨';
+    td.className='tag tag-changed'; td.textContent='교체됨';
+  } else {
+    ts.className='tag tag-done'; ts.textContent='—';
+    td.className='tag tag-done'; td.textContent='도달';
+  }
+
+  if (s.final) { document.getElementById('btnNext').disabled=true; }
+  step++;
+}
+
+function reset() {
+  step=0;
+  document.querySelectorAll('.node-icon').forEach((n,i) => n.classList.toggle('active', i===0));
+  document.getElementById('stepLabel').textContent='내 PC — 단계 1 / 4';
+  document.getElementById('stepDesc').textContent='내 PC가 패킷을 생성했다. IP 헤더에 출발지(192.168.0.5)와 목적지(142.250.196.78)를 기록한다. MAC 헤더의 목적지는 구글 서버가 아니라 바로 다음 장치인 공유기다.';
+  document.getElementById('ip-src').textContent='192.168.0.5';
+  document.getElementById('ip-dst').textContent='142.250.196.78';
+  document.getElementById('mac-src').textContent='AA:BB:CC (내 PC)';
+  document.getElementById('mac-dst').textContent='11:22:33 (공유기)';
+  ['t-mac-src','t-mac-dst'].forEach(id => { document.getElementById(id).className='tag'; document.getElementById(id).textContent=''; });
+  document.getElementById('btnNext').disabled=false;
+}
+
+document.getElementById('btnNext').addEventListener('click', next);
+document.getElementById('btnReset').addEventListener('click', reset);
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<svg width="680" height="440" viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  </defs>
+  <rect width="680" height="440" fill="#0d1117" rx="12"/>
+
+  <text x="115" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">OSI 7계층</text>
+  <text x="465" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">TCP/IP 4계층</text>
+
+  <!-- OSI L7 -->
+  <rect x="15" y="38" width="210" height="52" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="31" y="57" fill="#58a6ff" font-size="12" font-weight="700">7. 응용 (Application)</text>
+  <text x="31" y="73" fill="#6e7681" font-size="10">HTTP · FTP · DNS</text>
+
+  <!-- OSI L6 -->
+  <rect x="15" y="94" width="210" height="52" rx="8" fill="#192d47" stroke="#3d8fd1" stroke-width="1.5"/>
+  <text x="31" y="113" fill="#79b8ff" font-size="12" font-weight="700">6. 표현 (Presentation)</text>
+  <text x="31" y="129" fill="#6e7681" font-size="10">암호화 · 인코딩</text>
+
+  <!-- OSI L5 -->
+  <rect x="15" y="150" width="210" height="52" rx="8" fill="#163345" stroke="#2d9a7a" stroke-width="1.5"/>
+  <text x="31" y="169" fill="#56d3b4" font-size="12" font-weight="700">5. 세션 (Session)</text>
+  <text x="31" y="185" fill="#6e7681" font-size="10">세션 관리</text>
+
+  <!-- OSI L4 -->
+  <rect x="15" y="206" width="210" height="52" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="31" y="225" fill="#3fb950" font-size="12" font-weight="700">4. 전송 (Transport)</text>
+  <text x="31" y="241" fill="#6e7681" font-size="10">TCP · UDP · 포트 · 세그먼트</text>
+
+  <!-- OSI L3 -->
+  <rect x="15" y="262" width="210" height="52" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="31" y="281" fill="#e3b341" font-size="12" font-weight="700">3. 네트워크 (Network)</text>
+  <text x="31" y="297" fill="#6e7681" font-size="10">IP · 라우터 · 패킷</text>
+
+  <!-- OSI L2 -->
+  <rect x="15" y="318" width="210" height="52" rx="8" fill="#2a1f1f" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="31" y="337" fill="#f0883e" font-size="12" font-weight="700">2. 데이터링크 (Data Link)</text>
+  <text x="31" y="353" fill="#6e7681" font-size="10">MAC · 스위치 · 프레임</text>
+
+  <!-- OSI L1 -->
+  <rect x="15" y="374" width="210" height="52" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="31" y="393" fill="#8b949e" font-size="12" font-weight="700">1. 물리 (Physical)</text>
+  <text x="31" y="409" fill="#6e7681" font-size="10">전기신호 · WiFi 전파 · 비트</text>
+
+  <!-- TCP/IP 응용 (spans L7+L6+L5: y=38 to y=202, h=164) -->
+  <rect x="355" y="38" width="210" height="164" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="460" y="56" text-anchor="middle" fill="#6e7681" font-size="10">← L5, L6, L7 통합</text>
+  <text x="460" y="116" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="700">응용</text>
+  <text x="460" y="133" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">(Application)</text>
+  <text x="460" y="151" text-anchor="middle" fill="#6e7681" font-size="10">HTTP · DNS · FTP</text>
+
+  <!-- TCP/IP 전송 (L4: y=206, h=52) -->
+  <rect x="355" y="206" width="210" height="52" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="460" y="227" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="700">전송 (Transport)</text>
+  <text x="460" y="244" text-anchor="middle" fill="#6e7681" font-size="10">TCP · UDP</text>
+
+  <!-- TCP/IP 인터넷 (L3: y=262, h=52) -->
+  <rect x="355" y="262" width="210" height="52" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="460" y="283" text-anchor="middle" fill="#e3b341" font-size="13" font-weight="700">인터넷 (Internet)</text>
+  <text x="460" y="300" text-anchor="middle" fill="#6e7681" font-size="10">IP</text>
+
+  <!-- TCP/IP 네트워크 접근 (L2+L1: y=318, h=108) -->
+  <rect x="355" y="318" width="210" height="108" rx="8" fill="#2a1f1f" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="460" y="336" text-anchor="middle" fill="#6e7681" font-size="10">← L1, L2 통합</text>
+  <text x="460" y="368" text-anchor="middle" fill="#f0883e" font-size="13" font-weight="700">네트워크 접근</text>
+  <text x="460" y="385" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="700">(Network Access)</text>
+  <text x="460" y="403" text-anchor="middle" fill="#6e7681" font-size="10">Ethernet · WiFi</text>
+
+  <!-- 경계 점선 -->
+  <line x1="230" y1="206" x2="350" y2="206" stroke="#1a3a27" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="230" y1="262" x2="350" y2="262" stroke="#2a2210" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="230" y1="318" x2="350" y2="318" stroke="#2a1f1f" stroke-width="1" stroke-dasharray="4,3"/>
+</svg>

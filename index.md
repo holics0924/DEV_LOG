@@ -64,9 +64,13 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#0d2a1a;color:#3fb950">NET</span>
         Network
       </span>
-      <span class="subject-count">준비 중</span>
+      <span class="subject-count">1 chapter</span>
     </div>
-    <div class="coming-soon">곧 추가됩니다</div>
+    <div class="chapter-list">
+      <a href="/DEV_LOG/Network/ch1-osi-tcpip/" class="chapter-link">
+        <span class="ch-num">CH1</span>OSI와 TCP/IP 계층
+      </a>
+    </div>
   </div>
 
   <div class="subject-card">

@@ -1,0 +1,69 @@
+<svg width="700" height="310" viewBox="0 0 700 310" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#30363d"/>
+    </marker>
+  </defs>
+  <rect width="700" height="310" fill="#0d1117" rx="12"/>
+  <text x="350" y="22" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">캡슐화 — 각 계층이 헤더를 앞에 붙인다</text>
+
+  <!-- 왼쪽 계층 레이블 -->
+  <text x="8"  y="60"  fill="#58a6ff" font-size="10" font-weight="700">7. 응용</text>
+  <text x="8"  y="128" fill="#3fb950" font-size="10" font-weight="700">4. 전송</text>
+  <text x="8"  y="196" fill="#e3b341" font-size="10" font-weight="700">3. 네트워크</text>
+  <text x="8"  y="264" fill="#f0883e" font-size="10" font-weight="700">2. 데이터링크</text>
+
+  <!-- Row 1: HTTP only (x=110 to x=688, w=578) -->
+  <rect x="110" y="38" width="578" height="48" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="399" y="58" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">HTTP 데이터</text>
+  <text x="399" y="74" text-anchor="middle" fill="#6e7681" font-size="10">GET /search?q=준우 HTTP/1.1  ·  Host: google.com</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="399" y1="90" x2="399" y2="103" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="413" y="100" fill="#30363d" font-size="10">TCP 헤더 추가</text>
+
+  <!-- Row 2: TCP + HTTP (TCP=80, HTTP=498) -->
+  <rect x="110" y="106" width="80"  height="48" rx="7" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="150" y="126" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">TCP</text>
+  <text x="150" y="142" text-anchor="middle" fill="#6e7681" font-size="9">포트: 443</text>
+
+  <rect x="192" y="106" width="496" height="48" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="440" y="130" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">HTTP 데이터</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="399" y1="158" x2="399" y2="171" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="413" y="168" fill="#30363d" font-size="10">IP 헤더 추가</text>
+
+  <!-- Row 3: IP + TCP + HTTP (IP=92, TCP=80, HTTP=406) -->
+  <rect x="110" y="174" width="92"  height="48" rx="7" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="156" y="194" text-anchor="middle" fill="#e3b341" font-size="12" font-weight="700">IP</text>
+  <text x="156" y="210" text-anchor="middle" fill="#6e7681" font-size="9">192.168→142.250</text>
+
+  <rect x="204" y="174" width="80"  height="48" rx="7" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="244" y="198" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">TCP</text>
+
+  <rect x="286" y="174" width="402" height="48" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="487" y="198" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">HTTP 데이터</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="399" y1="226" x2="399" y2="239" stroke="#30363d" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="413" y="236" fill="#30363d" font-size="10">MAC 헤더 추가</text>
+
+  <!-- Row 4: MAC + IP + TCP + HTTP (MAC=104, IP=92, TCP=80, HTTP=302) -->
+  <rect x="110" y="242" width="104" height="48" rx="7" fill="#2a1f1f" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="162" y="262" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="700">MAC</text>
+  <text x="162" y="278" text-anchor="middle" fill="#6e7681" font-size="9">AA:BB → 11:22 (공유기)</text>
+
+  <rect x="216" y="242" width="92"  height="48" rx="7" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="262" y="266" text-anchor="middle" fill="#e3b341" font-size="11" font-weight="600">IP</text>
+
+  <rect x="310" y="242" width="80"  height="48" rx="7" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="350" y="266" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">TCP</text>
+
+  <rect x="392" y="242" width="296" height="48" rx="7" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="540" y="266" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">HTTP 데이터</text>
+
+  <text x="350" y="302" text-anchor="middle" fill="#21262d" font-size="10">← 이 순서대로 WiFi 전파로 전송</text>
+</svg>
