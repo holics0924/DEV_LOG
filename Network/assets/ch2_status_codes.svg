@@ -1,0 +1,66 @@
+<svg width="800" height="388" viewBox="0 0 800 388" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  </defs>
+
+  <rect width="800" height="388" fill="#0d1117" rx="12"/>
+  <text x="400" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">HTTP 상태코드</text>
+
+  <!-- ======= 2xx 성공 ======= -->
+  <rect x="18" y="42" width="764" height="66" fill="#1a3a27" rx="8" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="76" y="66" text-anchor="middle" fill="#3fb950" font-size="20" font-weight="700">2xx</text>
+  <text x="76" y="84" text-anchor="middle" fill="#286e40" font-size="10" font-weight="700">성공</text>
+  <line x1="128" y1="52" x2="128" y2="98" stroke="#286e40" stroke-width="1"/>
+  <!-- 200 -->
+  <text x="144" y="63" fill="#3fb950" font-size="12" font-weight="700">200 OK</text>
+  <text x="144" y="79" fill="#286e40" font-size="9">요청 정상 처리</text>
+  <!-- 201 -->
+  <text x="376" y="63" fill="#3fb950" font-size="12" font-weight="700">201 Created</text>
+  <text x="376" y="79" fill="#286e40" font-size="9">POST로 리소스 생성 성공. 응답에 생성된 리소스 포함.</text>
+  <!-- 204 -->
+  <text x="608" y="63" fill="#3fb950" font-size="12" font-weight="700">204 No Content</text>
+  <text x="608" y="79" fill="#286e40" font-size="9">성공했지만 반환할 바디 없음 (DELETE 응답에 자주 사용)</text>
+
+  <!-- ======= 3xx 리다이렉트 ======= -->
+  <rect x="18" y="116" width="764" height="66" fill="#1c3a5e" rx="8" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="76" y="140" text-anchor="middle" fill="#58a6ff" font-size="20" font-weight="700">3xx</text>
+  <text x="76" y="158" text-anchor="middle" fill="#2d5480" font-size="10" font-weight="700">리다이렉트</text>
+  <line x1="128" y1="126" x2="128" y2="172" stroke="#2d5480" stroke-width="1"/>
+  <!-- 301 -->
+  <text x="144" y="137" fill="#58a6ff" font-size="12" font-weight="700">301 Moved Permanently</text>
+  <text x="144" y="153" fill="#2d5480" font-size="9">URL 영구 이전. 브라우저가 새 URL을 캐싱해서 다음부터 바로 접속.</text>
+  <!-- 302 -->
+  <text x="530" y="137" fill="#58a6ff" font-size="12" font-weight="700">302 Found</text>
+  <text x="530" y="153" fill="#2d5480" font-size="9">URL 임시 이전. 캐싱 안 함.</text>
+
+  <!-- ======= 4xx 클라이언트 오류 ======= -->
+  <rect x="18" y="190" width="764" height="100" fill="#2a2210" rx="8" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="76" y="230" text-anchor="middle" fill="#e3b341" font-size="20" font-weight="700">4xx</text>
+  <text x="76" y="248" text-anchor="middle" fill="#7a5c1a" font-size="10" font-weight="700">클라이언트 잘못</text>
+  <line x1="128" y1="200" x2="128" y2="280" stroke="#7a5c1a" stroke-width="1"/>
+  <!-- 400 -->
+  <text x="144" y="211" fill="#e3b341" font-size="12" font-weight="700">400 Bad Request</text>
+  <text x="144" y="227" fill="#7a5c1a" font-size="9">요청 형식 자체가 잘못됨 (JSON 오류, 누락 파라미터)</text>
+  <!-- 401 -->
+  <text x="450" y="211" fill="#e3b341" font-size="12" font-weight="700">401 Unauthorized</text>
+  <text x="450" y="227" fill="#7a5c1a" font-size="9">인증 없음. 누군지 모름 — 로그인 필요.</text>
+  <!-- 403 -->
+  <text x="144" y="254" fill="#e3b341" font-size="12" font-weight="700">403 Forbidden</text>
+  <text x="144" y="270" fill="#7a5c1a" font-size="9">인증됐지만 권한 없음. 누군진 알지만 접근 불가.</text>
+  <!-- 404 -->
+  <text x="450" y="254" fill="#e3b341" font-size="12" font-weight="700">404 Not Found</text>
+  <text x="450" y="270" fill="#7a5c1a" font-size="9">리소스 없음. URL이 틀렸거나 삭제됨.</text>
+
+  <!-- ======= 5xx 서버 오류 ======= -->
+  <rect x="18" y="298" width="764" height="66" fill="#2d1515" rx="8" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="76" y="322" text-anchor="middle" fill="#ef4444" font-size="20" font-weight="700">5xx</text>
+  <text x="76" y="340" text-anchor="middle" fill="#7a2020" font-size="10" font-weight="700">서버 잘못</text>
+  <line x1="128" y1="308" x2="128" y2="354" stroke="#7a2020" stroke-width="1"/>
+  <!-- 500 -->
+  <text x="144" y="319" fill="#ef4444" font-size="12" font-weight="700">500 Internal Server Error</text>
+  <text x="144" y="335" fill="#7a2020" font-size="9">서버 내부 오류. 코드 버그, DB 연결 실패 등.</text>
+  <!-- 503 -->
+  <text x="490" y="319" fill="#ef4444" font-size="12" font-weight="700">503 Service Unavailable</text>
+  <text x="490" y="335" fill="#7a2020" font-size="9">서버 과부하 또는 점검 중.</text>
+</svg>

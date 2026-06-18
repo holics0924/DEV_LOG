@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>멱등성 시뮬레이터</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--am:#f59e0b;--rd:#ef4444}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+  .sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+
+  .main-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+  .panel{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+  .panel-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:10px}
+
+  .req-method{display:inline-block;padding:2px 9px;border-radius:4px;font-size:.75rem;font-weight:700;font-family:monospace;margin-bottom:7px}
+  .method-post{background:#1c2a1c;color:#3fb950;border:1px solid #3fb950}
+  .method-get{background:#1c3a5e;color:#58a6ff;border:1px solid #58a6ff}
+  .req-path{font-family:monospace;font-size:.85rem;color:#cbd5e1;margin-bottom:8px}
+  .req-body{background:var(--bg);border-radius:6px;padding:8px 10px;font-family:monospace;font-size:.78rem;color:var(--am);min-height:52px;white-space:pre}
+
+  .user-list{display:flex;flex-direction:column;gap:5px;min-height:88px}
+  .user-item{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:.8rem;font-family:monospace;color:#cbd5e1;display:flex;align-items:center;gap:6px;transition:border-color .2s}
+  .user-item.new{border-color:var(--am);background:#1a1510;animation:pop .3s ease}
+  @keyframes pop{from{transform:scale(.95);opacity:.5}to{transform:scale(1);opacity:1}}
+  .user-idx{font-size:.65rem;color:var(--mu);width:20px;flex-shrink:0}
+  .empty-state{color:var(--mu);font-size:.8rem;text-align:center;padding:20px 0;font-style:italic}
+
+  .res-status{font-family:monospace;font-size:.85rem;margin-bottom:8px}
+  .s201{color:var(--am)}
+  .s200{color:var(--gr)}
+  .res-body{background:var(--bg);border-radius:6px;padding:8px 10px;font-family:monospace;font-size:.78rem;color:var(--gr);min-height:52px;white-space:pre}
+
+  .badge-row{display:flex;gap:10px;margin-bottom:12px}
+  .badge-box{flex:1;border-radius:8px;padding:9px 14px;font-size:.8rem;font-weight:700;text-align:center;transition:all .3s}
+  .b-na{background:var(--s1);border:1px solid var(--bd);color:var(--mu)}
+  .b-non{background:#2d1515;border:1px solid var(--rd);color:var(--rd)}
+  .b-idem{background:#0d2016;border:1px solid var(--gr);color:var(--gr)}
+
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+  .step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+
+  .controls{display:flex;gap:9px}
+  button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit;transition:all .12s}
+  #btnNext{background:var(--bl);color:#fff;flex:1}
+  #btnNext:hover:not(:disabled){background:#2563eb}
+  #btnNext:disabled{background:#1e3a5f;color:#334155;cursor:not-allowed}
+  #btnReset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  #btnReset:hover{background:#334155}
+</style>
+</head>
+<body>
+<h1>멱등성 시뮬레이터</h1>
+<p class="sub">같은 요청을 반복했을 때 — POST(비멱등)와 GET(멱등)이 어떻게 다른지 확인해보자</p>
+
+<div class="main-grid">
+  <div class="panel">
+    <div class="panel-label">요청 (Request)</div>
+    <div id="reqMethod"></div>
+    <div id="reqPath" class="req-path"></div>
+    <div id="reqBody" class="req-body"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-label">서버 상태 (Server)</div>
+    <div id="userList" class="user-list">
+      <div class="empty-state">유저 없음</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-label">응답 (Response)</div>
+    <div id="resStatus" class="res-status"></div>
+    <div id="resBody" class="res-body"></div>
+  </div>
+</div>
+
+<div class="badge-row">
+  <div id="badgePost" class="badge-box b-na">POST /users — ?</div>
+  <div id="badgeGet" class="badge-box b-na">GET /users — ?</div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">Step 0 / 5</div>
+  <div class="step-desc" id="stepDesc">POST와 GET을 반복 요청했을 때 결과가 어떻게 달라지는지 확인한다. 다음 단계 버튼을 눌러 시작.</div>
+</div>
+
+<div class="controls">
+  <button id="btnReset">↺</button>
+  <button id="btnNext">다음 단계 →</button>
+</div>
+
+<script>
+const STEPS = [
+  {
+    label: 'Step 1 / 5',
+    method: 'POST', path: 'POST /users',
+    body: '{\n  "name": "Alice"\n}',
+    action: 'add',
+    resStatus: '201 Created', resClass: 's201',
+    resBody: null,
+    desc: 'POST /users 요청. 서버에 새 유저를 만들어달라고 한다. 서버는 User #1을 생성하고 201 Created를 반환한다.',
+    bPost: null, bGet: null
+  },
+  {
+    label: 'Step 2 / 5',
+    method: 'POST', path: 'POST /users',
+    body: '{\n  "name": "Alice"\n}',
+    action: 'add',
+    resStatus: '201 Created', resClass: 's201',
+    resBody: null,
+    desc: '완전히 같은 POST /users 요청을 한 번 더 보낸다. 그런데 서버는 User #2를 새로 만들었다. 요청은 동일했지만 결과가 달라졌다 — 이것이 비멱등이다.',
+    bPost: 'non', bGet: null
+  },
+  {
+    label: 'Step 3 / 5',
+    method: 'POST', path: 'POST /users',
+    body: '{\n  "name": "Alice"\n}',
+    action: 'add',
+    resStatus: '201 Created', resClass: 's201',
+    resBody: null,
+    desc: '세 번째로 같은 요청. 또 User #3이 생긴다. POST를 N번 보내면 리소스가 N개 만들어진다. 재시도할 때마다 서버 상태가 바뀐다.',
+    bPost: 'non', bGet: null
+  },
+  {
+    label: 'Step 4 / 5',
+    method: 'GET', path: 'GET /users',
+    body: '(바디 없음)',
+    action: 'read',
+    resStatus: '200 OK', resClass: 's200',
+    resBody: null,
+    desc: 'GET /users 요청. 현재 유저 목록을 달라고 한다. 서버 상태는 전혀 바뀌지 않는다. 응답에 현재 목록이 담겨온다.',
+    bPost: 'non', bGet: null
+  },
+  {
+    label: 'Step 5 / 5',
+    method: 'GET', path: 'GET /users',
+    body: '(바디 없음)',
+    action: 'read',
+    resStatus: '200 OK', resClass: 's200',
+    resBody: null,
+    desc: '같은 GET /users를 한 번 더 보낸다. 응답이 Step 4와 완전히 동일하다. 서버 상태도 그대로다. 몇 번 반복해도 결과가 같다 — 이것이 멱등이다.',
+    bPost: 'non', bGet: 'idem'
+  }
+];
+
+let step = -1;
+let users = [];
+let newId = null;
+
+function makeResBody(s) {
+  if (s.action === 'add') {
+    const u = users[users.length - 1];
+    return `{\n  "id": ${u.id},\n  "name": "${u.name}"\n}`;
+  }
+  if (users.length === 0) return '[]';
+  const lines = ['['];
+  users.forEach((u, i) => {
+    lines.push(`  { "id": ${u.id}, "name": "${u.name}" }${i < users.length - 1 ? ',' : ''}`);
+  });
+  lines.push(']');
+  return lines.join('\n');
+}
+
+function render() {
+  if (step < 0) {
+    document.getElementById('reqMethod').innerHTML = '';
+    document.getElementById('reqPath').textContent = '';
+    document.getElementById('reqBody').textContent = '';
+    document.getElementById('resStatus').textContent = '';
+    document.getElementById('resStatus').className = 'res-status';
+    document.getElementById('resBody').textContent = '';
+    document.getElementById('userList').innerHTML = '<div class="empty-state">유저 없음</div>';
+    document.getElementById('badgePost').className = 'badge-box b-na';
+    document.getElementById('badgePost').textContent = 'POST /users — ?';
+    document.getElementById('badgeGet').className = 'badge-box b-na';
+    document.getElementById('badgeGet').textContent = 'GET /users — ?';
+    document.getElementById('stepLabel').textContent = 'Step 0 / 5';
+    document.getElementById('stepDesc').textContent = 'POST와 GET을 반복 요청했을 때 결과가 어떻게 달라지는지 확인한다. 다음 단계 버튼을 눌러 시작.';
+    document.getElementById('btnNext').disabled = false;
+    return;
+  }
+
+  const s = STEPS[step];
+
+  const methodClass = s.method === 'POST' ? 'req-method method-post' : 'req-method method-get';
+  document.getElementById('reqMethod').innerHTML = `<span class="${methodClass}">${s.method}</span>`;
+  document.getElementById('reqPath').textContent = s.path;
+  document.getElementById('reqBody').textContent = s.body;
+
+  const resEl = document.getElementById('resStatus');
+  resEl.textContent = s.resStatus;
+  resEl.className = `res-status ${s.resClass}`;
+  document.getElementById('resBody').textContent = makeResBody(s);
+
+  const listEl = document.getElementById('userList');
+  if (users.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">유저 없음</div>';
+  } else {
+    listEl.innerHTML = users.map(u =>
+      `<div class="user-item${u.id === newId ? ' new' : ''}">
+        <span class="user-idx">#${u.id}</span>
+        <span>${u.name}</span>
+      </div>`
+    ).join('');
+  }
+
+  const bPost = document.getElementById('badgePost');
+  const bGet = document.getElementById('badgeGet');
+
+  if (s.bPost === 'non') {
+    bPost.className = 'badge-box b-non';
+    bPost.textContent = 'POST /users — ❌ 비멱등 (호출마다 리소스 추가됨)';
+  } else {
+    bPost.className = 'badge-box b-na';
+    bPost.textContent = 'POST /users — ?';
+  }
+
+  if (s.bGet === 'idem') {
+    bGet.className = 'badge-box b-idem';
+    bGet.textContent = 'GET /users — ✅ 멱등 (몇 번 해도 결과 동일)';
+  } else {
+    bGet.className = 'badge-box b-na';
+    bGet.textContent = 'GET /users — ?';
+  }
+
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').textContent = s.desc;
+  document.getElementById('btnNext').disabled = step >= STEPS.length - 1;
+}
+
+document.getElementById('btnNext').addEventListener('click', () => {
+  step++;
+  newId = null;
+  const s = STEPS[step];
+  if (s.action === 'add') {
+    const id = users.length + 1;
+    users.push({ id, name: 'Alice' });
+    newId = id;
+  }
+  render();
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  step = -1;
+  users = [];
+  newId = null;
+  render();
+});
+
+render();
+</script>
+</body>
+</html>

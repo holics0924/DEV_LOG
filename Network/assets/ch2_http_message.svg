@@ -1,0 +1,71 @@
+<svg width="800" height="470" viewBox="0 0 800 470" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  </defs>
+
+  <rect width="800" height="470" fill="#0d1117" rx="12"/>
+  <text x="400" y="32" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">HTTP 메시지 구조</text>
+
+  <!-- ======= 왼쪽 패널: 요청 ======= -->
+  <rect x="18" y="46" width="372" height="408" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1.5"/>
+  <text x="204" y="72" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">요청 (Request)</text>
+
+  <!-- 시작줄 -->
+  <text x="33" y="97" fill="#6e7681" font-size="10" font-weight="700">시작줄 (Request Line)</text>
+  <rect x="33" y="105" width="342" height="58" fill="#1c3a5e" rx="8" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="48" y="126" fill="#58a6ff" font-size="11" font-weight="700">GET /search?q=nodejs  HTTP/1.1</text>
+  <text x="48" y="143" fill="#2d5480" font-size="9" font-weight="600">메서드       경로                   버전</text>
+  <text x="48" y="156" fill="#2d5480" font-size="9" font-style="italic">무엇을 / 어디에 / 어떤 버전으로</text>
+
+  <!-- 헤더 -->
+  <text x="33" y="185" fill="#6e7681" font-size="10" font-weight="700">헤더 (Headers)</text>
+  <rect x="33" y="193" width="342" height="82" fill="#1a3a27" rx="8" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="48" y="212" fill="#3fb950" font-size="11" font-weight="700">Host: google.com</text>
+  <text x="48" y="229" fill="#3fb950" font-size="11" font-weight="700">Accept: text/html</text>
+  <text x="48" y="246" fill="#3fb950" font-size="11" font-weight="700">Authorization: Bearer eyJhb…</text>
+  <text x="48" y="268" fill="#286e40" font-size="9" font-style="italic">키: 값 형태. 요청 메타데이터를 담는다.</text>
+
+  <!-- 빈줄 -->
+  <text x="33" y="298" fill="#6e7681" font-size="10" font-weight="700">빈 줄 (Empty Line) — 필수</text>
+  <rect x="33" y="306" width="342" height="26" fill="#21262d" rx="8" stroke="#30363d" stroke-width="1.5"/>
+  <text x="204" y="324" text-anchor="middle" fill="#6e7681" font-size="9">헤더 끝 표시 — 파서가 여기서 헤더 파싱 종료</text>
+
+  <!-- 바디 -->
+  <text x="33" y="355" fill="#6e7681" font-size="10" font-weight="700">바디 (Body)</text>
+  <rect x="33" y="363" width="342" height="76" fill="#2a2210" rx="8" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="48" y="382" fill="#e3b341" font-size="11" font-weight="700">{"query": "nodejs"}</text>
+  <text x="48" y="400" fill="#7a5c1a" font-size="9">POST / PUT에서 사용.</text>
+  <text x="48" y="416" fill="#7a5c1a" font-size="9">GET은 URL에 데이터를 담으므로 바디 없음.</text>
+
+  <!-- ======= 오른쪽 패널: 응답 ======= -->
+  <rect x="410" y="46" width="372" height="408" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1.5"/>
+  <text x="596" y="72" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">응답 (Response)</text>
+
+  <!-- 시작줄 -->
+  <text x="425" y="97" fill="#6e7681" font-size="10" font-weight="700">시작줄 (Status Line)</text>
+  <rect x="425" y="105" width="342" height="58" fill="#1c3a5e" rx="8" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="440" y="126" fill="#58a6ff" font-size="11" font-weight="700">HTTP/1.1  200  OK</text>
+  <text x="440" y="143" fill="#2d5480" font-size="9" font-weight="600">버전           상태코드  설명</text>
+  <text x="440" y="156" fill="#2d5480" font-size="9" font-style="italic">어떤 버전 / 결과 코드 / 한 줄 메시지</text>
+
+  <!-- 헤더 -->
+  <text x="425" y="185" fill="#6e7681" font-size="10" font-weight="700">헤더 (Headers)</text>
+  <rect x="425" y="193" width="342" height="82" fill="#1a3a27" rx="8" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="440" y="212" fill="#3fb950" font-size="11" font-weight="700">Content-Type: text/html</text>
+  <text x="440" y="229" fill="#3fb950" font-size="11" font-weight="700">Content-Length: 1234</text>
+  <text x="440" y="246" fill="#3fb950" font-size="11" font-weight="700">Cache-Control: max-age=3600</text>
+  <text x="440" y="268" fill="#286e40" font-size="9" font-style="italic">클라이언트에게 응답 해석 방법 안내.</text>
+
+  <!-- 빈줄 -->
+  <text x="425" y="298" fill="#6e7681" font-size="10" font-weight="700">빈 줄 (Empty Line) — 필수</text>
+  <rect x="425" y="306" width="342" height="26" fill="#21262d" rx="8" stroke="#30363d" stroke-width="1.5"/>
+  <text x="596" y="324" text-anchor="middle" fill="#6e7681" font-size="9">헤더 끝 표시 — 파서가 여기서 헤더 파싱 종료</text>
+
+  <!-- 바디 -->
+  <text x="425" y="355" fill="#6e7681" font-size="10" font-weight="700">바디 (Body)</text>
+  <rect x="425" y="363" width="342" height="76" fill="#2a2210" rx="8" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="440" y="382" fill="#e3b341" font-size="11" font-weight="700">&lt;html&gt;&lt;head&gt;…&lt;/head&gt;</text>
+  <text x="440" y="399" fill="#e3b341" font-size="11" font-weight="700">&lt;body&gt;…&lt;/body&gt;&lt;/html&gt;</text>
+  <text x="440" y="416" fill="#7a5c1a" font-size="9">서버가 클라이언트에게 전달하는 실제 데이터.</text>
+</svg>

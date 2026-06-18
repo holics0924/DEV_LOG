@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>401 vs 403 시나리오</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--am:#f59e0b;--rd:#ef4444}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+  .sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+
+  .main-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+  .panel{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;min-height:160px}
+  .panel-label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:10px}
+
+  /* 요청 패널 */
+  .req-line{font-family:monospace;font-size:.85rem;color:#58a6ff;margin-bottom:8px;font-weight:700}
+  .req-header{font-family:monospace;font-size:.78rem;color:#3fb950;line-height:1.7}
+  .req-header .muted{color:var(--mu);font-style:italic}
+
+  /* 인증 상태 패널 */
+  .auth-state{display:flex;flex-direction:column;gap:8px}
+  .auth-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem}
+  .auth-key{color:var(--mu)}
+  .auth-val{font-weight:700;text-align:right}
+  .val-none{color:var(--mu);font-style:italic}
+  .val-user{color:var(--am)}
+  .val-admin{color:var(--gr)}
+  .role-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700}
+  .role-none{background:var(--s1);border:1px solid var(--bd);color:var(--mu)}
+  .role-user{background:#2a1f0a;border:1px solid var(--am);color:var(--am)}
+  .role-admin{background:#0d2016;border:1px solid var(--gr);color:var(--gr)}
+
+  /* 응답 패널 */
+  .res-code{font-family:monospace;font-size:1.4rem;font-weight:700;margin-bottom:6px}
+  .code-401{color:var(--am)}
+  .code-403{color:var(--rd)}
+  .code-200{color:var(--gr)}
+  .code-none{color:var(--mu)}
+  .res-msg{font-size:.78rem;color:var(--mu);margin-bottom:8px}
+  .res-body{background:var(--bg);border-radius:6px;padding:8px 10px;font-size:.78rem;font-family:monospace;line-height:1.6;min-height:48px;white-space:pre}
+  .body-401{color:var(--am)}
+  .body-403{color:var(--rd)}
+  .body-200{color:var(--gr)}
+  .body-na{color:var(--mu);font-style:italic}
+
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+  .step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+
+  .controls{display:flex;gap:9px}
+  button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit;transition:all .12s}
+  #btnNext{background:var(--bl);color:#fff;flex:1}
+  #btnNext:hover:not(:disabled){background:#2563eb}
+  #btnNext:disabled{background:#1e3a5f;color:#334155;cursor:not-allowed}
+  #btnReset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  #btnReset:hover{background:#334155}
+</style>
+</head>
+<body>
+<h1>401 vs 403 시나리오</h1>
+<p class="sub">같은 /admin/dashboard 엔드포인트 — 인증 상태에 따라 응답이 어떻게 달라지는지 확인해보자</p>
+
+<div class="main-grid">
+  <div class="panel">
+    <div class="panel-label">요청 (Request)</div>
+    <div id="reqLine" class="req-line"></div>
+    <div id="reqHeaders" class="req-header"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-label">서버의 인증 처리</div>
+    <div class="auth-state">
+      <div class="auth-row">
+        <span class="auth-key">신원 확인</span>
+        <span id="authIdentity" class="auth-val val-none">—</span>
+      </div>
+      <div class="auth-row">
+        <span class="auth-key">권한</span>
+        <span id="authRole" class="role-badge role-none">없음</span>
+      </div>
+      <div class="auth-row">
+        <span class="auth-key">리소스</span>
+        <span class="auth-val" style="color:#58a6ff">/admin/dashboard</span>
+      </div>
+      <div class="auth-row">
+        <span class="auth-key">필요 권한</span>
+        <span class="auth-val" style="color:#58a6ff">admin</span>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-label">응답 (Response)</div>
+    <div id="resCode" class="res-code code-none">—</div>
+    <div id="resMsg" class="res-msg"></div>
+    <div id="resBody" class="res-body body-na">(요청 없음)</div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">Step 0 / 5</div>
+  <div class="step-desc" id="stepDesc">인증되지 않은 사용자, 일반 유저, 관리자가 같은 엔드포인트에 접근할 때 서버 응답이 어떻게 달라지는지 확인한다.</div>
+</div>
+
+<div class="controls">
+  <button id="btnReset">↺</button>
+  <button id="btnNext">다음 단계 →</button>
+</div>
+
+<script>
+const STEPS = [
+  {
+    label: 'Step 1 / 5',
+    reqLine: 'GET /admin/dashboard  HTTP/1.1',
+    reqHeaders: 'Host: api.example.com\n(Authorization 헤더 없음)',
+    authIdentity: '알 수 없음', authIdentityClass: 'val-none',
+    authRole: '없음', authRoleClass: 'role-none',
+    resCode: '401', resCodeClass: 'code-401',
+    resMsg: 'Unauthorized',
+    resBody: '{\n  "error": "Authentication required",\n  "message": "로그인이 필요합니다"\n}',
+    resBodyClass: 'body-401',
+    desc: '요청에 Authorization 헤더가 없다. 서버는 이 요청이 누구의 것인지 알 수 없다. 신원 확인 자체가 불가능한 상황 — 401 Unauthorized.'
+  },
+  {
+    label: 'Step 2 / 5',
+    reqLine: 'POST /auth/login  HTTP/1.1',
+    reqHeaders: 'Content-Type: application/json\n\n{"email": "user@example.com", "pw": "…"}',
+    authIdentity: '확인 중', authIdentityClass: 'val-user',
+    authRole: 'user', authRoleClass: 'role-user',
+    resCode: '200', resCodeClass: 'code-200',
+    resMsg: 'OK',
+    resBody: '{\n  "token": "eyJhbGciOiJIUzI1…",\n  "role": "user"\n}',
+    resBodyClass: 'body-200',
+    desc: '일반 유저로 로그인. 서버가 JWT 토큰을 발급한다. 이 토큰에는 role: "user" 정보가 담긴다.'
+  },
+  {
+    label: 'Step 3 / 5',
+    reqLine: 'GET /admin/dashboard  HTTP/1.1',
+    reqHeaders: 'Host: api.example.com\nAuthorization: Bearer eyJhbGciOiJIUzI1…',
+    authIdentity: 'user@example.com', authIdentityClass: 'val-user',
+    authRole: 'user', authRoleClass: 'role-user',
+    resCode: '403', resCodeClass: 'code-403',
+    resMsg: 'Forbidden',
+    resBody: '{\n  "error": "Insufficient permissions",\n  "message": "관리자 권한이 필요합니다"\n}',
+    resBodyClass: 'body-403',
+    desc: '이번엔 토큰이 있다. 서버가 "user@example.com이 보낸 요청"임을 알았다. 그런데 role이 user — admin 전용 페이지에 접근할 권한이 없다. 신원은 알지만 접근 불가 — 403 Forbidden.'
+  },
+  {
+    label: 'Step 4 / 5',
+    reqLine: 'POST /auth/login  HTTP/1.1',
+    reqHeaders: 'Content-Type: application/json\n\n{"email": "admin@example.com", "pw": "…"}',
+    authIdentity: '확인 중', authIdentityClass: 'val-admin',
+    authRole: 'admin', authRoleClass: 'role-admin',
+    resCode: '200', resCodeClass: 'code-200',
+    resMsg: 'OK',
+    resBody: '{\n  "token": "eyJhbGciOiJIUzI1…",\n  "role": "admin"\n}',
+    resBodyClass: 'body-200',
+    desc: '관리자 계정으로 로그인. 이번 토큰에는 role: "admin"이 담긴다.'
+  },
+  {
+    label: 'Step 5 / 5',
+    reqLine: 'GET /admin/dashboard  HTTP/1.1',
+    reqHeaders: 'Host: api.example.com\nAuthorization: Bearer eyJhbGciOiJIUzI1…',
+    authIdentity: 'admin@example.com', authIdentityClass: 'val-admin',
+    authRole: 'admin', authRoleClass: 'role-admin',
+    resCode: '200', resCodeClass: 'code-200',
+    resMsg: 'OK',
+    resBody: '{\n  "dashboard": {\n    "users": 1024,\n    "revenue": 98500\n  }\n}',
+    resBodyClass: 'body-200',
+    desc: '관리자 토큰으로 같은 엔드포인트에 접근. role: "admin" 확인 → 200 OK. 세 번 모두 같은 URL에 보낸 GET 요청이지만, 인증 상태에 따라 401 / 403 / 200이 달라졌다.'
+  }
+];
+
+let step = -1;
+
+function render() {
+  if (step < 0) {
+    document.getElementById('reqLine').textContent = '';
+    document.getElementById('reqHeaders').textContent = '';
+    document.getElementById('authIdentity').textContent = '—';
+    document.getElementById('authIdentity').className = 'auth-val val-none';
+    document.getElementById('authRole').textContent = '없음';
+    document.getElementById('authRole').className = 'role-badge role-none';
+    document.getElementById('resCode').textContent = '—';
+    document.getElementById('resCode').className = 'res-code code-none';
+    document.getElementById('resMsg').textContent = '';
+    document.getElementById('resBody').textContent = '(요청 없음)';
+    document.getElementById('resBody').className = 'res-body body-na';
+    document.getElementById('stepLabel').textContent = 'Step 0 / 5';
+    document.getElementById('stepDesc').textContent = '인증되지 않은 사용자, 일반 유저, 관리자가 같은 엔드포인트에 접근할 때 서버 응답이 어떻게 달라지는지 확인한다.';
+    document.getElementById('btnNext').disabled = false;
+    return;
+  }
+
+  const s = STEPS[step];
+  document.getElementById('reqLine').textContent = s.reqLine;
+  document.getElementById('reqHeaders').textContent = s.reqHeaders;
+  document.getElementById('authIdentity').textContent = s.authIdentity;
+  document.getElementById('authIdentity').className = `auth-val ${s.authIdentityClass}`;
+  document.getElementById('authRole').textContent = s.authRole;
+  document.getElementById('authRole').className = `role-badge ${s.authRoleClass}`;
+  document.getElementById('resCode').textContent = s.resCode;
+  document.getElementById('resCode').className = `res-code ${s.resCodeClass}`;
+  document.getElementById('resMsg').textContent = s.resMsg;
+  document.getElementById('resBody').textContent = s.resBody;
+  document.getElementById('resBody').className = `res-body ${s.resBodyClass}`;
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').textContent = s.desc;
+  document.getElementById('btnNext').disabled = step >= STEPS.length - 1;
+}
+
+document.getElementById('btnNext').addEventListener('click', () => { step++; render(); });
+document.getElementById('btnReset').addEventListener('click', () => { step = -1; render(); });
+render();
+</script>
+</body>
+</html>
