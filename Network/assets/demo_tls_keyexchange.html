@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TLS 키 교환 시뮬레이터</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+  .sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+
+  .scene{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;align-items:start}
+  .actor{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;min-height:200px}
+  .actor-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:10px;text-align:center}
+  .network-panel{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .net-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:4px}
+
+  .key-tag{display:inline-block;padding:3px 9px;border-radius:5px;font-size:.75rem;font-weight:700;margin:3px 0;white-space:nowrap}
+  .key-pub{background:#1c3a5e;border:1px solid #58a6ff;color:#58a6ff}
+  .key-priv{background:#2d1515;border:1px solid #ef4444;color:#ef4444}
+  .key-sym{background:#1a3a27;border:1px solid #10b981;color:#10b981}
+  .key-none{background:var(--s1);border:1px solid var(--bd);color:var(--mu)}
+
+  .key-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+  .key-row{display:flex;align-items:center;gap:6px;font-size:.75rem}
+  .key-row-label{color:var(--mu);font-size:.7rem}
+
+  .packet{background:var(--bg);border-radius:6px;padding:6px 10px;font-size:.75rem;width:100%;text-align:center;border:1px solid var(--bd)}
+  .packet.pub-enc{border-color:#58a6ff;color:#58a6ff}
+  .packet.sym-enc{border-color:#10b981;color:#10b981}
+  .packet.cert{border-color:#a78bfa;color:#a78bfa}
+  .packet.empty{color:var(--mu);font-style:italic}
+
+  .eavesdrop{font-size:.68rem;color:var(--mu);text-align:center;margin-top:4px}
+  .eavesdrop.safe{color:#10b981}
+  .eavesdrop.danger{color:#ef4444}
+
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+  .step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+
+  .controls{display:flex;gap:9px}
+  button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit;transition:all .12s}
+  #btnNext{background:var(--bl);color:#fff;flex:1}
+  #btnNext:hover:not(:disabled){background:#2563eb}
+  #btnNext:disabled{background:#1e3a5f;color:#334155;cursor:not-allowed}
+  #btnReset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  #btnReset:hover{background:#334155}
+</style>
+</head>
+<body>
+<h1>TLS 키 교환 시뮬레이터</h1>
+<p class="sub">공개키 / 개인키 / 대칭키가 TLS에서 어떻게 협력하는지 단계별로 확인해보자</p>
+
+<div class="scene">
+  <div class="actor">
+    <div class="actor-title">클라이언트</div>
+    <div class="key-list" id="clientKeys">
+      <div class="key-row"><span class="key-row-label">보유 키:</span> <span class="key-tag key-none">없음</span></div>
+    </div>
+    <div id="clientNote" style="margin-top:10px;font-size:.75rem;color:var(--mu);line-height:1.5"></div>
+  </div>
+
+  <div class="network-panel">
+    <div class="net-title">네트워크 (도청자 시점)</div>
+    <div id="netPacket" class="packet empty">—</div>
+    <div id="netNote" class="eavesdrop">아직 아무것도 없음</div>
+  </div>
+
+  <div class="actor">
+    <div class="actor-title">서버</div>
+    <div class="key-list" id="serverKeys">
+      <div class="key-row"><span class="key-row-label">보유 키:</span></div>
+      <div><span class="key-tag key-pub">공개키</span></div>
+      <div><span class="key-tag key-priv">개인키</span></div>
+    </div>
+    <div id="serverNote" style="margin-top:10px;font-size:.75rem;color:var(--mu);line-height:1.5"></div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">Step 0 / 6</div>
+  <div class="step-desc" id="stepDesc">서버는 공개키와 개인키 쌍을 보유하고 있다. 클라이언트는 아무것도 없는 상태다. 다음 단계를 눌러 TLS 키 교환을 시작해보자.</div>
+</div>
+
+<div class="controls">
+  <button id="btnReset">↺</button>
+  <button id="btnNext">다음 단계 →</button>
+</div>
+
+<script>
+const STEPS = [
+  {
+    label: 'Step 1 / 6 — 인증서 전송',
+    desc: '서버가 인증서를 클라이언트에게 전송한다. 인증서 안에 공개키와 CA 서명이 담겨있다. 누가 가로채도 공개키는 공개해도 되는 정보라 괜찮다.',
+    client: { keys: ['없음'], note: '인증서 수신 중...' },
+    net: { text: '인증서 (공개키 + CA 서명)', cls: 'cert', note: '도청자가 봐도 됨 — 공개 정보', noteCls: '' },
+    server: { keys: ['공개키','개인키'], note: '인증서 전송 완료' }
+  },
+  {
+    label: 'Step 2 / 6 — CA 서명 검증',
+    desc: '클라이언트가 CA 공개키(브라우저에 내장)로 인증서의 CA 서명을 검증한다. 검증 통과 → 이 공개키가 진짜 서버 거임을 확인.',
+    client: { keys: ['공개키 (검증 완료 ✓)'], note: '인증서 검증 통과. 이제 이 공개키가 진짜임을 알았다.', noteCls: 'ok' },
+    net: { text: '—', cls: 'empty', note: '네트워크 전송 없음 (로컬 검증)', noteCls: '' },
+    server: { keys: ['공개키','개인키'], note: '' }
+  },
+  {
+    label: 'Step 3 / 6 — 대칭키 생성',
+    desc: '클라이언트가 이번 세션에서 쓸 대칭키를 생성한다. 이 키는 아직 클라이언트 안에만 있다.',
+    client: { keys: ['공개키', '대칭키 (방금 생성)'], note: '대칭키 생성 완료. 이걸 서버에 안전하게 전달해야 한다.' },
+    net: { text: '—', cls: 'empty', note: '아직 전송 안 함', noteCls: '' },
+    server: { keys: ['공개키','개인키'], note: '아직 대칭키 모름' }
+  },
+  {
+    label: 'Step 4 / 6 — 대칭키 암호화 전송',
+    desc: '대칭키를 서버의 공개키로 암호화해서 전송한다. 공개키로 잠근 것은 개인키로만 열 수 있어서, 중간에 가로채도 복호화 불가능하다.',
+    client: { keys: ['공개키', '대칭키'], note: '대칭키를 공개키로 암호화해서 전송.' },
+    net: { text: '암호화된 대칭키 (공개키로 잠금)', cls: 'pub-enc', note: '도청자가 가로채도 개인키 없으면 못 열어 ✓', noteCls: 'safe' },
+    server: { keys: ['공개키','개인키'], note: '암호화된 대칭키 수신 중...' }
+  },
+  {
+    label: 'Step 5 / 6 — 개인키로 복호화',
+    desc: '서버가 자신의 개인키로 복호화해서 대칭키를 꺼낸다. 이제 클라이언트와 서버 둘 다 같은 대칭키를 보유했다.',
+    client: { keys: ['공개키', '대칭키'], note: '' },
+    net: { text: '—', cls: 'empty', note: '네트워크 전송 없음 (서버 내부 처리)', noteCls: '' },
+    server: { keys: ['공개키','개인키','대칭키 (획득 ✓)'], note: '개인키로 복호화 완료. 대칭키 획득.', noteCls: 'ok' }
+  },
+  {
+    label: 'Step 6 / 6 — 대칭키로 암호화 통신',
+    desc: '이제 양쪽이 같은 대칭키를 갖고 있다. 이후 모든 HTTP 데이터는 이 대칭키로 암호화해서 주고받는다. 빠르고 안전하다.',
+    client: { keys: ['공개키', '대칭키'], note: '대칭키로 HTTP 데이터 암호화 통신 시작.' },
+    net: { text: '암호화된 HTTP 데이터 (대칭키)', cls: 'sym-enc', note: '도청해도 대칭키 없으면 읽기 불가 ✓', noteCls: 'safe' },
+    server: { keys: ['공개키','개인키','대칭키'], note: '대칭키로 복호화해서 HTTP 데이터 처리.' }
+  }
+];
+
+const keyClass = {
+  '공개키': 'key-pub',
+  '공개키 (검증 완료 ✓)': 'key-pub',
+  '개인키': 'key-priv',
+  '대칭키': 'key-sym',
+  '대칭키 (방금 생성)': 'key-sym',
+  '대칭키 (획득 ✓)': 'key-sym',
+  '없음': 'key-none'
+};
+
+let step = -1;
+
+function renderKeys(containerId, keys) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '<div class="key-row"><span class="key-row-label">보유 키:</span></div>' +
+    keys.map(k => `<div><span class="key-tag ${keyClass[k] || 'key-none'}">${k}</span></div>`).join('');
+}
+
+function render() {
+  if (step < 0) {
+    renderKeys('clientKeys', ['없음']);
+    document.getElementById('clientNote').textContent = '';
+    document.getElementById('clientNote').style.color = 'var(--mu)';
+    const np = document.getElementById('netPacket');
+    np.textContent = '—'; np.className = 'packet empty';
+    document.getElementById('netNote').textContent = '아직 아무것도 없음';
+    document.getElementById('netNote').className = 'eavesdrop';
+    renderKeys('serverKeys', ['공개키','개인키']);
+    document.getElementById('serverNote').textContent = '';
+    document.getElementById('stepLabel').textContent = 'Step 0 / 6';
+    document.getElementById('stepDesc').textContent = '서버는 공개키와 개인키 쌍을 보유하고 있다. 클라이언트는 아무것도 없는 상태다. 다음 단계를 눌러 TLS 키 교환을 시작해보자.';
+    document.getElementById('btnNext').disabled = false;
+    return;
+  }
+
+  const s = STEPS[step];
+  renderKeys('clientKeys', s.client.keys);
+  const cn = document.getElementById('clientNote');
+  cn.textContent = s.client.note || '';
+  cn.style.color = s.client.noteCls === 'ok' ? 'var(--gr)' : 'var(--mu)';
+
+  const np = document.getElementById('netPacket');
+  np.textContent = s.net.text;
+  np.className = 'packet ' + s.net.cls;
+  const nn = document.getElementById('netNote');
+  nn.textContent = s.net.note;
+  nn.className = 'eavesdrop' + (s.net.noteCls ? ' ' + s.net.noteCls : '');
+
+  renderKeys('serverKeys', s.server.keys);
+  const sn = document.getElementById('serverNote');
+  sn.textContent = s.server.note || '';
+  sn.style.color = s.server.noteCls === 'ok' ? 'var(--gr)' : 'var(--mu)';
+
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').textContent = s.desc;
+  document.getElementById('btnNext').disabled = step >= STEPS.length - 1;
+}
+
+document.getElementById('btnNext').addEventListener('click', () => { step++; render(); });
+document.getElementById('btnReset').addEventListener('click', () => { step = -1; render(); });
+render();
+</script>
+</body>
+</html>

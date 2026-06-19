@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>HOL Blocking 시뮬레이터</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+  .sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .col-panel{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}
+  .col-title{font-size:.78rem;font-weight:700;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--bd)}
+  .title-11{color:var(--am)}
+  .title-2{color:var(--bl)}
+
+  .resource-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .res-label{font-size:.78rem;font-family:monospace;width:52px;flex-shrink:0;color:#94a3b8}
+  .bar-wrap{flex:1;background:var(--bg);border-radius:4px;height:12px;overflow:hidden;border:1px solid #1e293b}
+  .bar{height:100%;border-radius:4px;width:0%;transition:width .4s ease}
+  .bar-css{background:#f59e0b}
+  .bar-js{background:#3b82f6}
+  .bar-img{background:#8b5cf6}
+  .status{font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;min-width:46px;text-align:center}
+  .st-wait{background:#1e293b;color:var(--mu)}
+  .st-load{background:#1c3050;color:var(--bl)}
+  .st-done{background:#0d2016;color:var(--gr)}
+  .st-block{background:#2d1515;color:var(--rd)}
+  .st-stall{background:#2a1f10;color:var(--am)}
+
+  .note{background:var(--bg);border-radius:6px;padding:8px 10px;font-size:.78rem;color:var(--mu);min-height:36px;line-height:1.5;margin-top:6px}
+  .note.warn{color:var(--rd)}
+  .note.ok{color:var(--gr)}
+
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:14px}
+  .step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mu);margin-bottom:5px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+
+  .controls{display:flex;gap:9px}
+  button{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:inherit;transition:all .12s}
+  #btnNext{background:var(--bl);color:#fff;flex:1}
+  #btnNext:hover:not(:disabled){background:#2563eb}
+  #btnNext:disabled{background:#1e3a5f;color:#334155;cursor:not-allowed}
+  #btnReset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  #btnReset:hover{background:#334155}
+</style>
+</head>
+<body>
+<h1>HOL Blocking 시뮬레이터</h1>
+<p class="sub">같은 조건에서 HTTP/1.1과 HTTP/2의 동작 차이 — 패킷 유실 시 어떻게 달라지는지 확인해보자</p>
+
+<div class="cols">
+  <div class="col-panel">
+    <div class="col-title title-11">HTTP/1.1 (Keep-Alive)</div>
+    <div class="resource-row">
+      <span class="res-label">CSS</span>
+      <div class="bar-wrap"><div class="bar bar-css" id="b11-css"></div></div>
+      <span class="status st-wait" id="s11-css">대기</span>
+    </div>
+    <div class="resource-row">
+      <span class="res-label">JS</span>
+      <div class="bar-wrap"><div class="bar bar-js" id="b11-js"></div></div>
+      <span class="status st-wait" id="s11-js">대기</span>
+    </div>
+    <div class="resource-row">
+      <span class="res-label">이미지</span>
+      <div class="bar-wrap"><div class="bar bar-img" id="b11-img"></div></div>
+      <span class="status st-wait" id="s11-img">대기</span>
+    </div>
+    <div class="note" id="note11">순서대로 처리: CSS 완료 후 JS, JS 완료 후 이미지</div>
+  </div>
+  <div class="col-panel">
+    <div class="col-title title-2">HTTP/2 (멀티플렉싱)</div>
+    <div class="resource-row">
+      <span class="res-label">CSS</span>
+      <div class="bar-wrap"><div class="bar bar-css" id="b2-css"></div></div>
+      <span class="status st-wait" id="s2-css">대기</span>
+    </div>
+    <div class="resource-row">
+      <span class="res-label">JS</span>
+      <div class="bar-wrap"><div class="bar bar-js" id="b2-js"></div></div>
+      <span class="status st-wait" id="s2-js">대기</span>
+    </div>
+    <div class="resource-row">
+      <span class="res-label">이미지</span>
+      <div class="bar-wrap"><div class="bar bar-img" id="b2-img"></div></div>
+      <span class="status st-wait" id="s2-img">대기</span>
+    </div>
+    <div class="note" id="note2">스트림으로 동시 처리: 준비된 것 먼저 전달</div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="stepLabel">Step 0 / 5</div>
+  <div class="step-desc" id="stepDesc">CSS(대용량), JS(소용량), 이미지(소용량) 세 파일을 로드한다. 전송 중 CSS 패킷 하나가 유실되는 시나리오를 확인해보자.</div>
+</div>
+
+<div class="controls">
+  <button id="btnReset">↺</button>
+  <button id="btnNext">다음 단계 →</button>
+</div>
+
+<script>
+const STEPS = [
+  {
+    label: 'Step 1 / 5 — 요청 시작',
+    desc: 'CSS, JS, 이미지 파일 요청을 보냈다. HTTP/1.1은 순서대로, HTTP/2는 동시에 처리를 시작한다.',
+    s11: {css:{bar:30,st:'load'}, js:{bar:0,st:'wait'}, img:{bar:0,st:'wait'}},
+    s2:  {css:{bar:30,st:'load'}, js:{bar:30,st:'load'}, img:{bar:30,st:'load'}},
+    n11: '순서대로: CSS 전송 중. JS, 이미지는 CSS 완료까지 대기.',
+    n2:  'CSS, JS, 이미지 동시 전송 시작.',
+    n11class: '', n2class: ''
+  },
+  {
+    label: 'Step 2 / 5 — JS, 이미지 준비 완료',
+    desc: '서버에서 JS와 이미지 전송이 먼저 끝났다. 두 프로토콜의 차이가 시작된다.',
+    s11: {css:{bar:60,st:'load'}, js:{bar:100,st:'wait'}, img:{bar:100,st:'wait'}},
+    s2:  {css:{bar:60,st:'load'}, js:{bar:100,st:'done'}, img:{bar:100,st:'done'}},
+    n11: 'JS, 이미지 준비됐지만 CSS가 끝나야 전달 가능. 대기 중.',
+    n2:  'JS ✓ 완료! 이미지 ✓ 완료! CSS는 아직 전송 중.',
+    n11class: 'warn', n2class: 'ok'
+  },
+  {
+    label: 'Step 3 / 5 — TCP 패킷 유실!',
+    desc: 'CSS 전송 중 TCP 패킷 하나가 유실됐다. 여기서 HTTP/1.1과 HTTP/2의 차이가 극명하게 드러난다.',
+    s11: {css:{bar:60,st:'stall'}, js:{bar:100,st:'block'}, img:{bar:100,st:'block'}},
+    s2:  {css:{bar:60,st:'stall'}, js:{bar:100,st:'done'}, img:{bar:100,st:'done'}},
+    n11: '⚠ CSS 패킷 유실 → TCP 전체 대기 → JS, 이미지도 함께 차단!',
+    n2:  'CSS 패킷 유실 → CSS 스트림만 대기. JS, 이미지는 이미 완료됨.',
+    n11class: 'warn', n2class: 'ok'
+  },
+  {
+    label: 'Step 4 / 5 — 패킷 재전송 완료',
+    desc: '유실된 CSS 패킷이 재전송됐다. 이후 동작도 다르다.',
+    s11: {css:{bar:100,st:'done'}, js:{bar:100,st:'wait'}, img:{bar:100,st:'wait'}},
+    s2:  {css:{bar:100,st:'done'}, js:{bar:100,st:'done'}, img:{bar:100,st:'done'}},
+    n11: 'CSS 완료. 이제 JS, 이미지를 순서대로 전달 시작.',
+    n2:  'CSS 완료. JS, 이미지는 이미 전달됨.',
+    n11class: '', n2class: 'ok'
+  },
+  {
+    label: 'Step 5 / 5 — 최종',
+    desc: 'HTTP/1.1은 JS → 이미지 순서로 전달 완료. HTTP/2는 패킷 유실에도 JS, 이미지가 영향받지 않았다.',
+    s11: {css:{bar:100,st:'done'}, js:{bar:100,st:'done'}, img:{bar:100,st:'done'}},
+    s2:  {css:{bar:100,st:'done'}, js:{bar:100,st:'done'}, img:{bar:100,st:'done'}},
+    n11: '모두 완료. 단, CSS 지연이 JS, 이미지까지 전파됐다.',
+    n2:  '모두 완료. JS, 이미지는 CSS 지연과 무관하게 처리됐다.',
+    n11class: '', n2class: 'ok'
+  }
+];
+
+let step = -1;
+
+const stClass = {
+  wait:  'status st-wait',
+  load:  'status st-load',
+  done:  'status st-done',
+  block: 'status st-block',
+  stall: 'status st-stall'
+};
+const stLabel = {wait:'대기', load:'전송 중', done:'완료', block:'차단', stall:'중단'};
+
+function applyState(prefix, state) {
+  ['css','js','img'].forEach(r => {
+    const s = state[r];
+    document.getElementById(`${prefix}-${r}`).style.width = s.bar + '%';
+    const el = document.getElementById(`s${prefix.replace('b','')}-${r}`);
+    if (el) {
+      el.className = stClass[s.st];
+      el.textContent = stLabel[s.st];
+    }
+  });
+}
+
+function render() {
+  if (step < 0) {
+    ['css','js','img'].forEach(r => {
+      ['b11','b2'].forEach(p => { document.getElementById(`${p}-${r}`).style.width = '0%'; });
+      ['s11','s2'].forEach(p => {
+        const el = document.getElementById(`${p}-${r}`);
+        if (el) { el.className = 'status st-wait'; el.textContent = '대기'; }
+      });
+    });
+    document.getElementById('note11').textContent = '순서대로 처리: CSS 완료 후 JS, JS 완료 후 이미지';
+    document.getElementById('note11').className = 'note';
+    document.getElementById('note2').textContent = '스트림으로 동시 처리: 준비된 것 먼저 전달';
+    document.getElementById('note2').className = 'note';
+    document.getElementById('stepLabel').textContent = 'Step 0 / 5';
+    document.getElementById('stepDesc').textContent = 'CSS(대용량), JS(소용량), 이미지(소용량) 세 파일을 로드한다. 전송 중 CSS 패킷 하나가 유실되는 시나리오를 확인해보자.';
+    document.getElementById('btnNext').disabled = false;
+    return;
+  }
+  const s = STEPS[step];
+  applyState('b11', s.s11);
+  applyState('b2', s.s2);
+  // status badges for s11, s2
+  ['css','js','img'].forEach(r => {
+    const el11 = document.getElementById(`s11-${r}`);
+    if (el11) { el11.className = stClass[s.s11[r].st]; el11.textContent = stLabel[s.s11[r].st]; }
+    const el2 = document.getElementById(`s2-${r}`);
+    if (el2) { el2.className = stClass[s.s2[r].st]; el2.textContent = stLabel[s.s2[r].st]; }
+  });
+  const n11 = document.getElementById('note11');
+  n11.textContent = s.n11;
+  n11.className = 'note' + (s.n11class ? ' ' + s.n11class : '');
+  const n2 = document.getElementById('note2');
+  n2.textContent = s.n2;
+  n2.className = 'note' + (s.n2class ? ' ' + s.n2class : '');
+  document.getElementById('stepLabel').textContent = s.label;
+  document.getElementById('stepDesc').textContent = s.desc;
+  document.getElementById('btnNext').disabled = step >= STEPS.length - 1;
+}
+
+document.getElementById('btnNext').addEventListener('click', () => { step++; render(); });
+document.getElementById('btnReset').addEventListener('click', () => { step = -1; render(); });
+render();
+</script>
+</body>
+</html>

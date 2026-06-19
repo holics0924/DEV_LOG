@@ -1,0 +1,106 @@
+<svg width="800" height="310" viewBox="0 0 800 310" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+  </defs>
+
+  <rect width="800" height="310" fill="#0d1117" rx="12"/>
+  <text x="400" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">대칭키와 비대칭키</text>
+
+  <!-- ===== 대칭키 (왼쪽) ===== -->
+  <rect x="18" y="38" width="370" height="196" fill="#21262d" rx="8" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="203" y="66" text-anchor="middle" fill="#c9d1d9" font-size="14" font-weight="700">대칭키 (Symmetric)</text>
+
+  <!-- 암호화/복호화 모두 같은 키 -->
+  <rect x="34" y="78" width="74" height="28" fill="#30363d" rx="6" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="71" y="96" text-anchor="middle" fill="#c9d1d9" font-size="11" font-weight="700">대칭키</text>
+
+  <line x1="108" y1="92" x2="130" y2="92" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="128,87 138,92 128,97" fill="#6e7681"/>
+
+  <rect x="138" y="78" width="56" height="28" fill="#161b22" rx="6" stroke="#30363d" stroke-width="1"/>
+  <text x="166" y="96" text-anchor="middle" fill="#8b949e" font-size="11">평문</text>
+
+  <line x1="194" y1="92" x2="216" y2="92" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="214,87 224,92 214,97" fill="#6e7681"/>
+
+  <rect x="224" y="78" width="60" height="28" fill="#0d1117" rx="6" stroke="#30363d" stroke-width="1"/>
+  <text x="254" y="96" text-anchor="middle" fill="#6e7681" font-size="11">암호문</text>
+
+  <line x1="284" y1="92" x2="306" y2="92" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="304,87 314,92 304,97" fill="#6e7681"/>
+
+  <rect x="314" y="78" width="58" height="28" fill="#30363d" rx="6" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="343" y="96" text-anchor="middle" fill="#c9d1d9" font-size="11" font-weight="700">대칭키</text>
+
+  <text x="203" y="128" text-anchor="middle" fill="#6e7681" font-size="10">암호화도 복호화도 같은 키</text>
+
+  <line x1="30" y1="140" x2="376" y2="140" stroke="#30363d" stroke-width="1"/>
+
+  <text x="34" y="162" fill="#3fb950" font-size="12">✓  빠름</text>
+  <text x="34" y="184" fill="#ef4444" font-size="12">✗  키를 어떻게 상대방에게 전달하나?</text>
+  <text x="34" y="204" fill="#6e7681" font-size="10">   인터넷으로 보내면 중간에 탈취 가능</text>
+  <text x="34" y="222" fill="#6e7681" font-size="10">   → TLS에서 실제 데이터 암호화에 사용</text>
+
+  <!-- ===== 비대칭키 (오른쪽) ===== -->
+  <rect x="412" y="38" width="370" height="196" fill="#1c3a5e" rx="8" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="597" y="66" text-anchor="middle" fill="#58a6ff" font-size="14" font-weight="700">비대칭키 (Asymmetric)</text>
+
+  <!-- 암호화: 공개키 -->
+  <rect x="428" y="78" width="74" height="28" fill="#1c3a5e" rx="6" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="465" y="96" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">공개키</text>
+
+  <line x1="502" y1="92" x2="524" y2="92" stroke="#3d7db8" stroke-width="1.5"/>
+  <polygon points="522,87 532,92 522,97" fill="#3d7db8"/>
+
+  <rect x="532" y="78" width="56" height="28" fill="#161b22" rx="6" stroke="#30363d" stroke-width="1"/>
+  <text x="560" y="96" text-anchor="middle" fill="#8b949e" font-size="11">평문</text>
+
+  <line x1="588" y1="92" x2="610" y2="92" stroke="#3d7db8" stroke-width="1.5"/>
+  <polygon points="608,87 618,92 608,97" fill="#3d7db8"/>
+
+  <rect x="618" y="78" width="60" height="28" fill="#0d1520" rx="6" stroke="#3d7db8" stroke-width="1"/>
+  <text x="648" y="96" text-anchor="middle" fill="#3d7db8" font-size="11">암호문</text>
+
+  <line x1="678" y1="92" x2="700" y2="92" stroke="#3d7db8" stroke-width="1.5"/>
+  <polygon points="698,87 708,92 698,97" fill="#3d7db8"/>
+
+  <!-- 복호화: 개인키 -->
+  <rect x="708" y="78" width="62" height="28" fill="#2d1515" rx="6" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="739" y="96" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="700">개인키</text>
+
+  <text x="597" y="128" text-anchor="middle" fill="#6e7681" font-size="10">암호화(공개키) ≠ 복호화(개인키)</text>
+
+  <line x1="424" y1="140" x2="770" y2="140" stroke="#2d5480" stroke-width="1"/>
+
+  <text x="428" y="162" fill="#3fb950" font-size="12">✓  공개키 공개해도 안전 (복호화 불가)</text>
+  <text x="428" y="184" fill="#ef4444" font-size="12">✗  느림 (대칭키보다 1000배)</text>
+  <text x="428" y="204" fill="#6e7681" font-size="10">   → TLS에서 대칭키를 안전하게 교환하는 데 사용</text>
+
+  <!-- ===== 하단 TLS 역할 ===== -->
+  <rect x="18" y="248" width="764" height="48" fill="#161b22" rx="8" stroke="#30363d" stroke-width="1.5"/>
+  <text x="400" y="266" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="700">TLS에서의 역할</text>
+
+  <rect x="60" y="272" width="80" height="18" fill="#1c3a5e" rx="4" stroke="#58a6ff" stroke-width="1"/>
+  <text x="100" y="284" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700">비대칭키</text>
+
+  <line x1="140" y1="281" x2="185" y2="281" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="183,277 191,281 183,285" fill="#6e7681"/>
+  <text x="218" y="285" text-anchor="middle" fill="#6e7681" font-size="10">대칭키 교환</text>
+
+  <line x1="258" y1="281" x2="295" y2="281" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="293,277 301,281 293,285" fill="#6e7681"/>
+
+  <rect x="301" y="272" width="80" height="18" fill="#21262d" rx="4" stroke="#8b949e" stroke-width="1"/>
+  <text x="341" y="284" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">대칭키</text>
+
+  <line x1="381" y1="281" x2="418" y2="281" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="416,277 424,281 416,285" fill="#6e7681"/>
+  <text x="480" y="285" text-anchor="middle" fill="#6e7681" font-size="10">이후 모든 통신 암호화</text>
+
+  <line x1="540" y1="281" x2="577" y2="281" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="575,277 583,281 575,285" fill="#6e7681"/>
+
+  <rect x="583" y="272" width="120" height="18" fill="#1a3a27" rx="4" stroke="#3fb950" stroke-width="1"/>
+  <text x="643" y="284" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">HTTP 데이터 전송</text>
+</svg>

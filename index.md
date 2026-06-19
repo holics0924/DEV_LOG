@@ -64,7 +64,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#0d2a1a;color:#3fb950">NET</span>
         Network
       </span>
-      <span class="subject-count">2 chapters</span>
+      <span class="subject-count">3 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/Network/ch1-osi-tcpip/" class="chapter-link">
@@ -72,6 +72,9 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/Network/ch2-http-basics/" class="chapter-link">
         <span class="ch-num">CH2</span>HTTP 기초
+      </a>
+      <a href="/DEV_LOG/Network/ch3-http-evolution/" class="chapter-link">
+        <span class="ch-num">CH3</span>HTTP 진화와 HTTPS
       </a>
     </div>
   </div>
