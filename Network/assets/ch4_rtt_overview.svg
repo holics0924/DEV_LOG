@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="220" viewBox="0 0 640 220">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+  </defs>
+
+  <rect width="640" height="220" fill="#0d1117" rx="12"/>
+
+  <text x="320" y="24" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700" fill="#6e7681" text-anchor="middle">첫 HTTP 데이터까지의 RTT (TCP 포함)</text>
+
+  <!-- Legend -->
+  <rect x="360" y="36" width="12" height="12" fill="#1a3a27" stroke="#3fb950" stroke-width="1" rx="2"/>
+  <text x="376" y="47" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" fill="#6e7681">TCP 연결</text>
+  <rect x="432" y="36" width="12" height="12" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1" rx="2"/>
+  <text x="448" y="47" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" fill="#6e7681">TLS 핸드셰이크</text>
+  <rect x="542" y="36" width="12" height="12" fill="#1f2d1a" stroke="#3fb950" stroke-width="1" rx="2" opacity="0.5"/>
+  <text x="558" y="47" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" fill="#6e7681">데이터</text>
+
+  <!-- Row labels -->
+  <text x="30" y="90" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">TLS 1.2</text>
+  <text x="30" y="135" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">TLS 1.3</text>
+  <text x="30" y="180" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">0-RTT</text>
+
+  <!-- Scale: total width for 3 RTTs = 560px, 1 RTT = ~165px, x start = 90 -->
+
+  <!-- TLS 1.2: TCP(1 RTT) + TLS(2 RTT) = 3 RTT total -->
+  <!-- TCP block -->
+  <rect x="90" y="72" width="160" height="28" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="170" y="91" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#3fb950" text-anchor="middle">TCP 1 RTT</text>
+  <!-- TLS block (2 RTT) -->
+  <rect x="254" y="72" width="322" height="28" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="6"/>
+  <text x="415" y="91" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#58a6ff" text-anchor="middle">TLS 1.2  (2 RTT)</text>
+  <!-- Total label -->
+  <text x="612" y="91" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#e3b341" text-anchor="start">3 RTT</text>
+
+  <!-- TLS 1.3: TCP(1 RTT) + TLS(1 RTT) = 2 RTT total -->
+  <rect x="90" y="117" width="160" height="28" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="170" y="136" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#3fb950" text-anchor="middle">TCP 1 RTT</text>
+  <rect x="254" y="117" width="160" height="28" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="6"/>
+  <text x="334" y="136" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#58a6ff" text-anchor="middle">TLS 1.3 (1 RTT)</text>
+  <text x="612" y="136" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#3fb950" text-anchor="start">2 RTT</text>
+
+  <!-- 0-RTT: TCP(1 RTT) + TLS(0 RTT) = 1 RTT -->
+  <rect x="90" y="162" width="160" height="28" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="170" y="181" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#3fb950" text-anchor="middle">TCP 1 RTT</text>
+  <rect x="254" y="162" width="60" height="28" fill="#162032" stroke="#58a6ff" stroke-width="1" rx="6" stroke-dasharray="4,3"/>
+  <text x="284" y="181" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" fill="#58a6ff" text-anchor="middle">0-RTT</text>
+  <text x="612" y="181" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#3fb950" text-anchor="start">1 RTT</text>
+
+  <!-- 0-RTT annotation -->
+  <text x="254" y="207" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="8" fill="#6e7681">* 0-RTT는 이전 연결이 있는 재접속에서만 가능</text>
+</svg>

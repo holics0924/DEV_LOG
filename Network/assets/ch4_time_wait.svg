@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="195" viewBox="0 0 640 195">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+    <marker id="arr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#58a6ff"/>
+    </marker>
+  </defs>
+
+  <rect width="640" height="195" fill="#0d1117" rx="12"/>
+
+  <text x="320" y="22" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700" fill="#6e7681" text-anchor="middle">TIME_WAIT — ACK 유실 시나리오</text>
+
+  <!-- Timeline base -->
+  <line x1="30" y1="90" x2="610" y2="90" stroke="#21262d" stroke-width="2"/>
+
+  <!-- Event dots -->
+  <circle cx="60" cy="90" r="5" fill="#58a6ff"/>
+  <circle cx="215" cy="90" r="5" fill="#ef4444"/>
+  <circle cx="370" cy="90" r="5" fill="#f59e0b"/>
+  <circle cx="525" cy="90" r="5" fill="#3fb950"/>
+
+  <!-- Event labels (top) -->
+  <text x="60" y="74" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" font-weight="700" fill="#58a6ff" text-anchor="middle">ACK 전송</text>
+
+  <text x="215" y="60" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" font-weight="700" fill="#ef4444" text-anchor="middle">ACK 유실</text>
+  <line x1="215" y1="64" x2="215" y2="84" stroke="#ef4444" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="215" y="74" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="18" fill="#ef4444" text-anchor="middle">✕</text>
+
+  <text x="370" y="74" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" font-weight="700" fill="#f59e0b" text-anchor="middle">서버 FIN 재전송</text>
+
+  <text x="525" y="74" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" font-weight="700" fill="#3fb950" text-anchor="middle">ACK 재전송 → 종료</text>
+
+  <!-- MSL brackets (bottom) -->
+  <!-- 1st MSL: 60 to 370 -->
+  <line x1="60" y1="112" x2="370" y2="112" stroke="#f59e0b" stroke-width="1.5"/>
+  <line x1="60" y1="107" x2="60" y2="117" stroke="#f59e0b" stroke-width="1.5"/>
+  <line x1="370" y1="107" x2="370" y2="117" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="215" y="128" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" fill="#f59e0b" text-anchor="middle">1 MSL</text>
+
+  <!-- 2nd MSL: 370 to 525 - actually this should represent server waiting + FIN travel time -->
+  <!-- Actually: 1st MSL = time for ACK to possibly travel and get lost, 2nd MSL = time for server's FIN retransmit to travel back -->
+  <!-- Let me show: period1 = ACK travels (lost), period2 = server FIN travels back -->
+  <line x1="370" y1="138" x2="525" y2="138" stroke="#58a6ff" stroke-width="1.5"/>
+  <line x1="370" y1="133" x2="370" y2="143" stroke="#58a6ff" stroke-width="1.5"/>
+  <line x1="525" y1="133" x2="525" y2="143" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="447" y="154" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9" fill="#58a6ff" text-anchor="middle">1 MSL</text>
+
+  <!-- TIME_WAIT total bracket -->
+  <line x1="60" y1="167" x2="525" y2="167" stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="60" y1="162" x2="60" y2="172" stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="525" y1="162" x2="525" y2="172" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="292" y="183" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#8b949e" text-anchor="middle">TIME_WAIT = 2 MSL (약 120초)</text>
+</svg>

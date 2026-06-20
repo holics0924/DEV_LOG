@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981; --am:#f59e0b;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--tx); font-family:'Segoe UI',system-ui,sans-serif; padding:24px 16px 48px; max-width:860px; margin:0 auto; }
+  h1 { font-size:1.1rem; color:#cbd5e1; margin-bottom:6px; }
+  p.sub { font-size:.78rem; color:var(--mu); margin-bottom:20px; }
+  svg { display:block; width:100%; }
+  .rtt-marker { font-size:.68rem; font-weight:700; text-transform:uppercase; color:var(--mu); margin:4px 0 0 0; text-align:center; }
+  .step-card { background:var(--s1); border:1px solid var(--bd); border-radius:10px; padding:14px 18px; margin:16px 0; }
+  .step-label { font-size:.68rem; font-weight:700; text-transform:uppercase; color:var(--mu); margin-bottom:6px; }
+  .step-desc { font-size:.88rem; color:#cbd5e1; line-height:1.65; }
+  .payload-box { background:#0f172a; border:1px solid #334155; border-radius:6px; padding:8px 12px; margin-top:8px; font-size:.78rem; color:#94a3b8; line-height:1.6; }
+  .payload-box strong { color:#cbd5e1; }
+  .btns { display:flex; gap:10px; }
+  button { padding:9px 18px; border-radius:7px; font-size:.85rem; font-weight:700; cursor:pointer; border:none; }
+  .btn-next { background:var(--bl); color:#fff; }
+  .btn-next:disabled { background:var(--mu); cursor:not-allowed; }
+  .btn-reset { background:var(--s1); color:var(--mu); border:1px solid var(--bd); }
+</style>
+</head>
+<body>
+<h1>TLS 1.2 Handshake</h1>
+<p class="sub">TCP 연결 완료 후 암호화 세션을 수립하는 과정. 클라이언트와 서버가 무엇을 주고받는지 단계별로 본다.</p>
+
+<svg id="diagram" viewBox="0 0 700 360" style="height:360px">
+  <defs>
+    <marker id="arr-b" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arr-g2" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- Client -->
+  <rect x="10" y="10" width="110" height="32" fill="#1c3a5e" stroke="#3b82f6" stroke-width="1.5" rx="6"/>
+  <text x="65" y="31" font-family="'Segoe UI',sans-serif" font-size="12" font-weight="700" fill="#3b82f6" text-anchor="middle">클라이언트</text>
+
+  <!-- Server -->
+  <rect x="580" y="10" width="110" height="32" fill="#1c3a5e" stroke="#3b82f6" stroke-width="1.5" rx="6"/>
+  <text x="635" y="31" font-family="'Segoe UI',sans-serif" font-size="12" font-weight="700" fill="#3b82f6" text-anchor="middle">서버</text>
+
+  <!-- Vertical lines -->
+  <line x1="65" y1="42" x2="65" y2="345" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
+  <line x1="635" y1="42" x2="635" y2="345" stroke="#3b82f6" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
+
+  <!-- RTT 1 label -->
+  <text x="8" y="80" font-family="'Segoe UI',sans-serif" font-size="9" font-weight="700" fill="#334155">RTT 1</text>
+  <line x1="4" y1="60" x2="4" y2="155" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- RTT 2 label -->
+  <text x="8" y="185" font-family="'Segoe UI',sans-serif" font-size="9" font-weight="700" fill="#334155">RTT 2</text>
+  <line x1="4" y1="165" x2="4" y2="280" stroke="#334155" stroke-width="1.5"/>
+
+  <!-- ClientHello → -->
+  <g id="g-ch" opacity="0" style="transition:opacity .4s">
+    <line x1="65" y1="75" x2="619" y2="90" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr-b)"/>
+    <text x="350" y="70" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3b82f6" text-anchor="middle">ClientHello</text>
+    <text x="350" y="82" font-family="'Segoe UI',sans-serif" font-size="9" fill="#64748b" text-anchor="middle">TLS 버전 목록 · Cipher Suites · 클라이언트 랜덤값</text>
+  </g>
+
+  <!-- ServerHello ← -->
+  <g id="g-sh" opacity="0" style="transition:opacity .4s">
+    <line x1="635" y1="118" x2="81" y2="133" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr-b)"/>
+    <text x="350" y="113" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3b82f6" text-anchor="middle">ServerHello + 인증서</text>
+    <text x="350" y="125" font-family="'Segoe UI',sans-serif" font-size="9" fill="#64748b" text-anchor="middle">선택된 Cipher Suite · 서버 랜덤값 · 공개키 포함 인증서</text>
+  </g>
+
+  <!-- Divider between RTT 1 and 2 -->
+  <line id="g-div" x1="30" y1="155" x2="670" y2="155" stroke="#1e293b" stroke-width="1" stroke-dasharray="6,4" opacity="0"/>
+
+  <!-- ClientKeyExchange → -->
+  <g id="g-ke" opacity="0" style="transition:opacity .4s">
+    <line x1="65" y1="185" x2="619" y2="203" stroke="#3b82f6" stroke-width="2" marker-end="url(#arr-b)"/>
+    <text x="350" y="179" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3b82f6" text-anchor="middle">ClientKeyExchange + CCS + Finished</text>
+    <text x="350" y="191" font-family="'Segoe UI',sans-serif" font-size="9" fill="#64748b" text-anchor="middle">pre-master secret(공개키 암호화) · 암호화 시작 선언 · Finished 해시</text>
+  </g>
+
+  <!-- Server Finished ← -->
+  <g id="g-sf" opacity="0" style="transition:opacity .4s">
+    <line x1="635" y1="238" x2="81" y2="256" stroke="#10b981" stroke-width="2" marker-end="url(#arr-g2)"/>
+    <text x="350" y="233" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#10b981" text-anchor="middle">ChangeCipherSpec + Finished</text>
+    <text x="350" y="245" font-family="'Segoe UI',sans-serif" font-size="9" fill="#64748b" text-anchor="middle">서버도 대칭키 계산 완료 · 암호화 시작 · Handshake 완료</text>
+  </g>
+
+  <!-- Encrypted data label -->
+  <g id="g-data" opacity="0" style="transition:opacity .4s">
+    <rect x="130" y="278" width="440" height="28" fill="#0d2a1a" stroke="#10b981" stroke-width="1" rx="6" stroke-dasharray="4,3"/>
+    <text x="350" y="297" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#10b981" text-anchor="middle">이제부터 HTTP 데이터를 대칭키로 암호화해서 전송</text>
+  </g>
+
+  <!-- Status -->
+  <text id="st-client" x="65" y="348" font-family="'Segoe UI',sans-serif" font-size="9" fill="#64748b" text-anchor="middle">TCP 연결 완료</text>
+  <text id="st-server" x="635" y="348" font-family="'Segoe UI',sans-serif" font-size="9" fill="#64748b" text-anchor="middle">TCP 연결 완료</text>
+</svg>
+
+<div class="step-card">
+  <div class="step-label">현재 단계</div>
+  <div class="step-desc" id="desc">다음 단계 버튼을 눌러 TLS Handshake를 시작한다. TCP 연결은 이미 완료된 상태다.</div>
+  <div class="payload-box" id="payload" style="display:none"></div>
+</div>
+
+<div class="btns">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btn" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  {
+    show: ['g-ch'],
+    desc: '클라이언트가 ClientHello를 전송한다. "나 TLS 하고 싶어"라는 시작 신호다.',
+    payload: '<strong>포함 내용:</strong><br>· 지원하는 TLS 버전 목록 (예: TLS 1.2, 1.3)<br>· Cipher Suites — 사용할 수 있는 암호화 알고리즘 목록<br>· 클라이언트 랜덤값 — 나중에 대칭키 계산 재료로 사용',
+    sc: 'ClientHello 전송', ss: 'ClientHello 수신',
+    cf: '#f59e0b', sf: '#f59e0b'
+  },
+  {
+    show: ['g-sh'],
+    desc: '서버가 ServerHello와 인증서를 응답한다. RTT 1 완료. 클라이언트는 인증서를 받아 CA 공개키(브라우저 내장)로 서명을 검증한다.',
+    payload: '<strong>포함 내용:</strong><br>· 서버가 선택한 Cipher Suite — 클라이언트 목록 중 지원하는 것<br>· 서버 랜덤값 — 클라이언트 랜덤과 함께 대칭키 계산 재료<br>· 인증서 — 서버의 공개키 + CA 서명 포함<br><br><strong>클라이언트가 확인하는 것:</strong> CA 공개키로 인증서 서명 검증 → 이 공개키가 진짜 서버 것임을 확인',
+    sc: 'RTT 1 완료 (양방향 확인)', ss: 'ServerHello + 인증서 전송',
+    cf: '#10b981', sf: '#f59e0b'
+  },
+  {
+    show: ['g-div', 'g-ke'],
+    desc: '클라이언트가 pre-master secret을 서버의 공개키로 암호화해 전송한다.',
+    payload: '<strong>왜 대칭키를 직접 보내지 않는가:</strong><br>대칭키를 직접 보내면 나중에 서버 개인키가 탈취됐을 때 과거의 모든 암호화 통신이 복호화될 수 있다.<br><br><strong>실제 동작:</strong><br>· pre-master secret = 랜덤값 (대칭키 자체가 아님)<br>· 클라이언트와 서버 모두 (pre-master + 클라이언트 랜덤 + 서버 랜덤)으로 각자 대칭키를 계산<br>· 대칭키는 네트워크에 절대 전송되지 않음',
+    sc: 'pre-master 전송 · 대칭키 계산 중', ss: 'pre-master 수신 · 대칭키 계산 중',
+    cf: '#f59e0b', sf: '#f59e0b'
+  },
+  {
+    show: ['g-sf', 'g-data'],
+    desc: '서버가 Finished 메시지를 보내면 RTT 2 완료. 이 시점부터 HTTP 데이터를 암호화해서 주고받는다. 총 2 RTT (TCP 포함 시 3 RTT).',
+    payload: '<strong>대칭키가 같은 이유:</strong><br>양쪽 모두 동일한 재료(pre-master secret + 두 랜덤값)를 가지고 있어서 독립적으로 계산해도 같은 대칭키가 나온다.<br><br><strong>이후:</strong> 모든 HTTP 요청/응답은 이 대칭키로 암호화. 비대칭키는 오직 대칭키 교환에만 사용됨.',
+    sc: '암호화 세션 수립 완료', ss: '암호화 세션 수립 완료',
+    cf: '#10b981', sf: '#10b981'
+  }
+];
+let cur = -1;
+
+function next() {
+  cur++;
+  const s = steps[cur];
+  s.show.forEach(id => {
+    const el = document.getElementById(id);
+    el.style.opacity = '1';
+  });
+  document.getElementById('desc').textContent = s.desc;
+  const pl = document.getElementById('payload');
+  pl.innerHTML = s.payload;
+  pl.style.display = 'block';
+  document.getElementById('st-client').textContent = s.sc;
+  document.getElementById('st-client').setAttribute('fill', s.cf);
+  document.getElementById('st-server').textContent = s.ss;
+  document.getElementById('st-server').setAttribute('fill', s.sf);
+  if (cur >= steps.length - 1) document.getElementById('btn').disabled = true;
+}
+
+function reset() {
+  cur = -1;
+  ['g-ch','g-sh','g-div','g-ke','g-sf','g-data'].forEach(id => {
+    document.getElementById(id).style.opacity = '0';
+  });
+  document.getElementById('desc').textContent = '다음 단계 버튼을 눌러 TLS Handshake를 시작한다. TCP 연결은 이미 완료된 상태다.';
+  document.getElementById('payload').style.display = 'none';
+  document.getElementById('st-client').textContent = 'TCP 연결 완료';
+  document.getElementById('st-client').setAttribute('fill','#64748b');
+  document.getElementById('st-server').textContent = 'TCP 연결 완료';
+  document.getElementById('st-server').setAttribute('fill','#64748b');
+  document.getElementById('btn').disabled = false;
+}
+</script>
+</body>
+</html>

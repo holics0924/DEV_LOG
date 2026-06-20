@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981; --am:#f59e0b;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--tx); font-family:'Segoe UI',system-ui,sans-serif; padding:24px 16px 48px; max-width:860px; margin:0 auto; }
+  h1 { font-size:1.1rem; color:#cbd5e1; margin-bottom:6px; }
+  p.sub { font-size:.78rem; color:var(--mu); margin-bottom:20px; }
+
+  .tabs { display:flex; gap:8px; margin-bottom:18px; }
+  .tab { padding:8px 16px; border-radius:7px; font-size:.83rem; font-weight:700; cursor:pointer; border:1px solid var(--bd); background:var(--s1); color:var(--mu); }
+  .tab.active { background:var(--bl); color:#fff; border-color:var(--bl); }
+
+  .legend { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:14px; }
+  .legend-item { display:flex; align-items:center; gap:5px; font-size:.73rem; color:var(--mu); }
+  .legend-dot { width:11px; height:11px; border-radius:50%; }
+
+  .canvas-wrap { background:var(--s1); border:1px solid var(--bd); border-radius:10px; padding:12px; margin-bottom:14px; }
+  svg#anim { display:block; width:100%; }
+
+  .timer-row { display:flex; align-items:center; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .timer-box { background:var(--s1); border:1px solid var(--bd); border-radius:8px; padding:9px 14px; }
+  .timer-label { font-size:.65rem; font-weight:700; text-transform:uppercase; color:var(--mu); margin-bottom:2px; }
+  .timer-val { font-size:1.2rem; font-weight:700; font-variant-numeric:tabular-nums; color:#cbd5e1; }
+  .badges { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .badge { font-size:.7rem; font-weight:700; padding:3px 9px; border-radius:5px; }
+  .badge-tcp  { background:#1a3a27; color:#3fb950; }
+  .badge-tls  { background:#1c3a5e; color:var(--bl); }
+  .badge-data { background:#0d2a1a; color:var(--gr); }
+
+  .step-card { background:var(--s1); border:1px solid var(--bd); border-radius:10px; padding:14px 18px; margin-bottom:14px; min-height:64px; }
+  .step-label { font-size:.68rem; font-weight:700; text-transform:uppercase; color:var(--mu); margin-bottom:6px; }
+  .step-desc  { font-size:.88rem; color:#cbd5e1; line-height:1.65; }
+
+  .btns { display:flex; gap:10px; }
+  button { padding:9px 18px; border-radius:7px; font-size:.85rem; font-weight:700; cursor:pointer; border:none; }
+  .btn-next  { background:var(--bl); color:#fff; }
+  .btn-next:disabled { background:var(--mu); cursor:not-allowed; }
+  .btn-reset { background:var(--s1); color:var(--mu); border:1px solid var(--bd); }
+</style>
+</head>
+<body>
+<h1>RTT 시뮬레이터</h1>
+<p class="sub">패킷이 클라이언트와 서버 사이를 오가는 모습을 단계별로 본다. 1 RTT = 왕복 한 번.</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="selectMode('tls12',this)">TLS 1.2</div>
+  <div class="tab" onclick="selectMode('tls13',this)">TLS 1.3</div>
+  <div class="tab" onclick="selectMode('rtt0',this)">0-RTT 재연결</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb950"></div>TCP</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>TLS</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>HTTP 데이터</div>
+</div>
+
+<div class="canvas-wrap">
+  <svg id="anim" viewBox="0 0 700 230" style="height:230px">
+    <defs>
+      <marker id="ra" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M0,0 L10,5 L0,10 z" fill="#334155"/>
+      </marker>
+    </defs>
+
+    <!-- Client -->
+    <rect x="10" y="10" width="100" height="30" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+    <text x="60" y="30" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3fb950" text-anchor="middle">클라이언트</text>
+
+    <!-- Server -->
+    <rect x="590" y="10" width="100" height="30" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+    <text x="640" y="30" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3fb950" text-anchor="middle">서버</text>
+
+    <!-- Vertical lines -->
+    <line x1="60"  y1="40" x2="60"  y2="218" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,3" opacity="0.25"/>
+    <line x1="640" y1="40" x2="640" y2="218" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,3" opacity="0.25"/>
+
+    <!-- Time axis -->
+    <line x1="60" y1="218" x2="640" y2="218" stroke="#334155" stroke-width="1" marker-end="url(#ra)"/>
+    <text x="350" y="228" font-family="'Segoe UI',sans-serif" font-size="9" fill="#334155" text-anchor="middle">시간 →</text>
+
+    <!-- Completed trails -->
+    <g id="trails"></g>
+    <!-- RTT markers -->
+    <g id="rtt-marks"></g>
+    <!-- Moving packet -->
+    <circle id="pkt" cx="-30" cy="-30" r="7" fill="#3fb950"/>
+    <text   id="pkt-label" x="-30" y="-44" font-family="'Segoe UI',sans-serif" font-size="9" font-weight="700" fill="#e2e8f0" text-anchor="middle"></text>
+  </svg>
+</div>
+
+<div class="timer-row">
+  <div class="timer-box">
+    <div class="timer-label">경과 시간</div>
+    <div class="timer-val" id="timer">0.0 RTT</div>
+  </div>
+  <div class="badges" id="badges"></div>
+</div>
+
+<div class="step-card">
+  <div class="step-label">현재 단계</div>
+  <div class="step-desc" id="desc">다음 단계 버튼을 눌러 시뮬레이션을 시작한다.</div>
+</div>
+
+<div class="btns">
+  <button class="btn-reset" onclick="resetSim()">↺</button>
+  <button class="btn-next" id="btn" onclick="runNext()">다음 단계 →</button>
+</div>
+
+<script>
+const CX = 60, SX = 640;
+const DURATION = 700; // ms per packet animation
+
+const SCENARIOS = {
+  tls12: [
+    { from:'C', label:'SYN',                    color:'#3fb950', type:'tcp',
+      desc:'SYN 전송 — 클라이언트가 연결 요청. TCP 핸드셰이크 시작.' },
+    { from:'S', label:'SYN-ACK',                color:'#3fb950', type:'tcp', rttEnd:1,
+      desc:'SYN-ACK 수신 — TCP 1 RTT 완료. 클라이언트 입장에서 양방향 확인됨.' },
+    { from:'C', label:'ACK + ClientHello',       color:'#3b82f6', type:'tls',
+      desc:'ACK와 함께 ClientHello 전송 — TLS 버전 목록, 암호화 알고리즘, 클라이언트 랜덤값 포함.' },
+    { from:'S', label:'ServerHello + 인증서',    color:'#3b82f6', type:'tls', rttEnd:2,
+      desc:'ServerHello + 인증서 수신 — TLS RTT 1 완료. 클라이언트가 인증서로 공개키를 확인한다.' },
+    { from:'C', label:'KeyExchange + Finished',  color:'#3b82f6', type:'tls',
+      desc:'pre-master secret을 공개키로 암호화해 전송. 양쪽이 각자 대칭키를 계산. 대칭키 자체는 전송하지 않음.' },
+    { from:'S', label:'Server Finished',         color:'#3b82f6', type:'tls', rttEnd:3,
+      desc:'Server Finished 수신 — TLS RTT 2 완료. 총 3 RTT. 암호화 세션 수립됨.' },
+    { from:'C', label:'HTTP 요청',               color:'#10b981', type:'data',
+      desc:'첫 HTTP 요청 전송. 대칭키로 암호화된 상태.' },
+    { from:'S', label:'HTTP 응답',               color:'#10b981', type:'data', rttEnd:4,
+      desc:'HTTP 응답 수신 — 사용자가 실제 데이터를 받는 순간. TLS 1.2 기준 총 4 RTT.' },
+  ],
+  tls13: [
+    { from:'C', label:'SYN',                       color:'#3fb950', type:'tcp',
+      desc:'SYN 전송 — TCP 핸드셰이크 시작.' },
+    { from:'S', label:'SYN-ACK',                   color:'#3fb950', type:'tcp', rttEnd:1,
+      desc:'SYN-ACK 수신 — TCP 1 RTT 완료.' },
+    { from:'C', label:'ACK + ClientHello',          color:'#3b82f6', type:'tls',
+      desc:'TLS 1.3 핵심 최적화 — TCP ACK를 보낼 때 ClientHello를 함께 실어 보낸다. TCP와 TLS를 한 번에 시작.' },
+    { from:'S', label:'ServerHello + Finished',     color:'#3b82f6', type:'tls', rttEnd:2,
+      desc:'ServerHello + Finished 한 번에 수신 — TLS 1.3은 1 RTT만으로 완료. 총 2 RTT.' },
+    { from:'C', label:'HTTP 요청',                  color:'#10b981', type:'data',
+      desc:'첫 HTTP 요청 전송.' },
+    { from:'S', label:'HTTP 응답',                  color:'#10b981', type:'data', rttEnd:3,
+      desc:'HTTP 응답 수신 — TLS 1.2 대비 1 RTT 절감. 총 3 RTT.' },
+  ],
+  rtt0: [
+    { from:'C', label:'SYN',                        color:'#3fb950', type:'tcp',
+      desc:'SYN 전송 — TCP 핸드셰이크 시작. 이전 연결이 있어 세션 키 재사용 준비됨.' },
+    { from:'S', label:'SYN-ACK',                    color:'#3fb950', type:'tcp', rttEnd:1,
+      desc:'SYN-ACK 수신 — TCP 1 RTT 완료.' },
+    { from:'C', label:'ACK + HTTP 요청 (0-RTT)',    color:'#10b981', type:'data',
+      desc:'0-RTT 핵심 — TCP ACK와 함께 이미 암호화된 HTTP 요청을 바로 전송. TLS Handshake 없음. 이전 세션 키를 재사용하기 때문에 가능.' },
+    { from:'S', label:'HTTP 응답',                  color:'#10b981', type:'data', rttEnd:2,
+      desc:'HTTP 응답 수신 — 총 2 RTT. 단, 이전 연결이 있을 때만 사용 가능하며 재전송 공격(Replay Attack) 주의 필요.' },
+  ],
+};
+
+let mode = 'tls12';
+let steps = SCENARIOS[mode];
+let cur = -1;
+let animating = false;
+
+// Y positions spread across the SVG height
+function yOf(idx, total) {
+  const top = 55, bot = 200;
+  return total <= 1 ? (top + bot) / 2 : top + (bot - top) * idx / (total - 1);
+}
+
+function selectMode(m, el) {
+  if (animating) return;
+  mode = m;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  resetSim();
+}
+
+function resetSim() {
+  if (animating) return;
+  cur = -1;
+  steps = SCENARIOS[mode];
+  document.getElementById('trails').innerHTML = '';
+  document.getElementById('rtt-marks').innerHTML = '';
+  document.getElementById('pkt').setAttribute('cx', -30);
+  document.getElementById('pkt').setAttribute('cy', -30);
+  document.getElementById('pkt-label').setAttribute('x', -30);
+  document.getElementById('pkt-label').setAttribute('y', -44);
+  document.getElementById('timer').textContent = '0.0 RTT';
+  document.getElementById('badges').innerHTML = '';
+  document.getElementById('desc').textContent = '다음 단계 버튼을 눌러 시뮬레이션을 시작한다.';
+  document.getElementById('btn').disabled = false;
+  document.getElementById('btn').textContent = '다음 단계 →';
+}
+
+function runNext() {
+  if (animating) return;
+  cur++;
+  if (cur >= steps.length) return;
+
+  const step = steps[cur];
+  const total = steps.length;
+  const fromX = step.from === 'C' ? CX : SX;
+  const toX   = step.from === 'C' ? SX  : CX;
+  const y = yOf(cur, total);
+
+  document.getElementById('desc').textContent = step.desc;
+  document.getElementById('btn').disabled = true;
+  animating = true;
+
+  // Set packet start
+  const pkt = document.getElementById('pkt');
+  const lbl = document.getElementById('pkt-label');
+  pkt.setAttribute('fill', step.color);
+  pkt.setAttribute('cx', fromX);
+  pkt.setAttribute('cy', y);
+  lbl.textContent = step.label;
+  lbl.setAttribute('fill', step.color);
+  lbl.setAttribute('x', fromX);
+  lbl.setAttribute('y', y - 13);
+
+  const t0 = performance.now();
+  const elapsed0 = cur * 0.5; // RTT so far before this step
+
+  function frame(now) {
+    const p = Math.min((now - t0) / DURATION, 1);
+    // ease in-out
+    const e = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
+    const cx = fromX + (toX - fromX) * e;
+    pkt.setAttribute('cx', cx);
+    lbl.setAttribute('x', cx);
+    document.getElementById('timer').textContent = (elapsed0 + p * 0.5).toFixed(1) + ' RTT';
+
+    if (p < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      // Draw completed trail
+      const svg = document.getElementById('trails');
+      const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1', fromX); line.setAttribute('y1', y);
+      line.setAttribute('x2', toX);   line.setAttribute('y2', y);
+      line.setAttribute('stroke', step.color);
+      line.setAttribute('stroke-width', '1.5');
+      line.setAttribute('opacity', '0.4');
+      svg.appendChild(line);
+
+      // Label on trail
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', 350); t.setAttribute('y', y - 4);
+      t.setAttribute('font-family',"'Segoe UI',sans-serif");
+      t.setAttribute('font-size','9'); t.setAttribute('fill', step.color);
+      t.setAttribute('text-anchor','middle'); t.setAttribute('opacity','0.7');
+      t.textContent = step.label;
+      svg.appendChild(t);
+
+      // RTT completion marker
+      if (step.rttEnd !== undefined) {
+        const mg = document.getElementById('rtt-marks');
+        const ml = document.createElementNS('http://www.w3.org/2000/svg','line');
+        ml.setAttribute('x1',60); ml.setAttribute('y1', y+10);
+        ml.setAttribute('x2',640); ml.setAttribute('y2', y+10);
+        ml.setAttribute('stroke','#334155'); ml.setAttribute('stroke-width','1');
+        ml.setAttribute('stroke-dasharray','4,3');
+        mg.appendChild(ml);
+        const mt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        mt.setAttribute('x',350); mt.setAttribute('y', y+22);
+        mt.setAttribute('font-family',"'Segoe UI',sans-serif");
+        mt.setAttribute('font-size','9'); mt.setAttribute('fill','#334155');
+        mt.setAttribute('text-anchor','middle');
+        mt.textContent = step.rttEnd + ' RTT 완료';
+        mg.appendChild(mt);
+
+        // Badge
+        const b = document.createElement('div');
+        b.className = 'badge badge-' + step.type;
+        const typeLabel = {tcp:'TCP',tls:'TLS',data:'데이터'};
+        b.textContent = (typeLabel[step.type]||step.type) + ' → ' + step.rttEnd + ' RTT';
+        document.getElementById('badges').appendChild(b);
+      }
+
+      animating = false;
+      if (cur >= steps.length - 1) {
+        document.getElementById('btn').disabled = true;
+        document.getElementById('btn').textContent = '완료';
+      } else {
+        document.getElementById('btn').disabled = false;
+      }
+    }
+  }
+  requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>
