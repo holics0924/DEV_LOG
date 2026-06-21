@@ -64,7 +64,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#0d2a1a;color:#3fb950">NET</span>
         Network
       </span>
-      <span class="subject-count">5 chapters</span>
+      <span class="subject-count">6 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/Network/ch1-osi-tcpip/" class="chapter-link">
@@ -81,6 +81,9 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/Network/ch5-tcp-flow-congestion/" class="chapter-link">
         <span class="ch-num">CH5</span>TCP — 흐름 제어와 혼잡 제어
+      </a>
+      <a href="/DEV_LOG/Network/ch6-udp-socket/" class="chapter-link">
+        <span class="ch-num">CH6</span>UDP와 소켓
       </a>
     </div>
   </div>

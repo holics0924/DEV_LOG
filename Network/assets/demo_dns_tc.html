@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DNS 조회 흐름과 TC 플래그</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px 16px 48px}
+h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+.sub{font-size:.78rem;color:#64748b;margin-bottom:20px}
+.col-header{display:grid;grid-template-columns:1fr 80px 1fr;gap:0;margin-bottom:10px}
+.col-label{text-align:center;font-size:.75rem;font-weight:700;padding:8px;background:#1e293b;border-radius:8px;border:1px solid #334155}
+.client-label{color:#3b82f6}
+.server-label{color:#f59e0b}
+.flow-row{display:grid;grid-template-columns:1fr 80px 1fr;gap:0;align-items:center;margin-bottom:8px}
+.flow-cell{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:.82rem;color:#64748b;font-weight:400;transition:background .2s,border-color .2s,color .2s}
+.flow-cell .cell-sub{font-size:.72rem;color:#4b5563;margin-top:3px}
+.flow-cell.active{border-color:var(--ac);background:#162032;color:var(--ac);font-weight:700}
+.flow-cell.active .cell-sub{color:#94a3b8}
+.flow-cell.empty{background:#1e293b;border:1px solid #21262d;color:#4b5563}
+.arrow-cell{text-align:center;font-size:1.2rem;font-weight:700;color:#334155;transition:color .2s;line-height:1.2}
+.arrow-cell .proto{font-size:.65rem;margin-top:2px}
+.arrow-cell.active{color:var(--ac)}
+.desc-box{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px 18px;min-height:72px;margin-bottom:16px}
+.desc-label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px}
+.desc-text{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+.btns{display:flex;gap:8px}
+.btn-reset{padding:9px 18px;border-radius:7px;font-size:.85rem;font-weight:700;background:#1e293b;color:#64748b;border:1px solid #334155;cursor:pointer}
+.btn-next{padding:9px 18px;border-radius:7px;font-size:.85rem;font-weight:700;background:#3b82f6;color:#fff;border:none;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>DNS 조회 흐름과 TC 플래그</h1>
+<p class="sub">큰 응답이 있을 때 UDP에서 TCP로 자동 전환되는 과정을 본다.</p>
+
+<div class="col-header">
+  <div class="col-label client-label">클라이언트</div>
+  <div></div>
+  <div class="col-label server-label">DNS 서버</div>
+</div>
+
+<div id="flow"></div>
+
+<div class="desc-box">
+  <div class="desc-label">설명</div>
+  <div class="desc-text" id="desc">DNS 쿼리가 UDP로 시작해서 어떻게 TCP로 전환되는지 따라가본다.</div>
+</div>
+
+<div class="btns">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  {
+    side: 'left',
+    label: 'UDP 쿼리 전송',
+    sub: 'naver.com IP 주소는?',
+    arrow: '→',
+    proto: 'UDP 53',
+    color: '#3b82f6',
+    desc: '클라이언트가 DNS 서버에 UDP 53 포트로 쿼리를 보낸다. 패킷 하나, 질문 하나다. TCP 연결 수립 없이 즉시 전송된다.'
+  },
+  {
+    side: 'right',
+    label: '응답 크기 확인',
+    sub: 'DNSSEC 서명 포함 → 크기 초과',
+    arrow: '',
+    proto: '',
+    color: '#f59e0b',
+    desc: 'DNS 서버가 응답 데이터를 준비한다. DNSSEC 서명이나 Zone Transfer처럼 데이터가 크면 UDP 패킷 크기 제한을 초과한다.'
+  },
+  {
+    side: 'right',
+    label: 'UDP 응답 (TC=1)',
+    sub: '잘린 응답 + Truncation 비트 세팅',
+    arrow: '←',
+    proto: 'UDP 53 / TC=1',
+    color: '#ef4444',
+    desc: '응답이 UDP 크기 제한을 초과한다. DNS 서버는 TC(Truncation) 비트를 1로 세팅하고 잘린 응답을 전송한다. 클라이언트가 TC=1을 보면 TCP로 전환해야 한다는 신호다.'
+  },
+  {
+    side: 'left',
+    label: 'TCP 재요청',
+    sub: '3-way Handshake 후 동일 쿼리 재전송',
+    arrow: '→',
+    proto: 'TCP 53',
+    color: '#10b981',
+    desc: '클라이언트가 자동으로 TCP 53으로 전환한다. 앱 레벨에서는 투명하게 처리된다. 개발자가 TCP/UDP 전환 코드를 따로 작성하지 않아도 된다.'
+  },
+  {
+    side: 'right',
+    label: 'TCP 완전한 응답',
+    sub: '크기 제한 없이 전체 레코드 전달',
+    arrow: '←',
+    proto: 'TCP 53',
+    color: '#10b981',
+    desc: 'TCP는 패킷 크기 제한이 없다. DNSSEC 서명, Zone Transfer 레코드 전체를 하나의 TCP 스트림으로 전달한다. 클라이언트가 완전한 응답을 수신하면 DNS 조회가 완료된다.'
+  }
+];
+
+let cur = -1;
+
+function render() {
+  const f = document.getElementById('flow');
+  f.innerHTML = '';
+  steps.forEach(function(s, i) {
+    const active = i === cur;
+    const color = s.color;
+    const isLeft = s.side === 'left';
+
+    const leftContent = isLeft
+      ? '<div class="flow-cell' + (active ? ' active' : '') + '"' + (active ? ' style="--ac:' + color + '"' : '') + '>'
+        + s.label + (s.sub ? '<div class="cell-sub">' + s.sub + '</div>' : '') + '</div>'
+      : '<div class="flow-cell empty">—</div>';
+
+    const rightContent = !isLeft
+      ? '<div class="flow-cell' + (active ? ' active' : '') + '"' + (active ? ' style="--ac:' + color + '"' : '') + '>'
+        + s.label + (s.sub ? '<div class="cell-sub">' + s.sub + '</div>' : '') + '</div>'
+      : '<div class="flow-cell empty">—</div>';
+
+    const arrowStyle = active ? ' active" style="--ac:' + color + '"' : '"';
+    const arrowHtml = s.arrow
+      ? '<div class="arrow-cell' + arrowStyle + '>' + s.arrow
+        + (s.proto ? '<div class="proto">' + s.proto + '</div>' : '')
+        + '</div>'
+      : '<div class="arrow-cell"></div>';
+
+    f.innerHTML += '<div class="flow-row">' + leftContent + arrowHtml + rightContent + '</div>';
+  });
+}
+
+function next() {
+  if (cur < steps.length - 1) {
+    cur++;
+    render();
+    document.getElementById('desc').textContent = steps[cur].desc;
+  }
+}
+
+function reset() {
+  cur = -1;
+  render();
+  document.getElementById('desc').textContent = 'DNS 쿼리가 UDP로 시작해서 어떻게 TCP로 전환되는지 따라가본다.';
+}
+
+render();
+</script>
+</body>
+</html>

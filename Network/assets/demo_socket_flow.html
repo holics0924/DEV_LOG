@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TCP vs UDP 소켓 흐름</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:24px 16px 48px}
+h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+.sub{font-size:.78rem;color:#64748b;margin-bottom:20px}
+.col-header{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.col-label{text-align:center;font-size:.75rem;font-weight:700;padding:8px;background:#1e293b;border-radius:8px;border:1px solid #334155}
+.tcp-label{color:#3b82f6}
+.udp-label{color:#f59e0b}
+#rows{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-bottom:16px}
+.row-cell{background:#1e293b;border:1px solid #334155;border-radius:8px;padding:10px 12px;font-size:.82rem;color:#64748b;font-weight:400;transition:background .2s,border-color .2s,color .2s}
+.row-cell.active-tcp{background:#162032;border-color:#3b82f6;color:#3b82f6;font-weight:700}
+.row-cell.active-udp{background:#162032;border-color:#f59e0b;color:#f59e0b;font-weight:700}
+.row-cell.active-green{background:#162032;border-color:#10b981;color:#10b981;font-weight:700}
+.row-cell.active-yellow{background:#162032;border-color:#f59e0b;color:#f59e0b;font-weight:700}
+.row-cell.dim{color:#4b5563}
+.desc-box{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px 18px;min-height:72px;margin-bottom:16px}
+.desc-label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px}
+.desc-text{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+.btns{display:flex;gap:8px}
+.btn-reset{padding:9px 18px;border-radius:7px;font-size:.85rem;font-weight:700;background:#1e293b;color:#64748b;border:1px solid #334155;cursor:pointer}
+.btn-next{padding:9px 18px;border-radius:7px;font-size:.85rem;font-weight:700;background:#3b82f6;color:#fff;border:none;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>TCP vs UDP 소켓 흐름</h1>
+<p class="sub">각 단계가 어떻게 다른지 비교한다.</p>
+
+<div class="col-header">
+  <div class="col-label tcp-label">TCP (SOCK_STREAM)</div>
+  <div class="col-label udp-label">UDP (SOCK_DGRAM)</div>
+</div>
+
+<div id="rows"></div>
+
+<div class="desc-box">
+  <div class="desc-label">설명</div>
+  <div class="desc-text" id="desc">단계별로 진행하면 TCP와 UDP의 흐름 차이가 보인다.</div>
+</div>
+
+<div class="btns">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  {
+    tcp: '서버: socket(SOCK_STREAM)',
+    udp: '서버: socket(SOCK_DGRAM)',
+    tcpCls: 'active-tcp',
+    udpCls: 'active-udp',
+    desc: '소켓 파일 디스크립터를 생성한다. 프로토콜 종류(TCP/UDP)가 이 시점에 결정된다. 아직 포트도, 연결도 없다.'
+  },
+  {
+    tcp: '서버: bind(8080)',
+    udp: '서버: bind(8080)',
+    tcpCls: 'active-tcp',
+    udpCls: 'active-udp',
+    desc: '서버가 포트 8080을 예약한다. 클라이언트는 이 포트로 패킷을 보낸다. 클라이언트는 bind() 없이 sendto() 시 커널이 ephemeral port를 자동으로 배정한다.'
+  },
+  {
+    tcp: '서버: listen(fd, 128)',
+    udp: '─ (없음) ─',
+    tcpCls: 'active-tcp',
+    udpCls: 'dim',
+    desc: 'TCP는 연결 수락 전에 대기 상태로 전환해야 한다. backlog는 SYN이 왔지만 ACK가 아직 안 온 연결의 대기 큐 크기다. UDP는 연결 개념이 없어서 listen()이 없다.'
+  },
+  {
+    tcp: '서버: accept() — 블로킹',
+    udp: '서버: recvfrom() — 대기',
+    tcpCls: 'active-yellow',
+    udpCls: 'active-yellow',
+    desc: 'TCP accept()는 클라이언트가 connect()를 보낼 때까지 블로킹된다. UDP recvfrom()은 패킷이 올 때까지 대기한다. 둘 다 이 시점부터 클라이언트를 기다린다.'
+  },
+  {
+    tcp: '클라: socket() + connect() → 3-way Handshake',
+    udp: '클라: socket() + sendto() → 즉시 전송',
+    tcpCls: 'active-green',
+    udpCls: 'active-green',
+    desc: 'TCP connect()에서 3-way Handshake가 발생한다. 연결이 완성되어야 데이터를 보낼 수 있다. UDP sendto()는 핸드셰이크 없이 바로 패킷을 전송한다. 연결 지연이 0이다.'
+  },
+  {
+    tcp: '서버: accept() 반환 → new FD (이 클라 전용)',
+    udp: '서버: recvfrom() 반환 → data + (IP:port)',
+    tcpCls: 'active-tcp',
+    udpCls: 'active-udp',
+    desc: 'TCP accept()는 이 클라이언트 전용 새 FD를 반환한다. listening socket(8080)은 계속 새 연결을 받는다. UDP recvfrom()은 데이터와 함께 발신자의 IP:포트를 반환한다. FD는 하나, 발신자 주소로 구분한다.'
+  },
+  {
+    tcp: 'read() / write() (전용 FD)',
+    udp: 'recvfrom() / sendto() (소켓 하나 공유)',
+    tcpCls: 'active-green',
+    udpCls: 'active-green',
+    desc: 'TCP는 클라이언트마다 전용 FD로 데이터를 주고받는다. 클라이언트 1000명 = FD 1000개. UDP는 소켓 하나로 모든 클라이언트의 패킷을 처리한다. 연결 상태가 없으니 가능하다.'
+  }
+];
+
+let cur = -1;
+
+function render() {
+  const container = document.getElementById('rows');
+  container.innerHTML = '';
+  steps.forEach(function(s, i) {
+    const active = i === cur;
+    const tcpCls = active ? s.tcpCls : '';
+    const udpCls = active ? s.udpCls : '';
+    container.innerHTML +=
+      '<div class="row-cell ' + tcpCls + '">' + s.tcp + '</div>' +
+      '<div class="row-cell ' + udpCls + '">' + s.udp + '</div>';
+  });
+}
+
+function next() {
+  if (cur < steps.length - 1) {
+    cur++;
+    render();
+    document.getElementById('desc').textContent = steps[cur].desc;
+  }
+}
+
+function reset() {
+  cur = -1;
+  render();
+  document.getElementById('desc').textContent = '단계별로 진행하면 TCP와 UDP의 흐름 차이가 보인다.';
+}
+
+render();
+</script>
+</body>
+</html>
