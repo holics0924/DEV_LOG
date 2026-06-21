@@ -1,0 +1,104 @@
+<svg width="780" height="340" viewBox="0 0 780 340" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text{font-family:'Nunito','Trebuchet MS',Arial,sans-serif}</style>
+</defs>
+<rect width="780" height="340" fill="#0d1117" rx="12"/>
+
+<!-- 제목 -->
+<text x="390" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">CWND 성장 패턴 — Slow Start · 혼잡 회피 · 손실 이벤트</text>
+
+<!-- 그래프 영역 배경 -->
+<rect x="60" y="36" width="680" height="232" rx="4" fill="#0d1117" stroke="#21262d" stroke-width="1"/>
+
+<!-- Y 축 그리드 라인 및 레이블 -->
+<!-- cwnd=13 y=48  cwnd=10 y=99  cwnd=8 y=133  cwnd=6 y=167  cwnd=4 y=201  cwnd=2 y=236  cwnd=1 y=253  cwnd=0 y=270 -->
+<line x1="60" y1="270" x2="740" y2="270" stroke="#21262d" stroke-width="1"/>
+<line x1="60" y1="236" x2="740" y2="236" stroke="#21262d" stroke-width="0.5" stroke-dasharray="3,3"/>
+<line x1="60" y1="201" x2="740" y2="201" stroke="#21262d" stroke-width="0.5" stroke-dasharray="3,3"/>
+<line x1="60" y1="167" x2="740" y2="167" stroke="#21262d" stroke-width="0.5" stroke-dasharray="3,3"/>
+<line x1="60" y1="133" x2="740" y2="133" stroke="#21262d" stroke-width="0.5" stroke-dasharray="3,3"/>
+<line x1="60" y1="99" x2="740" y2="99" stroke="#21262d" stroke-width="0.5" stroke-dasharray="3,3"/>
+<line x1="60" y1="48" x2="740" y2="48" stroke="#21262d" stroke-width="0.5" stroke-dasharray="3,3"/>
+
+<text x="52" y="274" text-anchor="end" fill="#6e7681" font-size="9">0</text>
+<text x="52" y="240" text-anchor="end" fill="#6e7681" font-size="9">2</text>
+<text x="52" y="205" text-anchor="end" fill="#6e7681" font-size="9">4</text>
+<text x="52" y="171" text-anchor="end" fill="#6e7681" font-size="9">6</text>
+<text x="52" y="137" text-anchor="end" fill="#6e7681" font-size="9">8</text>
+<text x="52" y="103" text-anchor="end" fill="#6e7681" font-size="9">10</text>
+<text x="52" y="52" text-anchor="end" fill="#6e7681" font-size="9">13</text>
+<text x="30" y="160" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="700" transform="rotate(-90,30,160)">cwnd (MSS)</text>
+
+<!-- X축 RTT 레이블 -->
+<text x="60" y="288" text-anchor="middle" fill="#6e7681" font-size="9">0</text>
+<text x="97" y="288" text-anchor="middle" fill="#6e7681" font-size="9">1</text>
+<text x="133" y="288" text-anchor="middle" fill="#6e7681" font-size="9">2</text>
+<text x="170" y="288" text-anchor="middle" fill="#6e7681" font-size="9">3</text>
+<text x="207" y="288" text-anchor="middle" fill="#6e7681" font-size="9">4</text>
+<text x="243" y="288" text-anchor="middle" fill="#6e7681" font-size="9">5</text>
+<text x="280" y="288" text-anchor="middle" fill="#6e7681" font-size="9">6</text>
+<text x="317" y="288" text-anchor="middle" fill="#6e7681" font-size="9">7</text>
+<text x="353" y="288" text-anchor="middle" fill="#6e7681" font-size="9">8</text>
+<text x="390" y="288" text-anchor="middle" fill="#6e7681" font-size="9">9</text>
+<text x="427" y="288" text-anchor="middle" fill="#6e7681" font-size="9">10</text>
+<text x="463" y="288" text-anchor="middle" fill="#6e7681" font-size="9">11</text>
+<text x="500" y="288" text-anchor="middle" fill="#6e7681" font-size="9">12</text>
+<text x="537" y="288" text-anchor="middle" fill="#6e7681" font-size="9">13</text>
+<text x="390" y="300" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="700">RTT</text>
+
+<!-- ssthresh 초기값 = 8, y=133 (점선, 주황) -->
+<line x1="60" y1="133" x2="353" y2="133" stroke="#f0883e" stroke-width="1" stroke-dasharray="5,3"/>
+<text x="65" y="127" fill="#f0883e" font-size="9" font-weight="700">ssthresh=8</text>
+
+<!-- ssthresh 손실 후 = 6, y=167 (점선, 흐릿한 주황) -->
+<line x1="353" y1="167" x2="740" y2="167" stroke="#f0883e" stroke-width="1" stroke-dasharray="5,3" opacity="0.5"/>
+<text x="540" y="161" fill="#f0883e" font-size="9" font-weight="700" opacity="0.7">ssthresh=6</text>
+
+<!-- 메인 경로 (RTT 0-8): Slow Start + CA -->
+<!-- RTT 0: cwnd=1, y=253  RTT 1: cwnd=2, y=236  RTT 2: cwnd=4, y=201  RTT 3: cwnd=8, y=133  -->
+<!-- RTT 4: cwnd=9, y=116  RTT 5: cwnd=10, y=99  RTT 6: cwnd=11, y=81  RTT 7: cwnd=12, y=64  RTT 8: cwnd=13, y=47 -->
+<polyline points="60,253 97,236 133,201 170,133 207,116 243,99 280,81 317,64 353,47" fill="none" stroke="#3fb950" stroke-width="2.5"/>
+
+<!-- 구간 레이블 -->
+<rect x="65" y="200" width="82" height="22" rx="4" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+<text x="106" y="211" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">Slow Start</text>
+<text x="106" y="219" text-anchor="middle" fill="#6e7681" font-size="8">×2 지수 증가</text>
+
+<rect x="195" y="58" width="88" height="22" rx="4" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+<text x="239" y="69" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">혼잡 회피 (CA)</text>
+<text x="239" y="77" text-anchor="middle" fill="#6e7681" font-size="8">+1 선형 증가</text>
+
+<!-- 손실 이벤트 표시 -->
+<circle cx="353" cy="47" r="5" fill="#ef4444" stroke="#fca5a5" stroke-width="1.5"/>
+<text x="360" y="38" fill="#ef4444" font-size="9" font-weight="700">손실 이벤트</text>
+
+<!-- Fast Recovery 경로 (파란 실선) -->
+<!-- RTT 8→9: 13→6, RTT 9: cwnd=6 y=167, RTT 10: cwnd=7 y=150, RTT 11: cwnd=8 y=133, RTT 12: cwnd=9 y=116, RTT 13: cwnd=10 y=99 -->
+<line x1="353" y1="47" x2="390" y2="167" stroke="#58a6ff" stroke-width="1" stroke-dasharray="2,2"/>
+<polyline points="390,167 427,150 463,133 500,116 537,99" fill="none" stroke="#58a6ff" stroke-width="2.5"/>
+<circle cx="390" cy="167" r="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+
+<rect x="430" y="108" width="105" height="32" rx="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1"/>
+<text x="482" y="120" text-anchor="middle" fill="#58a6ff" font-size="9" font-weight="700">Fast Recovery</text>
+<text x="482" y="131" text-anchor="middle" fill="#6e7681" font-size="8">cwnd/2에서 CA 바로 진입</text>
+
+<!-- Timeout 경로 (빨간 점선) -->
+<!-- RTT 8→9: 13→1, RTT 9: cwnd=1 y=253, RTT 10: cwnd=2 y=236, RTT 11: cwnd=4 y=201, RTT 12: cwnd=6 y=167, RTT 13: cwnd=7 y=150 -->
+<line x1="353" y1="47" x2="390" y2="253" stroke="#ef4444" stroke-width="1" stroke-dasharray="2,2"/>
+<polyline points="390,253 427,236 463,201 500,167 537,150" fill="none" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>
+<circle cx="390" cy="253" r="4" fill="#450a0a" stroke="#ef4444" stroke-width="1.5"/>
+
+<rect x="395" y="230" width="95" height="32" rx="4" fill="#450a0a" stroke="#ef4444" stroke-width="1"/>
+<text x="442" y="242" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">타임아웃</text>
+<text x="442" y="253" text-anchor="middle" fill="#6e7681" font-size="8">cwnd=1 Slow Start 재시작</text>
+
+<!-- 범례 -->
+<rect x="590" y="42" width="145" height="66" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+<line x1="600" y1="58" x2="625" y2="58" stroke="#3fb950" stroke-width="2"/>
+<text x="630" y="62" fill="#3fb950" font-size="9" font-weight="700">메인 경로</text>
+<line x1="600" y1="76" x2="625" y2="76" stroke="#58a6ff" stroke-width="2"/>
+<text x="630" y="80" fill="#58a6ff" font-size="9" font-weight="700">Fast Recovery</text>
+<line x1="600" y1="94" x2="625" y2="94" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,2"/>
+<text x="630" y="98" fill="#ef4444" font-size="9" font-weight="700">타임아웃</text>
+</svg>

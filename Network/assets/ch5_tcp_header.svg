@@ -1,0 +1,83 @@
+<svg width="780" height="370" viewBox="0 0 780 370" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+  text{font-family:'Nunito','Trebuchet MS',Arial,sans-serif}</style>
+</defs>
+<rect width="780" height="370" fill="#0d1117" rx="12"/>
+<text x="390" y="24" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">TCP 세그먼트 헤더 구조</text>
+
+<!-- Row 1: 출발지 포트 | 목적지 포트 -->
+<rect x="50" y="36" width="335" height="44" rx="4" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+<text x="217" y="54" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">출발지 포트 (16 bit)</text>
+<text x="217" y="72" text-anchor="middle" fill="#6e7681" font-size="9">어느 프로세스에서 보냈나</text>
+
+<rect x="385" y="36" width="345" height="44" rx="4" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+<text x="557" y="54" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">목적지 포트 (16 bit)</text>
+<text x="557" y="72" text-anchor="middle" fill="#6e7681" font-size="9">어느 프로세스로 전달하나</text>
+
+<!-- Row 2: 시퀀스 번호 -->
+<rect x="50" y="86" width="680" height="44" rx="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+<text x="390" y="104" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">시퀀스 번호 (Sequence Number, 32 bit)</text>
+<text x="390" y="122" text-anchor="middle" fill="#6e7681" font-size="9">이 세그먼트의 첫 번째 바이트 번호</text>
+
+<!-- Row 3: 확인 응답 번호 -->
+<rect x="50" y="136" width="680" height="44" rx="4" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+<text x="390" y="154" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">확인 응답 번호 (Acknowledgment Number, 32 bit)</text>
+<text x="390" y="172" text-anchor="middle" fill="#6e7681" font-size="9">다음에 받아야 할 바이트 번호 (ACK 비트=1일 때만 유효)</text>
+
+<!-- Row 4: Data Offset + Reserved + Flags | Window Size -->
+<!-- Data Offset + Reserved 영역 -->
+<rect x="50" y="186" width="116" height="66" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+<text x="108" y="207" text-anchor="middle" fill="#8b949e" font-size="9" font-weight="700">Data Offset</text>
+<text x="108" y="222" text-anchor="middle" fill="#8b949e" font-size="9" font-weight="700">+ Reserved</text>
+<text x="108" y="238" text-anchor="middle" fill="#6e7681" font-size="8">헤더 길이 (4 bit)</text>
+<text x="108" y="248" text-anchor="middle" fill="#6e7681" font-size="8">Options 때문에 필요</text>
+
+<!-- 플래그 영역 -->
+<rect x="166" y="186" width="280" height="66" rx="4" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+<text x="306" y="203" text-anchor="middle" fill="#e3b341" font-size="10" font-weight="700">플래그 비트 (각 1 bit)</text>
+
+<rect x="172" y="211" width="40" height="34" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+<text x="192" y="227" text-anchor="middle" fill="#3fb950" font-size="9" font-weight="700">SYN</text>
+<text x="192" y="239" text-anchor="middle" fill="#6e7681" font-size="7.5">연결</text>
+
+<rect x="216" y="211" width="40" height="34" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1"/>
+<text x="236" y="227" text-anchor="middle" fill="#58a6ff" font-size="9" font-weight="700">ACK</text>
+<text x="236" y="239" text-anchor="middle" fill="#6e7681" font-size="7.5">확인</text>
+
+<rect x="260" y="211" width="40" height="34" rx="3" fill="#2a1f1f" stroke="#f0883e" stroke-width="1"/>
+<text x="280" y="227" text-anchor="middle" fill="#f0883e" font-size="9" font-weight="700">FIN</text>
+<text x="280" y="239" text-anchor="middle" fill="#6e7681" font-size="7.5">종료</text>
+
+<rect x="304" y="211" width="40" height="34" rx="3" fill="#450a0a" stroke="#ef4444" stroke-width="1"/>
+<text x="324" y="227" text-anchor="middle" fill="#fca5a5" font-size="9" font-weight="700">RST</text>
+<text x="324" y="239" text-anchor="middle" fill="#6e7681" font-size="7.5">강제종료</text>
+
+<rect x="348" y="211" width="40" height="34" rx="3" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+<text x="368" y="227" text-anchor="middle" fill="#8b949e" font-size="9" font-weight="700">PSH</text>
+<text x="368" y="239" text-anchor="middle" fill="#6e7681" font-size="7.5">즉시전달</text>
+
+<rect x="392" y="211" width="46" height="34" rx="3" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+<text x="415" y="227" text-anchor="middle" fill="#8b949e" font-size="9" font-weight="700">URG</text>
+<text x="415" y="239" text-anchor="middle" fill="#6e7681" font-size="7.5">미사용</text>
+
+<!-- Window Size (rwnd) -->
+<rect x="446" y="186" width="284" height="66" rx="4" fill="#0d2a40" stroke="#58a6ff" stroke-width="2"/>
+<text x="588" y="207" text-anchor="middle" fill="#6e7681" font-size="9" font-weight="700">WINDOW SIZE (16 bit)</text>
+<text x="588" y="228" text-anchor="middle" fill="#58a6ff" font-size="14" font-weight="700">rwnd</text>
+<text x="588" y="246" text-anchor="middle" fill="#6e7681" font-size="9">수신 버퍼 남은 공간 — 흐름 제어 핵심</text>
+
+<!-- Row 5: 체크섬 | 긴급 포인터 -->
+<rect x="50" y="258" width="335" height="44" rx="4" fill="#2e1065" stroke="#d2a8ff" stroke-width="1.5"/>
+<text x="217" y="276" text-anchor="middle" fill="#d2a8ff" font-size="10" font-weight="700">체크섬 (Checksum, 16 bit)</text>
+<text x="217" y="294" text-anchor="middle" fill="#6e7681" font-size="9">무결성 검증 — 불일치 시 세그먼트 전체 폐기</text>
+
+<rect x="385" y="258" width="345" height="44" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+<text x="557" y="276" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">긴급 포인터 (Urgent Pointer, 16 bit)</text>
+<text x="557" y="294" text-anchor="middle" fill="#6e7681" font-size="9">URG=1일 때만 유효, 현대 TCP에서 미사용</text>
+
+<!-- Row 6: Options -->
+<rect x="50" y="308" width="680" height="44" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1.5" stroke-dasharray="5,3"/>
+<text x="390" y="326" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">Options (가변 길이, 0~320 bit)</text>
+<text x="390" y="344" text-anchor="middle" fill="#6e7681" font-size="9">Window Scale · SACK (선택적 재전송) · Timestamps (RTT 측정) 등</text>
+</svg>

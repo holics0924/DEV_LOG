@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>누적 ACK</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+h1{font-size:1.05rem;color:#cbd5e1;margin-bottom:4px}
+.sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+.diagram{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:20px;margin:16px 0;font-family:monospace;font-size:.82rem;line-height:2.2}
+.row{display:flex;align-items:center;gap:0;margin:4px 0}
+.label{width:110px;flex-shrink:0;color:var(--mu);font-size:.75rem}
+.arrow-area{flex:1;position:relative;height:28px}
+.seg-box{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.75rem;font-weight:700;border:1px solid;margin:0 3px;transition:all .3s}
+.seg-data{background:#172554;border-color:#3b82f6;color:#93c5fd}
+.seg-ack{background:#052e16;border-color:#10b981;color:#6ee7b7}
+.seg-lost{background:#450a0a;border-color:#ef4444;color:#fca5a5;text-decoration:line-through}
+.seg-hidden{opacity:0;pointer-events:none}
+.ack-num-box{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:12px 16px;margin:12px 0;font-size:.85rem}
+.ack-num-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd)}
+.ack-num-row:last-child{border-bottom:none}
+.ack-num-label{color:var(--mu);font-size:.75rem}
+.ack-num-val{font-family:monospace;font-weight:700}
+.step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:16px;min-height:64px}
+.step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--mu);margin-bottom:6px;letter-spacing:.5px}
+.step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+.btn-row{display:flex;gap:10px;justify-content:center}
+button{padding:9px 20px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s}
+.btn-next{background:#3b82f6;color:#fff}
+.btn-next:hover{background:#2563eb}
+.btn-reset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+.btn-next:disabled{background:#334155;color:#64748b;cursor:not-allowed}
+.highlight{background:#172554;border:1px solid #3b82f6;border-radius:6px;padding:10px 14px;margin:8px 0;font-size:.82rem;color:#93c5fd}
+</style>
+</head>
+<body>
+<h1>누적 ACK (Cumulative ACK)</h1>
+<p class="sub">ACK num = 다음에 받아야 할 바이트 번호 — ACK 패킷 유실도 자동으로 커버된다</p>
+
+<div id="scenario"></div>
+
+<div class="step-card">
+  <div class="step-label">설명</div>
+  <div class="step-desc" id="stepDesc">서버가 세 개의 데이터 세그먼트를 전송한다. 각 세그먼트는 1460 바이트다.</div>
+</div>
+
+<div class="btn-row">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btnNext" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  {
+    desc: "서버가 세그먼트 1(0~1459), 2(1460~2919), 3(2920~4379)을 전송한다.",
+    html: `
+<div class="diagram">
+  <div class="row"><span class="label">서버 전송</span>
+    <span class="seg-box seg-data">seq=0 (1~1459)</span>
+    <span class="seg-box seg-data">seq=1460 (1460~2919)</span>
+    <span class="seg-box seg-data">seq=2920 (2920~4379)</span>
+  </div>
+  <div class="row"><span class="label">클라이언트 수신</span><span style="color:var(--mu)">도착 대기 중...</span></div>
+</div>`
+  },
+  {
+    desc: "클라이언트가 세 세그먼트를 모두 수신했다. 각 세그먼트마다 ACK를 만들어 보낸다. ACK num은 '다음에 줄 것' — 즉 마지막으로 받은 바이트 + 1이다.",
+    html: `
+<div class="diagram">
+  <div class="row"><span class="label">서버 전송</span>
+    <span class="seg-box seg-data">seq=0</span>
+    <span class="seg-box seg-data">seq=1460</span>
+    <span class="seg-box seg-data">seq=2920</span>
+  </div>
+  <div class="row"><span class="label">클라이언트 전송</span>
+    <span class="seg-box seg-ack">ACK num=1460</span>
+    <span class="seg-box seg-ack">ACK num=2920</span>
+    <span class="seg-box seg-ack">ACK num=4380</span>
+  </div>
+</div>
+<div class="highlight">ACK num=1460 의미: "0~1459 받았어. 다음엔 1460번 줘."<br>ACK num=4380 의미: "0~4379 받았어. 다음엔 4380번 줘."</div>`
+  },
+  {
+    desc: "ACK num=2920 패킷이 네트워크에서 유실됐다. 서버는 이 ACK를 받지 못한다.",
+    html: `
+<div class="diagram">
+  <div class="row"><span class="label">서버 전송</span>
+    <span class="seg-box seg-data">seq=0</span>
+    <span class="seg-box seg-data">seq=1460</span>
+    <span class="seg-box seg-data">seq=2920</span>
+  </div>
+  <div class="row"><span class="label">클라이언트→서버</span>
+    <span class="seg-box seg-ack">ACK=1460</span>
+    <span class="seg-box seg-lost">ACK=2920 ✗ 유실</span>
+    <span class="seg-box seg-ack">ACK=4380</span>
+  </div>
+</div>`
+  },
+  {
+    desc: "서버가 받은 것: ACK=1460, ACK=4380. ACK=2920은 못 받았다. 그런데 문제없다. ACK=4380은 '0~4379 모두 받았다'는 뜻이기 때문이다. 누적 ACK이므로 ACK=2920의 유실은 ACK=4380이 자동으로 커버한다.",
+    html: `
+<div class="diagram">
+  <div class="row"><span class="label">서버 수신</span>
+    <span class="seg-box seg-ack">ACK=1460 ✓</span>
+    <span class="seg-box seg-lost">ACK=2920 ✗</span>
+    <span class="seg-box seg-ack">ACK=4380 ✓</span>
+  </div>
+</div>
+<div class="ack-num-box">
+  <div class="ack-num-row"><span class="ack-num-label">ACK=1460 도착</span><span class="ack-num-val" style="color:#6ee7b7">0~1459 수신 확인</span></div>
+  <div class="ack-num-row"><span class="ack-num-label">ACK=2920 유실</span><span class="ack-num-val" style="color:#ef4444">수신 못 함</span></div>
+  <div class="ack-num-row"><span class="ack-num-label">ACK=4380 도착</span><span class="ack-num-val" style="color:#6ee7b7">0~4379 전체 수신 확인 ← 2920 커버됨</span></div>
+</div>
+<div class="highlight">누적 ACK 원칙: 더 큰 ACK num이 도착하면 그 이하는 모두 수신된 것으로 간주한다.</div>`
+  },
+];
+
+let step = 0;
+
+function render() {
+  const s = steps[step];
+  document.getElementById('scenario').innerHTML = s.html;
+  document.getElementById('stepDesc').textContent = s.desc;
+  document.getElementById('btnNext').disabled = step >= steps.length - 1;
+}
+
+function next() { if (step < steps.length - 1) { step++; render(); } }
+function reset() { step = 0; render(); }
+render();
+</script>
+</body>
+</html>

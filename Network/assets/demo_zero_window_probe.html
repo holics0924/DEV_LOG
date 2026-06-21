@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Zero Window Probe</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+h1{font-size:1.05rem;color:#cbd5e1;margin-bottom:4px}
+.sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+.scene{display:flex;align-items:flex-start;gap:0;margin:24px 0;position:relative;min-height:200px}
+.node{width:120px;flex-shrink:0;text-align:center}
+.node-box{padding:12px 8px;border-radius:8px;font-size:.82rem;font-weight:700;margin-bottom:8px}
+.server-box{background:#1a3a27;border:1.5px solid #3fb950;color:#3fb950}
+.client-box{background:#1c3a5e;border:1.5px solid #58a6ff;color:#58a6ff}
+.node-sub{font-size:.7rem;color:var(--mu)}
+.channel{flex:1;position:relative;min-height:200px;margin:0 8px}
+.rwnd-bar-wrap{margin:8px auto;width:100%;max-width:300px}
+.rwnd-label{font-size:.72rem;color:var(--mu);margin-bottom:6px;text-align:center}
+.rwnd-track{height:20px;background:#1e293b;border-radius:4px;border:1px solid var(--bd);overflow:hidden}
+.rwnd-fill{height:100%;background:#3b82f6;border-radius:4px;transition:width .5s}
+.rwnd-val{font-size:.8rem;text-align:center;margin-top:4px;font-family:monospace;font-weight:700}
+.packet{position:absolute;padding:4px 10px;border-radius:5px;font-size:.72rem;font-weight:700;border:1px solid;white-space:nowrap;transition:all .4s;opacity:0;top:50%}
+.pkt-data{background:#172554;border-color:#3b82f6;color:#93c5fd}
+.pkt-ack{background:#052e16;border-color:#10b981;color:#6ee7b7}
+.pkt-probe{background:#451a03;border-color:#f59e0b;color:#fcd34d}
+.step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:16px;min-height:64px}
+.step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--mu);margin-bottom:6px;letter-spacing:.5px}
+.step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+.btn-row{display:flex;gap:10px;justify-content:center}
+button{padding:9px 20px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;border:none;transition:all .15s}
+.btn-next{background:#3b82f6;color:#fff}
+.btn-next:hover{background:#2563eb}
+.btn-reset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+.btn-next:disabled{background:#334155;color:#64748b;cursor:not-allowed}
+.timeline{display:flex;flex-direction:column;gap:6px;margin:16px 0}
+.tl-item{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:6px;background:var(--s2);border:1px solid var(--bd);font-size:.78rem;opacity:.4;transition:opacity .3s}
+.tl-item.active{opacity:1;border-color:#3b82f6}
+.tl-item.done{opacity:.75;border-color:#10b981}
+.tl-icon{font-size:.9rem;width:20px;text-align:center;flex-shrink:0}
+</style>
+</head>
+<body>
+<h1>Zero Window Probe (ZWP)</h1>
+<p class="sub">수신 버퍼가 꽉 찼을 때 — 데드락 방지 메커니즘</p>
+
+<div class="rwnd-bar-wrap">
+  <div class="rwnd-label">클라이언트 수신 버퍼 — rwnd</div>
+  <div class="rwnd-track"><div class="rwnd-fill" id="rwndFill" style="width:70%"></div></div>
+  <div class="rwnd-val" id="rwndVal" style="color:#3b82f6">rwnd = 3500 byte</div>
+</div>
+
+<div class="timeline" id="timeline">
+  <div class="tl-item active" id="tl0"><span class="tl-icon">📨</span> 서버가 데이터를 계속 전송 (rwnd 소비 중)</div>
+  <div class="tl-item" id="tl1"><span class="tl-icon">⛔</span> 수신 버퍼 꽉 참 — 클라이언트 rwnd=0 통보</div>
+  <div class="tl-item" id="tl2"><span class="tl-icon">⏸️</span> 서버 전송 중단 — 그런데 그냥 기다리면?</div>
+  <div class="tl-item" id="tl3"><span class="tl-icon">🔍</span> 서버가 1-byte Probe 전송 (ZWP)</div>
+  <div class="tl-item" id="tl4"><span class="tl-icon">💬</span> 클라이언트: ACK + rwnd=2000 응답</div>
+  <div class="tl-item" id="tl5"><span class="tl-icon">▶️</span> 서버 전송 재개 (rwnd만큼)</div>
+</div>
+
+<div class="step-card">
+  <div class="step-label">설명</div>
+  <div class="step-desc" id="stepDesc">서버가 데이터를 전송하면서 클라이언트 수신 버퍼를 채우고 있다. ACK에 포함된 rwnd 값이 줄어들고 있다.</div>
+</div>
+
+<div class="btn-row">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btnNext" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  { rwnd: 3500, rwndPct: 70, color:'#3b82f6', desc:"서버가 데이터를 전송하면서 클라이언트 수신 버퍼를 채우고 있다. ACK에 포함된 rwnd 값이 줄어들고 있다.", active: [0] },
+  { rwnd: 0, rwndPct: 100, color:'#ef4444', desc:"수신 버퍼가 꽉 찼다. 클라이언트는 다음 ACK에 rwnd=0을 담아 보낸다. 서버는 전송을 멈춘다.", active: [0,1] },
+  { rwnd: 0, rwndPct: 100, color:'#ef4444', desc:"서버가 그냥 기다리면 데드락 발생. 클라이언트는 '버퍼 비었어'를 알리려 해도, 받을 데이터가 없으면 ACK를 보내지 않는다. 서버는 영원히 업데이트를 못 받는다.", active: [0,1,2] },
+  { rwnd: 0, rwndPct: 100, color:'#f59e0b', desc:"서버가 ZWP(Zero Window Probe)를 전송한다. 1 byte짜리 의미 없는 데이터다. 수신자는 1 byte라도 받으면 반드시 ACK를 보내야 한다.", active: [0,1,2,3] },
+  { rwnd: 2000, rwndPct: 40, color:'#3b82f6', desc:"앱이 버퍼에서 데이터를 읽어서 공간이 생겼다. 클라이언트가 ACK를 보내면서 rwnd=2000을 알린다.", active: [0,1,2,3,4] },
+  { rwnd: 2000, rwndPct: 40, color:'#10b981', desc:"서버가 rwnd=2000을 확인하고 전송을 재개한다. ZWP 없이 기다렸다면 이 재개는 영원히 일어나지 않았을 것이다.", active: [0,1,2,3,4,5] },
+];
+
+let step = 0;
+
+function render() {
+  const s = steps[step];
+  document.getElementById('rwndFill').style.width = s.rwndPct + '%';
+  document.getElementById('rwndFill').style.background = s.color;
+  document.getElementById('rwndVal').textContent = 'rwnd = ' + s.rwnd.toLocaleString() + ' byte';
+  document.getElementById('rwndVal').style.color = s.color;
+  document.getElementById('stepDesc').textContent = s.desc;
+  document.getElementById('btnNext').disabled = step >= steps.length - 1;
+
+  for (let i = 0; i < steps.length; i++) {
+    const el = document.getElementById('tl' + i);
+    el.className = 'tl-item';
+    if (s.active.includes(i)) {
+      if (i === s.active[s.active.length - 1]) el.classList.add('active');
+      else el.classList.add('done');
+    }
+  }
+}
+
+function next() { if (step < steps.length - 1) { step++; render(); } }
+function reset() { step = 0; render(); }
+render();
+</script>
+</body>
+</html>

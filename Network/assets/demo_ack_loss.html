@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ACK 유실 — 누적 ACK 커버</title>
+<style>
+  :root { --bg:#0f172a; --s1:#1e293b; --bd:#334155; --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981; --rd:#ef4444; --am:#f59e0b; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--tx); font-family:'Segoe UI',system-ui,sans-serif; padding:24px 16px 48px; max-width:860px; margin:0 auto; }
+  h1 { font-size:1.1rem; color:#cbd5e1; margin-bottom:6px; }
+  p.sub { font-size:.78rem; color:var(--mu); margin-bottom:20px; }
+  svg { display:block; width:100%; }
+  .confirm-box { background:var(--s1); border:1px solid var(--bd); border-radius:8px; padding:10px 16px; margin:12px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  .confirm-item { display:flex; flex-direction:column; gap:3px; }
+  .confirm-label { font-size:.68rem; color:var(--mu); font-weight:700; text-transform:uppercase; letter-spacing:.3px; }
+  .confirm-val { font-size:.88rem; font-family:monospace; font-weight:700; transition:color .3s; }
+  .step-card { background:var(--s1); border:1px solid var(--bd); border-radius:10px; padding:14px 18px; margin:12px 0; min-height:64px; }
+  .step-label { font-size:.68rem; font-weight:700; text-transform:uppercase; color:var(--mu); margin-bottom:6px; letter-spacing:.5px; }
+  .step-desc { font-size:.88rem; color:#cbd5e1; line-height:1.65; }
+  .btns { display:flex; gap:10px; }
+  button { padding:9px 18px; border-radius:7px; font-size:.85rem; font-weight:700; cursor:pointer; border:none; font-family:inherit; }
+  .btn-next { background:var(--bl); color:#fff; }
+  .btn-next:disabled { background:#334155; color:#64748b; cursor:not-allowed; }
+  .btn-reset { background:var(--s1); color:var(--mu); border:1px solid var(--bd); }
+</style>
+</head>
+<body>
+<h1>ACK 유실 — 누적 ACK가 자동으로 커버한다</h1>
+<p class="sub">데이터는 모두 도달했지만 ACK 패킷 자체가 사라졌을 때</p>
+
+<svg id="diagram" viewBox="0 0 700 400" style="height:400px">
+  <defs>
+    <marker id="a-data" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="a-ack" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#10b981"/>
+    </marker>
+    <marker id="a-ack-ok" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#10b981"/>
+    </marker>
+  </defs>
+
+  <!-- 서버 (왼쪽) -->
+  <rect x="10" y="10" width="130" height="34" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="75" y="32" font-family="'Segoe UI',sans-serif" font-size="12" font-weight="700" fill="#3fb950" text-anchor="middle">서버</text>
+
+  <!-- 클라이언트 (오른쪽) -->
+  <rect x="560" y="10" width="130" height="34" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="6"/>
+  <text x="625" y="32" font-family="'Segoe UI',sans-serif" font-size="12" font-weight="700" fill="#58a6ff" text-anchor="middle">클라이언트</text>
+
+  <!-- 타임라인 -->
+  <line x1="75" y1="44" x2="75" y2="390" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,3" opacity="0.25"/>
+  <line x1="625" y1="44" x2="625" y2="390" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4,3" opacity="0.25"/>
+
+  <!-- g0: 데이터 seg 1 -->
+  <g id="g0" opacity="0" style="transition:opacity .4s">
+    <line x1="75" y1="65" x2="610" y2="80" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-data)"/>
+    <text x="350" y="61" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3b82f6" text-anchor="middle">데이터 seq=0 (0~1459 byte)</text>
+  </g>
+
+  <!-- g1: 데이터 seg 2 -->
+  <g id="g1" opacity="0" style="transition:opacity .4s">
+    <line x1="75" y1="96" x2="610" y2="111" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-data)"/>
+    <text x="350" y="92" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3b82f6" text-anchor="middle">데이터 seq=1460 (1460~2919 byte)</text>
+  </g>
+
+  <!-- g2: 데이터 seg 3 -->
+  <g id="g2" opacity="0" style="transition:opacity .4s">
+    <line x1="75" y1="127" x2="610" y2="142" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-data)"/>
+    <text x="350" y="123" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3b82f6" text-anchor="middle">데이터 seq=2920 (2920~4379 byte)</text>
+  </g>
+
+  <!-- g3: ACK=1460 도착 -->
+  <g id="g3" opacity="0" style="transition:opacity .4s">
+    <line x1="625" y1="165" x2="90" y2="180" stroke="#10b981" stroke-width="2" marker-end="url(#a-ack)"/>
+    <text x="350" y="161" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#10b981" text-anchor="middle">ACK num=1460 ✓ 도착</text>
+  </g>
+
+  <!-- g4: ACK=2920 유실 -->
+  <g id="g4" opacity="0" style="transition:opacity .4s">
+    <line x1="625" y1="200" x2="350" y2="208" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="350" y="196" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#ef4444" text-anchor="middle">ACK num=2920 ✗ 유실</text>
+    <text x="352" y="215" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="700" fill="#ef4444" text-anchor="middle">✗</text>
+  </g>
+
+  <!-- g5: ACK=4380 유실 -->
+  <g id="g5" opacity="0" style="transition:opacity .4s">
+    <line x1="625" y1="235" x2="350" y2="243" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,3"/>
+    <text x="350" y="231" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#ef4444" text-anchor="middle">ACK num=4380 ✗ 유실</text>
+    <text x="352" y="250" font-family="'Segoe UI',sans-serif" font-size="16" font-weight="700" fill="#ef4444" text-anchor="middle">✗</text>
+  </g>
+
+  <!-- g6: 데이터 seg 4 -->
+  <g id="g6" opacity="0" style="transition:opacity .4s">
+    <line x1="75" y1="270" x2="610" y2="285" stroke="#3b82f6" stroke-width="2" marker-end="url(#a-data)"/>
+    <text x="350" y="266" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#3b82f6" text-anchor="middle">데이터 seq=4380 (4380~5839 byte)</text>
+  </g>
+
+  <!-- g7: ACK=5840 도착 (최종) -->
+  <g id="g7" opacity="0" style="transition:opacity .4s">
+    <line x1="625" y1="308" x2="90" y2="323" stroke="#10b981" stroke-width="2.5" marker-end="url(#a-ack-ok)"/>
+    <text x="350" y="304" font-family="'Segoe UI',sans-serif" font-size="11" font-weight="700" fill="#10b981" text-anchor="middle">ACK num=5840 ✓ 도착 → 0~5839 전체 수신 확인</text>
+    <rect x="140" y="330" width="420" height="22" rx="4" fill="#052e16" stroke="#10b981" stroke-width="1"/>
+    <text x="350" y="345" font-family="'Segoe UI',sans-serif" font-size="10" font-weight="700" fill="#10b981" text-anchor="middle">ACK=2920, ACK=4380 유실 → ACK=5840이 자동으로 커버</text>
+  </g>
+
+  <!-- 상태 텍스트 -->
+  <text id="st-server" x="75" y="392" font-family="'Segoe UI',sans-serif" font-size="10" fill="#64748b" text-anchor="middle">대기 중</text>
+  <text id="st-client" x="625" y="392" font-family="'Segoe UI',sans-serif" font-size="10" fill="#64748b" text-anchor="middle">대기 중</text>
+</svg>
+
+<div class="confirm-box">
+  <div class="confirm-item">
+    <span class="confirm-label">서버가 확인한 범위</span>
+    <span class="confirm-val" id="confirmed" style="color:var(--mu)">없음</span>
+  </div>
+  <div class="confirm-item">
+    <span class="confirm-label">서버 판단</span>
+    <span class="confirm-val" id="judgement" style="color:var(--mu)">—</span>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label">현재 단계</div>
+  <div class="step-desc" id="desc">다음 단계 버튼을 눌러 패킷 흐름을 시작한다.</div>
+</div>
+
+<div class="btns">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btn" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  { id:'g0', confirmed:'없음', confirmedC:'var(--mu)', judgement:'전송 중, ACK 대기', judgementC:'#64748b',
+    sv:'전송 중', cl:'수신 중', svC:'#f59e0b', clC:'#f59e0b',
+    desc:'서버가 세그먼트 1을 전송한다. 바이트 0~1459. 클라이언트가 수신하면 ACK를 보낼 것이다.' },
+  { id:'g1', confirmed:'없음', confirmedC:'var(--mu)', judgement:'전송 중, ACK 대기', judgementC:'#64748b',
+    sv:'전송 중', cl:'수신 중', svC:'#f59e0b', clC:'#f59e0b',
+    desc:'세그먼트 2 전송. 바이트 1460~2919. 서버는 cwnd가 남아있으므로 ACK 없이 계속 보낸다.' },
+  { id:'g2', confirmed:'없음', confirmedC:'var(--mu)', judgement:'전송 중, ACK 대기', judgementC:'#64748b',
+    sv:'전송 중', cl:'3개 수신 완료', svC:'#f59e0b', clC:'#10b981',
+    desc:'세그먼트 3 전송. 클라이언트는 1, 2, 3을 모두 수신했다. 이제 각 세그먼트에 대한 ACK를 서버에 보낸다.' },
+  { id:'g3', confirmed:'0~1459 byte', confirmedC:'#10b981', judgement:'부분 확인', judgementC:'#f59e0b',
+    sv:'ACK 수신', cl:'ACK 전송 중', svC:'#10b981', clC:'#f59e0b',
+    desc:'ACK num=1460이 도착했다. "0~1459 받았어, 다음엔 1460번 줘." 서버는 0~1459 수신을 확인했다. ACK num=2920, 4380도 출발했지만...' },
+  { id:'g4', confirmed:'0~1459 byte', confirmedC:'#10b981', judgement:'ACK 2920 유실, 대기 중', judgementC:'#ef4444',
+    sv:'ACK 기다리는 중', cl:'ACK 전송 완료', svC:'#f59e0b', clC:'#64748b',
+    desc:'ACK num=2920 패킷이 네트워크에서 유실됐다. 클라이언트는 보냈지만 서버에 도달하지 못했다. 서버는 아직 1460~2919 수신 여부를 모른다.' },
+  { id:'g5', confirmed:'0~1459 byte', confirmedC:'#10b981', judgement:'ACK 4380도 유실, 대기 중', judgementC:'#ef4444',
+    sv:'ACK 기다리는 중', cl:'ACK 전송 완료', svC:'#f59e0b', clC:'#64748b',
+    desc:'ACK num=4380도 유실됐다. 클라이언트 입장에서 데이터는 다 받았고 ACK도 다 보냈다. 문제는 서버가 받지 못했다는 것이다.' },
+  { id:'g6', confirmed:'0~1459 byte', confirmedC:'#10b981', judgement:'타임아웃 전 seg 4 전송', judgementC:'#f59e0b',
+    sv:'전송 중', cl:'수신 중', svC:'#f59e0b', clC:'#f59e0b',
+    desc:'서버가 세그먼트 4를 전송한다. 타임아웃이 나기 전에 클라이언트가 ACK를 보낼 것이고, 그 ACK가 모든 것을 해결한다.' },
+  { id:'g7', confirmed:'0~5839 byte (전체)', confirmedC:'#10b981', judgement:'전체 수신 확인 완료 — 유실 ACK 자동 커버', judgementC:'#10b981',
+    sv:'수신 확인 완료', cl:'ACK 전송', svC:'#10b981', clC:'#10b981',
+    desc:'ACK num=5840 도착. "0~5839 전체 받았어." 누적 ACK이므로 ACK=2920, ACK=4380이 유실됐어도 아무 문제없다. 더 큰 ACK num이 오면 이전 범위는 자동으로 커버된다.' },
+];
+
+let cur = -1;
+const ALL_IDS = ['g0','g1','g2','g3','g4','g5','g6','g7'];
+
+function next() {
+  cur++;
+  const s = steps[cur];
+  document.getElementById(s.id).style.opacity = '1';
+  document.getElementById('desc').textContent = s.desc;
+  document.getElementById('confirmed').textContent = s.confirmed;
+  document.getElementById('confirmed').style.color = s.confirmedC;
+  document.getElementById('judgement').textContent = s.judgement;
+  document.getElementById('judgement').style.color = s.judgementC;
+  document.getElementById('st-server').textContent = s.sv;
+  document.getElementById('st-server').setAttribute('fill', s.svC);
+  document.getElementById('st-client').textContent = s.cl;
+  document.getElementById('st-client').setAttribute('fill', s.clC);
+  if (cur >= steps.length - 1) document.getElementById('btn').disabled = true;
+}
+
+function reset() {
+  cur = -1;
+  ALL_IDS.forEach(id => document.getElementById(id).style.opacity = '0');
+  document.getElementById('desc').textContent = '다음 단계 버튼을 눌러 패킷 흐름을 시작한다.';
+  document.getElementById('confirmed').textContent = '없음';
+  document.getElementById('confirmed').style.color = 'var(--mu)';
+  document.getElementById('judgement').textContent = '—';
+  document.getElementById('judgement').style.color = 'var(--mu)';
+  document.getElementById('st-server').textContent = '대기 중';
+  document.getElementById('st-server').setAttribute('fill','#64748b');
+  document.getElementById('st-client').textContent = '대기 중';
+  document.getElementById('st-client').setAttribute('fill','#64748b');
+  document.getElementById('btn').disabled = false;
+}
+</script>
+</body>
+</html>
