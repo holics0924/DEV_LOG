@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="420" viewBox="0 0 440 420">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+    <marker id="d-arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#6e7681"/>
+    </marker>
+  </defs>
+
+  <rect width="440" height="420" fill="#0d1117" rx="12"/>
+
+  <text x="220" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">DNSSEC 신뢰 체인</text>
+
+  <!-- 루트 DNS 공개키 -->
+  <rect x="70" y="38" width="300" height="62" fill="#2a2210" stroke="#e3b341" stroke-width="1.5" rx="8"/>
+  <text x="220" y="62" text-anchor="middle" fill="#e3b341" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">루트 DNS 공개키</text>
+  <text x="220" y="80" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">OS / 브라우저에 하드코딩 — 신뢰 체인의 출발점</text>
+  <text x="220" y="93" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">이 키 자체는 IANA가 관리</text>
+
+  <!-- Arrow 1 -->
+  <line x1="220" y1="100" x2="220" y2="148" stroke="#6e7681" stroke-width="1.5" marker-end="url(#d-arr)"/>
+  <text x="236" y="128" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">개인키로 서명</text>
+
+  <!-- TLD DNS 공개키 -->
+  <rect x="70" y="150" width="300" height="62" fill="#2a1f1f" stroke="#f0883e" stroke-width="1.5" rx="8"/>
+  <text x="220" y="174" text-anchor="middle" fill="#f0883e" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">TLD DNS 공개키</text>
+  <text x="220" y="192" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">.com · .kr 등 담당</text>
+  <text x="220" y="205" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">루트가 "이 키가 진짜"라고 보증</text>
+
+  <!-- Arrow 2 -->
+  <line x1="220" y1="212" x2="220" y2="260" stroke="#6e7681" stroke-width="1.5" marker-end="url(#d-arr)"/>
+  <text x="236" y="240" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">개인키로 서명</text>
+
+  <!-- 권한 DNS 공개키 -->
+  <rect x="70" y="262" width="300" height="62" fill="#1c2d3a" stroke="#79c0ff" stroke-width="1.5" rx="8"/>
+  <text x="220" y="286" text-anchor="middle" fill="#79c0ff" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">권한 DNS 공개키</text>
+  <text x="220" y="304" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">ns1.google.com 등</text>
+  <text x="220" y="317" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">TLD가 "이 키가 진짜"라고 보증</text>
+
+  <!-- Arrow 3 -->
+  <line x1="220" y1="324" x2="220" y2="368" stroke="#6e7681" stroke-width="1.5" marker-end="url(#d-arr)"/>
+  <text x="236" y="350" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">개인키로 서명</text>
+
+  <!-- DNS 레코드 -->
+  <rect x="70" y="370" width="300" height="38" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="8"/>
+  <text x="220" y="388" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">DNS 레코드 (A · CNAME · MX …)</text>
+  <text x="220" y="402" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">권한 DNS가 서명 → 리졸버가 공개키로 검증</text>
+</svg>

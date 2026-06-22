@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>DNS TTL 캐싱</title>
+<style>
+  :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+  p.sub{font-size:.78rem;color:var(--mu);margin-bottom:24px}
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+  .panel{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px}
+  .panel-title{font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--mu);margin-bottom:12px}
+  .cache-table{width:100%;border-collapse:collapse}
+  .cache-table th{font-size:.72rem;color:var(--mu);text-align:left;padding:4px 6px;border-bottom:1px solid var(--bd)}
+  .cache-table td{font-size:.8rem;padding:6px 6px;border-bottom:1px solid #1e293b;font-family:monospace}
+  .cache-table .domain{color:#79c0ff}
+  .cache-table .ip{color:#3fb950}
+  .ttl-bar{width:100%;height:6px;background:#1e293b;border-radius:3px;margin-top:4px}
+  .ttl-fill{height:6px;border-radius:3px;background:var(--gr);transition:width .4s}
+  .ttl-fill.low{background:var(--am)}
+  .ttl-fill.expired{background:var(--rd);width:0!important}
+  .empty-cache{font-size:.8rem;color:var(--mu);text-align:center;padding:16px 0}
+  .query-box{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:20px}
+  .query-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .badge{font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:4px}
+  .badge-hit{background:#0d2318;color:var(--gr);border:1px solid var(--gr)}
+  .badge-miss{background:#1c0d0d;color:var(--rd);border:1px solid var(--rd)}
+  .badge-neutral{background:var(--s2);color:var(--mu);border:1px solid var(--bd)}
+  .query-desc{font-size:.82rem;color:#cbd5e1;line-height:1.6}
+  .code{background:#0d1117;border-radius:4px;padding:2px 6px;font-family:monospace;font-size:.82rem;color:#79c0ff}
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:20px}
+  .step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--mu);margin-bottom:6px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+  .controls{display:flex;gap:10px}
+  button{padding:9px 18px;border-radius:7px;font-size:.85rem;font-weight:700;border:none;cursor:pointer;transition:opacity .2s}
+  .btn-next{background:var(--bl);color:#fff}
+  .btn-reset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  .btn-next:hover{opacity:.85}.btn-reset:hover{opacity:.85}
+  .step-counter{font-size:.78rem;color:var(--mu);margin-left:auto;align-self:center}
+</style>
+</head>
+<body>
+<h1>DNS TTL과 캐싱</h1>
+<p class="sub">TTL이 살아 있으면 캐시 HIT, 만료되면 MISS가 발생해 권한 DNS를 다시 조회합니다.</p>
+
+<div class="panels">
+  <div class="panel">
+    <div class="panel-title">리졸버 캐시 상태</div>
+    <div id="cache-area"><div class="empty-cache">캐시 비어있음</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-title">현재 요청 결과</div>
+    <div id="query-result"><div class="empty-cache">—</div></div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="step-label">시작 전</div>
+  <div class="step-desc" id="step-desc">다음 단계 버튼을 눌러 TTL 캐싱 동작을 확인하세요.</div>
+</div>
+
+<div class="controls">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" onclick="next()">다음 단계 →</button>
+  <span class="step-counter" id="counter">0 / 5</span>
+</div>
+
+<script>
+const MAX_TTL = 10;
+
+const steps = [
+  {
+    label:'1단계 · 첫 조회 (캐시 MISS)',
+    desc:'<span class="code">google.com</span> 첫 요청. 리졸버 캐시가 비어 있으므로 캐시 MISS. 루트 → TLD → 권한 DNS를 거쳐 <span class="code">142.250.x.x (TTL=10)</span>를 가져와 캐시에 저장합니다. (실제 TTL은 수백~수천 초이지만 시뮬레이션을 위해 10으로 설정합니다.)',
+    ttl:10, hit:false, cached:true
+  },
+  {
+    label:'2단계 · 재요청 — TTL 8초 남음 (캐시 HIT)',
+    desc:'2초 후 <span class="code">google.com</span> 재요청. TTL이 8초 남아 있으므로 캐시 HIT. 루트/TLD/권한 DNS 없이 리졸버가 바로 <span class="code">142.250.x.x</span>를 반환합니다.',
+    ttl:8, hit:true, cached:true
+  },
+  {
+    label:'3단계 · 재요청 — TTL 4초 남음 (캐시 HIT)',
+    desc:'4초 후 <span class="code">google.com</span> 재요청. TTL이 4초 남아 캐시 HIT. 리졸버 캐시 덕분에 외부 DNS 서버 요청이 0번이었습니다.',
+    ttl:4, hit:true, cached:true
+  },
+  {
+    label:'4단계 · TTL 만료 — 캐시 삭제',
+    desc:'TTL 10초가 경과했습니다. 리졸버가 캐시 항목을 삭제합니다. 다음 요청은 반드시 권한 DNS까지 가야 합니다.',
+    ttl:0, hit:null, cached:false
+  },
+  {
+    label:'5단계 · 재조회 (캐시 MISS) — 캐시 갱신',
+    desc:'TTL 만료 후 <span class="code">google.com</span> 재요청. 캐시 MISS. 권한 DNS에서 <span class="code">142.250.x.x</span>를 다시 가져와 TTL을 초기화해 캐싱합니다. 이 사이클이 반복됩니다.',
+    ttl:10, hit:false, cached:true
+  }
+];
+
+let cur = -1;
+
+function renderCache(s){
+  const area = document.getElementById('cache-area');
+  if(!s.cached){
+    area.innerHTML='<div class="empty-cache">캐시 비어있음 (TTL 만료)</div>';
+    return;
+  }
+  const pct = (s.ttl / MAX_TTL) * 100;
+  const fillClass = s.ttl <= 3 ? 'ttl-fill low' : 'ttl-fill';
+  area.innerHTML=`
+    <table class="cache-table">
+      <tr><th>도메인</th><th>IP</th><th>TTL</th></tr>
+      <tr>
+        <td class="domain">google.com</td>
+        <td class="ip">142.250.x.x</td>
+        <td>${s.ttl}s</td>
+      </tr>
+    </table>
+    <div class="ttl-bar" style="margin-top:10px">
+      <div class="${fillClass}" style="width:${pct}%"></div>
+    </div>
+    <div style="font-size:.72rem;color:var(--mu);margin-top:4px">TTL ${s.ttl} / ${MAX_TTL}초</div>`;
+}
+
+function renderQuery(s){
+  const area = document.getElementById('query-result');
+  if(s.hit === null){
+    area.innerHTML='<span class="badge badge-neutral">TTL 만료</span><div class="query-desc" style="margin-top:8px">캐시 항목 삭제됨</div>';
+    return;
+  }
+  const badge = s.hit
+    ? '<span class="badge badge-hit">HIT</span>'
+    : '<span class="badge badge-miss">MISS</span>';
+  const detail = s.hit
+    ? '리졸버 캐시에서 즉시 반환<br>외부 DNS 조회 없음'
+    : '권한 DNS까지 조회 후 캐싱<br>루트 → TLD → 권한 DNS 순회';
+  area.innerHTML=`<div class="query-row">${badge}<span style="font-size:.82rem;color:#79c0ff;font-family:monospace">google.com</span></div><div class="query-desc">${detail}</div>`;
+}
+
+function render(){
+  if(cur < 0){
+    document.getElementById('cache-area').innerHTML='<div class="empty-cache">캐시 비어있음</div>';
+    document.getElementById('query-result').innerHTML='<div class="empty-cache">—</div>';
+    document.getElementById('step-label').textContent='시작 전';
+    document.getElementById('step-desc').innerHTML='다음 단계 버튼을 눌러 TTL 캐싱 동작을 확인하세요.';
+    document.getElementById('counter').textContent='0 / 5';
+    return;
+  }
+  const s = steps[cur];
+  renderCache(s);
+  renderQuery(s);
+  document.getElementById('step-label').textContent=s.label;
+  document.getElementById('step-desc').innerHTML=s.desc;
+  document.getElementById('counter').textContent=(cur+1)+' / 5';
+}
+
+function next(){ if(cur < steps.length-1){ cur++; render(); } }
+function reset(){ cur=-1; render(); }
+render();
+</script>
+</body>
+</html>

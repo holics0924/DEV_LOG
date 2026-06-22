@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>DNS 조회 단계</title>
+<style>
+  :root{--bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;--tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;--rd:#ef4444;--am:#f59e0b}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.1rem;color:#cbd5e1;margin-bottom:4px}
+  p.sub{font-size:.78rem;color:var(--mu);margin-bottom:24px}
+  .servers{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap}
+  .srv{flex:1;min-width:100px;border:1.5px solid var(--bd);border-radius:8px;padding:10px 6px;text-align:center;transition:all .3s;background:var(--s1)}
+  .srv .name{font-size:.82rem;font-weight:700;margin-bottom:4px;color:var(--mu)}
+  .srv .desc{font-size:.72rem;color:var(--mu)}
+  .srv.active-browser{border-color:#3b82f6;background:#162032}.srv.active-browser .name{color:#3b82f6}
+  .srv.active-resolver{border-color:#10b981;background:#0d2318}.srv.active-resolver .name{color:#10b981}
+  .srv.active-root{border-color:#eab308;background:#1c1a0a}.srv.active-root .name{color:#eab308}
+  .srv.active-tld{border-color:#f97316;background:#1c1108}.srv.active-tld .name{color:#f97316}
+  .srv.active-auth{border-color:#38bdf8;background:#0c1e2e}.srv.active-auth .name{color:#38bdf8}
+  .arrow-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px;min-height:32px;font-size:.82rem}
+  .arrow-label{background:var(--s1);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;color:var(--am)}
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px 18px;margin-bottom:20px}
+  .step-label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--mu);margin-bottom:6px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.65}
+  .code{background:#0d1117;border-radius:4px;padding:2px 6px;font-family:monospace;font-size:.82rem;color:#79c0ff}
+  .controls{display:flex;gap:10px}
+  button{padding:9px 18px;border-radius:7px;font-size:.85rem;font-weight:700;border:none;cursor:pointer;transition:opacity .2s}
+  .btn-next{background:var(--bl);color:#fff}
+  .btn-reset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  .btn-next:hover{opacity:.85}.btn-reset:hover{opacity:.85}
+  .step-counter{font-size:.78rem;color:var(--mu);margin-left:auto;align-self:center}
+</style>
+</head>
+<body>
+<h1>DNS 조회 단계별 흐름</h1>
+<p class="sub">google.com을 입력했을 때 실제로 어떤 순서로 DNS 조회가 이루어지는지 단계별로 확인합니다.</p>
+
+<div class="servers" id="servers">
+  <div class="srv" id="s0"><div class="name">브라우저</div><div class="desc">로컬 캐시</div></div>
+  <div class="srv" id="s1"><div class="name">로컬 리졸버</div><div class="desc">8.8.8.8</div></div>
+  <div class="srv" id="s2"><div class="name">루트 DNS</div><div class="desc">13개 클러스터</div></div>
+  <div class="srv" id="s3"><div class="name">TLD DNS</div><div class="desc">.com 담당</div></div>
+  <div class="srv" id="s4"><div class="name">권한 DNS</div><div class="desc">ns1.google.com</div></div>
+</div>
+
+<div class="arrow-row" id="arrow-row">—</div>
+
+<div class="step-card">
+  <div class="step-label" id="step-label">시작 전</div>
+  <div class="step-desc" id="step-desc">다음 단계 버튼을 눌러 DNS 조회 과정을 단계별로 확인하세요.</div>
+</div>
+
+<div class="controls">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" onclick="next()">다음 단계 →</button>
+  <span class="step-counter" id="counter">0 / 6</span>
+</div>
+
+<script>
+const CLASS_MAP = ['active-browser','active-resolver','active-root','active-tld','active-auth'];
+
+const steps = [
+  {
+    label:'1단계 · 로컬 캐시 확인',
+    desc:'브라우저가 <span class="code">google.com</span>을 입력받아 자체 로컬 캐시를 확인합니다. 이전에 방문한 기록이 없으면 캐시 미스(MISS)가 발생하고, 로컬 리졸버로 요청을 위임합니다.',
+    active:[0],
+    arrow:'로컬 캐시 MISS'
+  },
+  {
+    label:'2단계 · 로컬 리졸버에 재귀 요청',
+    desc:'브라우저 → 로컬 리졸버: <span class="code">"google.com IP 알려줘"</span>. 재귀적 요청이므로 리졸버가 끝까지 찾아 최종 IP만 반환해 줍니다. 브라우저는 기다리기만 하면 됩니다.',
+    active:[0,1],
+    arrow:'브라우저 → 리졸버  (재귀 요청)'
+  },
+  {
+    label:'3단계 · 리졸버 → 루트 DNS',
+    desc:'리졸버가 루트 DNS에 <span class="code">google.com</span>을 물어봅니다. 루트 DNS는 IP를 모르지만, <span class="code">.com</span>을 담당하는 TLD DNS 주소를 알려줍니다. NS 레코드로 반환됩니다.',
+    active:[1,2],
+    arrow:'리졸버 → 루트  →  "TLD DNS 가봐"'
+  },
+  {
+    label:'4단계 · 리졸버 → TLD DNS',
+    desc:'리졸버가 TLD DNS에 <span class="code">google.com</span>을 물어봅니다. TLD DNS도 IP는 모르지만, <span class="code">google.com</span>의 권한 DNS(ns1.google.com) 주소를 NS 레코드로 알려줍니다.',
+    active:[1,3],
+    arrow:'리졸버 → TLD  →  "권한 DNS 가봐"'
+  },
+  {
+    label:'5단계 · 리졸버 → 권한 DNS',
+    desc:'리졸버가 <span class="code">ns1.google.com</span>(권한 DNS)에 최종 질의합니다. 권한 DNS가 A 레코드로 <span class="code">142.250.x.x (TTL=300)</span>를 반환합니다. 드디어 실제 IP입니다.',
+    active:[1,4],
+    arrow:'리졸버 → 권한 DNS  →  "142.250.x.x, TTL=300"'
+  },
+  {
+    label:'6단계 · 캐싱 후 브라우저 반환',
+    desc:'로컬 리졸버가 <span class="code">google.com = 142.250.x.x (TTL 300초)</span>를 캐시에 저장합니다. 이후 300초 안에 같은 요청이 오면 루트/TLD/권한 DNS를 거치지 않고 바로 캐시에서 반환합니다.',
+    active:[0,1],
+    arrow:'리졸버 → 브라우저  (142.250.x.x 반환 + 캐싱)'
+  }
+];
+
+let cur = -1;
+
+function render(){
+  const srvEls = document.querySelectorAll('.srv');
+  srvEls.forEach((el,i)=>{
+    CLASS_MAP.forEach(c=>el.classList.remove(c));
+  });
+  if(cur < 0){
+    document.getElementById('step-label').textContent = '시작 전';
+    document.getElementById('step-desc').innerHTML = '다음 단계 버튼을 눌러 DNS 조회 과정을 단계별로 확인하세요.';
+    document.getElementById('arrow-row').textContent = '—';
+    document.getElementById('counter').textContent = '0 / 6';
+    return;
+  }
+  const s = steps[cur];
+  s.active.forEach(i=>{
+    document.getElementById('s'+i).classList.add(CLASS_MAP[i]);
+  });
+  document.getElementById('step-label').textContent = s.label;
+  document.getElementById('step-desc').innerHTML = s.desc;
+  document.getElementById('arrow-row').innerHTML = '<span class="arrow-label">'+s.arrow+'</span>';
+  document.getElementById('counter').textContent = (cur+1)+' / 6';
+}
+
+function next(){
+  if(cur < steps.length-1){ cur++; render(); }
+}
+function reset(){ cur=-1; render(); }
+render();
+</script>
+</body>
+</html>
