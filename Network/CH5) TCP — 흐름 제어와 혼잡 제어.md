@@ -197,10 +197,3 @@ Fast Recovery (중복 ACK 3개):
 
 <iframe src="/DEV_LOG/Network/assets/demo_cwnd_simulator.html" width="100%" height="560" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;" onload="this.style.height=(this.contentDocument||this.contentWindow.document).documentElement.scrollHeight+'px'"></iframe>
 
-<br><br>
-
----
-
-<br><br>
-
-UDP는 흐름 제어도 혼잡 제어도 없다. 이 단순함이 어떤 상황에서 장점이 되는지, 그리고 UDP 위에서 QUIC이 어떻게 신뢰성을 직접 구현하는지가 다음 주제다.

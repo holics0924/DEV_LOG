@@ -228,10 +228,3 @@ ACK + ClientHello → ServerHello + Finished  (TCP + TLS 동시 처리)
 
 <iframe src="/DEV_LOG/Network/assets/demo_rtt_simulator.html" width="100%" height="640" frameborder="0" style="border-radius:10px;border:1px solid #334155;display:block;" onload="this.style.height=(this.contentDocument||this.contentWindow.document).documentElement.scrollHeight+'px'"></iframe>
 
-<br><br>
-
----
-
-<br><br>
-
-연결을 어떻게 맺고 끊는지는 정해졌다. 그 연결을 통해 데이터를 얼마나 빠르게, 얼마나 안정적으로 보낼 수 있는지는 수신 버퍼 크기와 네트워크 상태가 결정한다.
