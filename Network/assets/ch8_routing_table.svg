@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="360" fill="#0d1117" rx="12"/>
+  <text x="360" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">라우팅 테이블과 Longest Prefix Match</text>
+
+  <!-- Router box -->
+  <rect x="20" y="44" width="680" height="200" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="50" y="66" fill="#6e7681" font-size="11" font-weight="700">라우터 라우팅 테이블</text>
+
+  <!-- Table header -->
+  <rect x="36" y="76" width="648" height="28" rx="4" fill="#21262d"/>
+  <text x="52" y="95" fill="#6e7681" font-size="10" font-weight="700">목적지 네트워크 (CIDR)</text>
+  <text x="260" y="95" fill="#6e7681" font-size="10" font-weight="700">게이트웨이 (다음 홉)</text>
+  <text x="460" y="95" fill="#6e7681" font-size="10" font-weight="700">인터페이스</text>
+  <text x="570" y="95" fill="#6e7681" font-size="10" font-weight="700">프리픽스 길이</text>
+
+  <!-- Row 1: 192.168.0.0/24 - matched for 192.168.0.5 -->
+  <rect x="36" y="106" width="648" height="36" rx="4" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+  <text x="52" y="124" fill="#3fb950" font-size="10" font-weight="700">192.168.0.0/24</text>
+  <text x="52" y="136" fill="#3fb950" font-size="9">← 매칭 (예: 192.168.0.5)</text>
+  <text x="260" y="130" fill="#3fb950" font-size="10">직접 연결</text>
+  <text x="460" y="130" fill="#3fb950" font-size="10">eth0</text>
+  <text x="570" y="130" fill="#3fb950" font-size="10" font-weight="700">/24 (길수록 우선)</text>
+
+  <!-- Row 2: 10.0.0.0/8 -->
+  <rect x="36" y="146" width="648" height="28" rx="4" fill="#0d1117"/>
+  <text x="52" y="165" fill="#8b949e" font-size="10">10.0.0.0/8</text>
+  <text x="260" y="165" fill="#8b949e" font-size="10">직접 연결</text>
+  <text x="460" y="165" fill="#8b949e" font-size="10">eth1</text>
+  <text x="570" y="165" fill="#8b949e" font-size="10">/8</text>
+
+  <!-- Row 3: 172.16.0.0/12 -->
+  <rect x="36" y="178" width="648" height="28" rx="4" fill="#161b22"/>
+  <text x="52" y="197" fill="#8b949e" font-size="10">172.16.0.0/12</text>
+  <text x="260" y="197" fill="#8b949e" font-size="10">직접 연결</text>
+  <text x="460" y="197" fill="#8b949e" font-size="10">eth1</text>
+  <text x="570" y="197" fill="#8b949e" font-size="10">/12</text>
+
+  <!-- Row 4: 0.0.0.0/0 default -->
+  <rect x="36" y="210" width="648" height="28" rx="4" fill="#2a2210" stroke="#e3b341" stroke-width="1"/>
+  <text x="52" y="229" fill="#e3b341" font-size="10" font-weight="700">0.0.0.0/0</text>
+  <text x="260" y="229" fill="#e3b341" font-size="10">59.10.20.1 (ISP 라우터)</text>
+  <text x="460" y="229" fill="#e3b341" font-size="10">eth2</text>
+  <text x="570" y="229" fill="#e3b341" font-size="10" font-weight="700">/0 (디폴트, 최하위)</text>
+
+  <!-- LPM explanation -->
+  <rect x="20" y="260" width="680" height="84" rx="8" fill="#1a1f26" stroke="#30363d" stroke-width="1"/>
+  <text x="360" y="282" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="700">Longest Prefix Match — 가장 구체적인 규칙이 이긴다</text>
+
+  <text x="36" y="302" fill="#3fb950" font-size="10">목적지 192.168.0.5   →  /24 규칙 매칭  →  직접 전달 (같은 네트워크)</text>
+  <text x="36" y="320" fill="#e3b341" font-size="10">목적지 8.8.8.8         →  어떤 구체적 규칙도 없음  →  0.0.0.0/0 디폴트  →  ISP 라우터로 전달</text>
+  <text x="36" y="338" fill="#8b949e" font-size="10">같은 IP가 두 규칙에 걸리면 프리픽스 길이가 긴 쪽(/24 &gt; /8 &gt; /0)이 우선한다.</text>
+</svg>

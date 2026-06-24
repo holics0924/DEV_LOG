@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect width="860" height="430" fill="#0d1117" rx="12"/>
+
+  <!-- Title -->
+  <text x="430" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">패킷 흐름 — IP는 유지, MAC은 홉마다 교체</text>
+
+  <!-- 노트북 -->
+  <rect x="20" y="44" width="140" height="72" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="90" y="67" text-anchor="middle" fill="#58a6ff" font-size="12" font-weight="700">노트북</text>
+  <text x="90" y="84" text-anchor="middle" fill="#6e7681" font-size="10">IP: 192.168.0.5</text>
+  <text x="90" y="100" text-anchor="middle" fill="#6e7681" font-size="10">MAC: AA:BB:...:11</text>
+
+  <!-- 공유기 NAT -->
+  <rect x="220" y="44" width="160" height="72" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="300" y="67" text-anchor="middle" fill="#e3b341" font-size="12" font-weight="700">공유기 (NAT)</text>
+  <text x="300" y="84" text-anchor="middle" fill="#6e7681" font-size="10">사설: 192.168.0.1</text>
+  <text x="300" y="100" text-anchor="middle" fill="#6e7681" font-size="10">공인: 59.10.20.30</text>
+
+  <!-- 인터넷 -->
+  <rect x="450" y="44" width="140" height="72" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="520" y="67" text-anchor="middle" fill="#8b949e" font-size="12" font-weight="700">인터넷 라우터</text>
+  <text x="520" y="84" text-anchor="middle" fill="#6e7681" font-size="10">LPM으로 포워딩</text>
+  <text x="520" y="100" text-anchor="middle" fill="#6e7681" font-size="10">MAC: EE:FF:...:33</text>
+
+  <!-- 구글 -->
+  <rect x="660" y="44" width="180" height="72" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="750" y="67" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700">구글 서버</text>
+  <text x="750" y="84" text-anchor="middle" fill="#6e7681" font-size="10">IP: 8.8.8.8</text>
+  <text x="750" y="100" text-anchor="middle" fill="#6e7681" font-size="10">MAC: 11:22:...:44</text>
+
+  <!-- Arrows -->
+  <line x1="162" y1="80" x2="218" y2="80" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="382" y1="80" x2="448" y2="80" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="592" y1="80" x2="658" y2="80" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- NAT label -->
+  <text x="300" y="132" text-anchor="middle" fill="#e3b341" font-size="10" font-weight="700">↕ 출발지 IP 교체</text>
+
+  <!-- Table -->
+  <!-- Header -->
+  <rect x="16" y="150" width="828" height="28" rx="4" fill="#161b22"/>
+  <text x="30" y="169" fill="#6e7681" font-size="10" font-weight="700">구간</text>
+  <text x="180" y="169" fill="#e3b341" font-size="10" font-weight="700">L3 출발지 IP</text>
+  <text x="340" y="169" fill="#e3b341" font-size="10" font-weight="700">L3 목적지 IP</text>
+  <text x="480" y="169" fill="#f0883e" font-size="10" font-weight="700">L2 출발지 MAC</text>
+  <text x="670" y="169" fill="#f0883e" font-size="10" font-weight="700">L2 목적지 MAC</text>
+
+  <line x1="16" y1="178" x2="844" y2="178" stroke="#30363d" stroke-width="1"/>
+
+  <!-- Row 1 -->
+  <rect x="16" y="180" width="828" height="48" rx="4" fill="#0d1117"/>
+  <text x="30" y="198" fill="#8b949e" font-size="10" font-weight="700">노트북 → 공유기</text>
+  <text x="30" y="214" fill="#6e7681" font-size="9">(내부망)</text>
+  <text x="180" y="206" fill="#e3b341" font-size="10">192.168.0.5</text>
+  <text x="340" y="206" fill="#e3b341" font-size="10">8.8.8.8</text>
+  <text x="480" y="206" fill="#f0883e" font-size="10">AA:BB:CC:DD:EE:11</text>
+  <text x="670" y="206" fill="#f0883e" font-size="10">CC:DD:EE:FF:00:22 (공유기)</text>
+
+  <line x1="16" y1="228" x2="844" y2="228" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Row 2 -->
+  <rect x="16" y="230" width="828" height="58" rx="4" fill="#161b22"/>
+  <text x="30" y="249" fill="#8b949e" font-size="10" font-weight="700">공유기 → ISP 라우터</text>
+  <text x="30" y="264" fill="#e3b341" font-size="9">NAT 변환 후</text>
+  <text x="180" y="258" fill="#e3b341" font-size="10">59.10.20.30</text>
+  <text x="180" y="272" fill="#6e7681" font-size="9">(공인 IP로 교체)</text>
+  <text x="340" y="258" fill="#e3b341" font-size="10">8.8.8.8</text>
+  <text x="480" y="258" fill="#f0883e" font-size="10">CC:DD:EE:FF:00:22</text>
+  <text x="670" y="258" fill="#f0883e" font-size="10">EE:FF:00:11:22:33 (ISP)</text>
+
+  <line x1="16" y1="288" x2="844" y2="288" stroke="#21262d" stroke-width="1"/>
+
+  <!-- Row 3 -->
+  <rect x="16" y="290" width="828" height="48" rx="4" fill="#0d1117"/>
+  <text x="30" y="309" fill="#8b949e" font-size="10" font-weight="700">ISP 라우터 → 구글</text>
+  <text x="30" y="324" fill="#6e7681" font-size="9">(인터넷 구간)</text>
+  <text x="180" y="316" fill="#e3b341" font-size="10">59.10.20.30</text>
+  <text x="340" y="316" fill="#e3b341" font-size="10">8.8.8.8</text>
+  <text x="480" y="316" fill="#f0883e" font-size="10">EE:FF:00:11:22:33</text>
+  <text x="670" y="316" fill="#f0883e" font-size="10">11:22:33:44:55:66 (구글)</text>
+
+  <!-- Key insight -->
+  <rect x="16" y="352" width="828" height="58" rx="8" fill="#1a1f26" stroke="#30363d" stroke-width="1"/>
+  <text x="430" y="374" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="700">핵심</text>
+  <text x="430" y="392" text-anchor="middle" fill="#8b949e" font-size="10">IP (L3)는 출발지부터 목적지까지 유지된다. NAT 구간에서만 출발지 IP가 공인 IP로 교체된다.</text>
+  <text x="430" y="408" text-anchor="middle" fill="#8b949e" font-size="10">MAC (L2)은 홉마다 바뀐다. 항상 최종 목적지가 아닌 바로 다음 장치의 MAC 주소를 담는다.</text>
+</svg>

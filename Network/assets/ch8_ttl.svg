@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="320" viewBox="0 0 760 320">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect width="760" height="320" fill="#0d1117" rx="12"/>
+  <text x="380" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">TTL 감소와 traceroute 원리</text>
+
+  <!-- 출발지 -->
+  <rect x="20" y="60" width="90" height="50" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="65" y="81" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">출발지</text>
+  <text x="65" y="97" text-anchor="middle" fill="#6e7681" font-size="9">TTL = 3</text>
+
+  <!-- 라우터 A -->
+  <rect x="168" y="60" width="90" height="50" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="213" y="81" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">라우터 A</text>
+  <text x="213" y="97" text-anchor="middle" fill="#6e7681" font-size="9">3 → 2, 전달</text>
+
+  <!-- 라우터 B -->
+  <rect x="316" y="60" width="90" height="50" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="361" y="81" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">라우터 B</text>
+  <text x="361" y="97" text-anchor="middle" fill="#6e7681" font-size="9">2 → 1, 전달</text>
+
+  <!-- 라우터 C (drop) -->
+  <rect x="464" y="60" width="100" height="50" rx="8" fill="#2a1f1f" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="514" y="81" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="700">라우터 C</text>
+  <text x="514" y="97" text-anchor="middle" fill="#ef4444" font-size="9">1 → 0, 폐기</text>
+
+  <!-- 목적지 -->
+  <rect x="626" y="60" width="110" height="50" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="681" y="81" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">목적지</text>
+  <text x="681" y="97" text-anchor="middle" fill="#6e7681" font-size="9">도달 시 응답</text>
+
+  <!-- 화살표 + TTL 레이블 -->
+  <line x1="112" y1="85" x2="166" y2="85" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="139" y="78" text-anchor="middle" fill="#f59e0b" font-size="9">TTL=3</text>
+
+  <line x1="260" y1="85" x2="314" y2="85" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="287" y="78" text-anchor="middle" fill="#f59e0b" font-size="9">TTL=2</text>
+
+  <line x1="408" y1="85" x2="462" y2="85" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="435" y="78" text-anchor="middle" fill="#f59e0b" font-size="9">TTL=1</text>
+
+  <!-- 목적지로 가는 화살표는 점선 (도달 못함) -->
+  <line x1="566" y1="85" x2="622" y2="85" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="594" y="78" text-anchor="middle" fill="#30363d" font-size="9">도달 불가</text>
+
+  <!-- 폐기 표시 -->
+  <text x="514" y="52" text-anchor="middle" fill="#ef4444" font-size="18">✕</text>
+
+  <!-- ICMP 회신 화살표 -->
+  <path d="M 514,112 Q 514,152 320,152 Q 130,152 110,122" stroke="#f59e0b" stroke-width="1.5" fill="none" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+  <text x="315" y="170" text-anchor="middle" fill="#f59e0b" font-size="10">ICMP Time Exceeded → 출발지로 전송 ("라우터 C가 버렸어")</text>
+
+  <!-- traceroute 섹션 -->
+  <rect x="20" y="188" width="720" height="116" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="380" y="208" text-anchor="middle" fill="#6e7681" font-size="11" font-weight="700">traceroute — TTL을 1부터 늘려가며 경로를 발견한다</text>
+
+  <text x="36" y="230" fill="#8b949e" font-size="10">TTL=1 전송</text>
+  <text x="130" y="230" fill="#6e7681" font-size="10">→  라우터 A에서 0 됨  →  ICMP 회신</text>
+  <text x="460" y="230" fill="#3fb950" font-size="10">→  1번 홉: 라우터 A IP 확인</text>
+
+  <text x="36" y="252" fill="#8b949e" font-size="10">TTL=2 전송</text>
+  <text x="130" y="252" fill="#6e7681" font-size="10">→  라우터 B에서 0 됨  →  ICMP 회신</text>
+  <text x="460" y="252" fill="#3fb950" font-size="10">→  2번 홉: 라우터 B IP 확인</text>
+
+  <text x="36" y="274" fill="#8b949e" font-size="10">TTL=3 전송</text>
+  <text x="130" y="274" fill="#6e7681" font-size="10">→  라우터 C에서 0 됨  →  ICMP 회신</text>
+  <text x="460" y="274" fill="#3fb950" font-size="10">→  3번 홉: 라우터 C IP 확인</text>
+
+  <text x="36" y="296" fill="#8b949e" font-size="10">TTL=N 전송</text>
+  <text x="130" y="296" fill="#6e7681" font-size="10">→  목적지 도달  →  Echo Reply</text>
+  <text x="460" y="296" fill="#3fb950" font-size="10">→  경로 탐색 완료</text>
+</svg>

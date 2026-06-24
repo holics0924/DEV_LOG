@@ -64,7 +64,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#0d2a1a;color:#3fb950">NET</span>
         Network
       </span>
-      <span class="subject-count">7 chapters</span>
+      <span class="subject-count">8 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/Network/ch1-osi-tcpip/" class="chapter-link">
@@ -87,6 +87,9 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/Network/ch7-dns/" class="chapter-link">
         <span class="ch-num">CH7</span>DNS
+      </a>
+      <a href="/DEV_LOG/Network/ch8-ip-routing/" class="chapter-link">
+        <span class="ch-num">CH8</span>IP 주소체계와 라우팅
       </a>
     </div>
   </div>

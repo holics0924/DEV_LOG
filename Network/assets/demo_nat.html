@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAT 동작</title>
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --s2:#162032; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981;
+    --rd:#ef4444; --am:#f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--tx); font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 24px 16px 48px; max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 4px; }
+  .sub { font-size: .78rem; color: var(--mu); margin-bottom: 20px; }
+
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 20px 16px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+  }
+
+  .node {
+    flex-shrink: 0;
+    background: var(--s2);
+    border: 1.5px solid var(--bd);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+    min-width: 130px;
+  }
+  .node.internal { border-color: var(--bl); }
+  .node.nat-box { border-color: var(--am); min-width: 150px; }
+  .node.external { border-color: var(--gr); }
+  .node-name { font-size: .82rem; font-weight: 700; color: #cbd5e1; margin-bottom: 4px; }
+  .node-detail { font-size: .7rem; color: var(--mu); line-height: 1.5; }
+
+  .arrow {
+    flex-shrink: 0;
+    color: var(--mu);
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .arrow.active { color: var(--am); }
+  .arrow.active-reply { color: var(--gr); }
+
+  .table-wrap {
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .table-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--mu); margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th { color: var(--mu); font-weight: 700; font-size: .72rem; text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--bd); }
+  td { padding: 6px 8px; color: var(--mu); border-bottom: 1px solid #1e293b; }
+  tr.active td { color: var(--am); }
+  tr.active-reply td { color: var(--gr); }
+
+  .pkt-box {
+    background: var(--s2);
+    border: 1px solid var(--bd);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .8rem;
+    margin-bottom: 16px;
+    min-height: 48px;
+  }
+  .pkt-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; color: var(--mu); margin-bottom: 4px; }
+  .pkt-content { color: #cbd5e1; }
+  .em { color: var(--am); font-weight: 700; }
+  .em-green { color: var(--gr); font-weight: 700; }
+
+  .step-card {
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+  }
+  .step-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; color: var(--mu); margin-bottom: 6px; }
+  .step-desc { font-size: .88rem; color: #cbd5e1; line-height: 1.65; }
+
+  .btns { display: flex; gap: 10px; }
+  button { padding: 9px 18px; border-radius: 7px; font-size: .85rem; font-weight: 700; border: none; cursor: pointer; }
+  .btn-next { background: var(--bl); color: #fff; }
+  .btn-next:disabled { opacity: 0.4; cursor: default; }
+  .btn-reset { background: var(--s1); color: var(--mu); border: 1px solid var(--bd); }
+</style>
+</head>
+<body>
+
+<h1>NAT 동작 — 사설 IP를 공인 IP로 변환</h1>
+<p class="sub">스마트폰(192.168.0.3)이 구글 서버(8.8.8.8)에 요청을 보내고 응답을 받는 과정</p>
+
+<div class="flow">
+  <div class="node internal">
+    <div class="node-name">스마트폰</div>
+    <div class="node-detail">192.168.0.3:5000<br>MAC: CC:DD:..:33</div>
+  </div>
+  <div class="arrow" id="arr1">→</div>
+  <div class="node nat-box">
+    <div class="node-name">공유기 (NAT)</div>
+    <div class="node-detail">사설: 192.168.0.1<br>공인: 59.10.20.30</div>
+  </div>
+  <div class="arrow" id="arr2">→</div>
+  <div class="node external">
+    <div class="node-name">구글 서버</div>
+    <div class="node-detail">8.8.8.8:443</div>
+  </div>
+</div>
+
+<div class="pkt-box">
+  <div class="pkt-label" id="pkt-label">패킷 현황</div>
+  <div class="pkt-content" id="pkt-content">대기 중</div>
+</div>
+
+<div class="table-wrap">
+  <div class="table-title">NAT 테이블</div>
+  <table>
+    <thead>
+      <tr>
+        <th>사설 IP:포트</th>
+        <th>공인 IP:포트</th>
+        <th>목적지</th>
+        <th>상태</th>
+      </tr>
+    </thead>
+    <tbody id="nat-tbody">
+      <tr id="row-exist">
+        <td>192.168.0.2:6000</td>
+        <td>59.10.20.30:40001</td>
+        <td>8.8.8.8:443</td>
+        <td>기존 항목</td>
+      </tr>
+      <tr id="row-new" style="display:none">
+        <td>192.168.0.3:5000</td>
+        <td>59.10.20.30:40002</td>
+        <td>8.8.8.8:443</td>
+        <td id="row-new-status">신규 추가</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="step-label">단계 0 / 5</div>
+  <div class="step-desc" id="step-desc">스마트폰이 구글에 HTTP 요청을 보내려 한다. 출발지는 사설 IP <span class="em">192.168.0.3:5000</span>이다. 이 주소는 인터넷에서 라우팅되지 않으므로 공유기가 변환해야 한다.</div>
+</div>
+
+<div class="btns">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btn-next" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+  const steps = [
+    {
+      label: '단계 1 / 5',
+      pktLabel: '스마트폰 → 공유기',
+      pktContent: '출발지 IP: <span class="em">192.168.0.3:5000</span> &nbsp;|&nbsp; 목적지 IP: <span class="em-green">8.8.8.8:443</span>',
+      desc: '스마트폰이 패킷을 공유기로 전송한다. 출발지는 사설 IP <span class="em">192.168.0.3:5000</span>이다.',
+      arr1: 'active', arr2: '',
+      showRow: false, rowClass: ''
+    },
+    {
+      label: '단계 2 / 5',
+      pktLabel: 'NAT 변환 수행',
+      pktContent: '출발지 IP: <span class="em">192.168.0.3:5000</span> → <span class="em-green">59.10.20.30:40002</span> 로 교체',
+      desc: '공유기가 출발지 IP를 공인 IP <span class="em-green">59.10.20.30:40002</span>로 교체한다. NAT 테이블에 <span class="em">192.168.0.3:5000 ↔ 59.10.20.30:40002</span> 항목을 기록한다.',
+      arr1: '', arr2: '',
+      showRow: true, rowClass: 'active'
+    },
+    {
+      label: '단계 3 / 5',
+      pktLabel: '공유기 → 구글 서버',
+      pktContent: '출발지 IP: <span class="em-green">59.10.20.30:40002</span> &nbsp;|&nbsp; 목적지 IP: <span class="em-green">8.8.8.8:443</span>',
+      desc: '변환된 패킷이 인터넷으로 나간다. 구글 서버 입장에서 요청자는 <span class="em-green">59.10.20.30</span>으로 보인다. 스마트폰의 사설 IP는 외부에 노출되지 않는다.',
+      arr1: '', arr2: 'active',
+      showRow: true, rowClass: 'active'
+    },
+    {
+      label: '단계 4 / 5',
+      pktLabel: '구글 서버 → 공유기 (응답)',
+      pktContent: '출발지 IP: <span class="em-green">8.8.8.8:443</span> &nbsp;|&nbsp; 목적지 IP: <span class="em-green">59.10.20.30:40002</span>',
+      desc: '구글이 <span class="em-green">59.10.20.30:40002</span>로 응답을 보낸다. 공유기가 수신하고 NAT 테이블을 역방향으로 조회한다.',
+      arr1: '', arr2: 'active-reply',
+      showRow: true, rowClass: 'active-reply'
+    },
+    {
+      label: '단계 5 / 5',
+      pktLabel: '공유기 → 스마트폰 (전달)',
+      pktContent: '목적지: <span class="em">59.10.20.30:40002</span> → <span class="em">192.168.0.3:5000</span> 으로 역변환',
+      desc: 'NAT 테이블 조회 결과 <span class="em">59.10.20.30:40002</span>는 스마트폰(<span class="em">192.168.0.3:5000</span>)의 것이다. 공유기가 목적지 IP를 사설 IP로 되돌려 스마트폰에 전달한다.',
+      arr1: 'active-reply', arr2: '',
+      showRow: true, rowClass: 'active-reply'
+    }
+  ];
+
+  let current = 0;
+
+  function next() {
+    if (current >= steps.length) return;
+    const s = steps[current];
+    document.getElementById('step-label').textContent = s.label;
+    document.getElementById('step-desc').innerHTML = s.desc;
+    document.getElementById('pkt-label').textContent = s.pktLabel;
+    document.getElementById('pkt-content').innerHTML = s.pktContent;
+
+    document.getElementById('arr1').className = 'arrow' + (s.arr1 ? ' ' + s.arr1 : '');
+    document.getElementById('arr2').className = 'arrow' + (s.arr2 ? ' ' + s.arr2 : '');
+
+    const rowNew = document.getElementById('row-new');
+    if (s.showRow) {
+      rowNew.style.display = '';
+      rowNew.className = s.rowClass;
+    }
+
+    current++;
+    if (current >= steps.length) document.getElementById('btn-next').disabled = true;
+  }
+
+  function reset() {
+    current = 0;
+    document.getElementById('step-label').textContent = '단계 0 / 5';
+    document.getElementById('step-desc').innerHTML = '스마트폰이 구글에 HTTP 요청을 보내려 한다. 출발지는 사설 IP <span class="em">192.168.0.3:5000</span>이다. 이 주소는 인터넷에서 라우팅되지 않으므로 공유기가 변환해야 한다.';
+    document.getElementById('pkt-label').textContent = '패킷 현황';
+    document.getElementById('pkt-content').textContent = '대기 중';
+    document.getElementById('arr1').className = 'arrow';
+    document.getElementById('arr2').className = 'arrow';
+    document.getElementById('row-new').style.display = 'none';
+    document.getElementById('row-new').className = '';
+    document.getElementById('btn-next').disabled = false;
+  }
+</script>
+</body>
+</html>

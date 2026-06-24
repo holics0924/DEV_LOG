@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARP 동작</title>
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --s2:#162032; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981;
+    --rd:#ef4444; --am:#f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--tx); font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 24px 16px 48px; max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 4px; }
+  .sub { font-size: .78rem; color: var(--mu); margin-bottom: 20px; }
+
+  .scene {
+    position: relative;
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 24px 16px;
+    margin-bottom: 16px;
+    min-height: 160px;
+  }
+
+  .devices {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .device {
+    flex: 1;
+    background: var(--s2);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 12px 8px;
+    text-align: center;
+    min-width: 0;
+  }
+  .device.active { border-color: var(--bl); }
+  .device.target { border-color: var(--gr); }
+  .device.others { border-color: var(--bd); opacity: 0.5; }
+  .device-name { font-size: .82rem; font-weight: 700; color: #cbd5e1; margin-bottom: 4px; }
+  .device-ip { font-size: .72rem; color: var(--mu); }
+  .device-mac { font-size: .68rem; color: var(--am); margin-top: 2px; }
+
+  .network-line {
+    height: 2px;
+    background: var(--bd);
+    position: relative;
+    margin: 8px 0 4px;
+  }
+
+  .packet {
+    position: absolute;
+    top: -8px;
+    left: 0;
+    background: var(--am);
+    color: #000;
+    font-size: .68rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+    transition: left 0.6s ease;
+    display: none;
+  }
+  .packet.reply {
+    background: var(--gr);
+  }
+
+  .net-label {
+    font-size: .65rem;
+    color: var(--mu);
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  .step-card {
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    min-height: 64px;
+  }
+  .step-label {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--mu);
+    margin-bottom: 6px;
+  }
+  .step-desc {
+    font-size: .88rem;
+    color: #cbd5e1;
+    line-height: 1.65;
+  }
+  .highlight { color: var(--am); font-weight: 700; }
+  .highlight-green { color: var(--gr); font-weight: 700; }
+  .highlight-blue { color: var(--bl); font-weight: 700; }
+
+  .cache-box {
+    background: var(--s2);
+    border: 1px solid var(--bd);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .8rem;
+    margin-bottom: 16px;
+  }
+  .cache-title { font-size: .7rem; font-weight: 700; color: var(--mu); margin-bottom: 6px; text-transform: uppercase; }
+  .cache-row { color: var(--mu); transition: color 0.3s; }
+  .cache-row.filled { color: var(--gr); }
+
+  .btns { display: flex; gap: 10px; }
+  button {
+    padding: 9px 18px;
+    border-radius: 7px;
+    font-size: .85rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-next { background: var(--bl); color: #fff; }
+  .btn-next:disabled { opacity: 0.4; cursor: default; }
+  .btn-reset { background: var(--s1); color: var(--mu); border: 1px solid var(--bd); }
+</style>
+</head>
+<body>
+
+<h1>ARP 동작 — IP에서 MAC 주소 획득</h1>
+<p class="sub">노트북(192.168.0.5)이 처음으로 공유기(192.168.0.1)에 패킷을 보내려 할 때</p>
+
+<div class="scene">
+  <div class="devices">
+    <div class="device active" id="dev-laptop">
+      <div class="device-name">노트북</div>
+      <div class="device-ip">192.168.0.5</div>
+      <div class="device-mac">MAC: AA:BB:CC:DD:EE:11</div>
+    </div>
+    <div class="device others" id="dev-phone">
+      <div class="device-name">스마트폰</div>
+      <div class="device-ip">192.168.0.3</div>
+      <div class="device-mac">MAC: CC:DD:EE:FF:00:33</div>
+    </div>
+    <div class="device others" id="dev-tv">
+      <div class="device-name">TV</div>
+      <div class="device-ip">192.168.0.4</div>
+      <div class="device-mac">MAC: DD:EE:FF:00:11:44</div>
+    </div>
+    <div class="device" id="dev-router">
+      <div class="device-name">공유기</div>
+      <div class="device-ip">192.168.0.1</div>
+      <div class="device-mac">MAC: BB:CC:DD:EE:FF:22</div>
+    </div>
+  </div>
+
+  <div class="network-line" id="net-line">
+    <div class="packet" id="pkt-broadcast">브로드캐스트: "192.168.0.1 MAC이 뭐야?" → FF:FF:FF:FF:FF:FF</div>
+    <div class="packet reply" id="pkt-reply">유니캐스트: "나야! MAC = BB:CC:DD:EE:FF:22"</div>
+  </div>
+  <div class="net-label">이더넷 (공유 네트워크 — 같은 네트워크의 모든 기기가 수신)</div>
+</div>
+
+<div class="cache-box">
+  <div class="cache-title">ARP 캐시 (노트북)</div>
+  <div class="cache-row" id="cache-row">192.168.0.1  →  (미등록)</div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="step-label">단계 0 / 4</div>
+  <div class="step-desc" id="step-desc">노트북이 공유기에 패킷을 보내려 한다. 공유기 IP(192.168.0.1)는 알지만, 실제 전송에 필요한 <span class="highlight">MAC 주소를 모른다</span>. ARP 캐시를 확인한다.</div>
+</div>
+
+<div class="btns">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btn-next" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+  const steps = [
+    {
+      label: '단계 1 / 4',
+      desc: '<span class="highlight">ARP Request 전송</span> — 목적지 MAC을 FF:FF:FF:FF:FF:FF(브로드캐스트)로 설정한 프레임을 전송한다. 같은 네트워크의 <span class="highlight">모든 기기가 수신</span>한다.',
+      action: 'broadcast'
+    },
+    {
+      label: '단계 2 / 4',
+      desc: '각 기기가 ARP Request를 받는다. <span class="highlight-green">공유기(192.168.0.1)</span>는 자신의 IP와 일치하므로 응답을 준비한다. 스마트폰과 TV는 IP가 다르므로 <span class="highlight">무시</span>한다.',
+      action: 'check'
+    },
+    {
+      label: '단계 3 / 4',
+      desc: '공유기가 <span class="highlight-green">ARP Reply(유니캐스트)</span>로 응답한다. 목적지를 노트북 MAC으로 직접 설정해서 전송 — 이번엔 브로드캐스트가 아니다.',
+      action: 'reply'
+    },
+    {
+      label: '단계 4 / 4',
+      desc: '노트북이 공유기 MAC(BB:CC:DD:EE:FF:22)을 <span class="highlight-green">ARP 캐시에 저장</span>한다. 이후 같은 IP로 보낼 때는 ARP 없이 캐시를 바로 사용한다.',
+      action: 'cache'
+    }
+  ];
+
+  let current = 0;
+
+  function next() {
+    if (current >= steps.length) return;
+    const s = steps[current];
+    document.getElementById('step-label').textContent = s.label;
+    document.getElementById('step-desc').innerHTML = s.desc;
+    runAction(s.action);
+    current++;
+    if (current >= steps.length) {
+      document.getElementById('btn-next').disabled = true;
+    }
+  }
+
+  function runAction(action) {
+    const broadcast = document.getElementById('pkt-broadcast');
+    const reply = document.getElementById('pkt-reply');
+    const phone = document.getElementById('dev-phone');
+    const tv = document.getElementById('dev-tv');
+    const router = document.getElementById('dev-router');
+    const cache = document.getElementById('cache-row');
+
+    if (action === 'broadcast') {
+      broadcast.style.display = 'block';
+      broadcast.style.left = '2%';
+      setTimeout(() => { broadcast.style.left = '70%'; }, 50);
+      phone.classList.remove('others');
+      tv.classList.remove('others');
+    }
+    if (action === 'check') {
+      phone.classList.add('others');
+      tv.classList.add('others');
+      router.classList.add('target');
+    }
+    if (action === 'reply') {
+      broadcast.style.display = 'none';
+      reply.style.display = 'block';
+      reply.style.left = '70%';
+      setTimeout(() => { reply.style.left = '2%'; }, 50);
+    }
+    if (action === 'cache') {
+      reply.style.display = 'none';
+      cache.textContent = '192.168.0.1  →  BB:CC:DD:EE:FF:22  ✓';
+      cache.classList.add('filled');
+    }
+  }
+
+  function reset() {
+    current = 0;
+    document.getElementById('step-label').textContent = '단계 0 / 4';
+    document.getElementById('step-desc').innerHTML = '노트북이 공유기에 패킷을 보내려 한다. 공유기 IP(192.168.0.1)는 알지만, 실제 전송에 필요한 <span class="highlight">MAC 주소를 모른다</span>. ARP 캐시를 확인한다.';
+    document.getElementById('pkt-broadcast').style.display = 'none';
+    document.getElementById('pkt-reply').style.display = 'none';
+    document.getElementById('dev-phone').classList.add('others');
+    document.getElementById('dev-tv').classList.add('others');
+    document.getElementById('dev-router').classList.remove('target');
+    document.getElementById('cache-row').textContent = '192.168.0.1  →  (미등록)';
+    document.getElementById('cache-row').classList.remove('filled');
+    document.getElementById('btn-next').disabled = false;
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="360" viewBox="0 0 800 360">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }</style>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#8b949e"/>
+    </marker>
+    <marker id="arr-rev" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto">
+      <path d="M8,0 L8,6 L0,3 z" fill="#3fb950"/>
+    </marker>
+  </defs>
+
+  <rect width="800" height="360" fill="#0d1117" rx="12"/>
+  <text x="400" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">NAT 테이블 — 하나의 공인 IP로 여러 기기 구분</text>
+
+  <!-- 내부 기기 3개 (왼쪽) -->
+  <rect x="16" y="52" width="144" height="48" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="88" y="73" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">노트북</text>
+  <text x="88" y="90" text-anchor="middle" fill="#6e7681" font-size="10">192.168.0.2:5000</text>
+
+  <rect x="16" y="120" width="144" height="48" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="88" y="141" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">스마트폰</text>
+  <text x="88" y="158" text-anchor="middle" fill="#6e7681" font-size="10">192.168.0.3:5000</text>
+
+  <rect x="16" y="188" width="144" height="48" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="88" y="209" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700">TV</text>
+  <text x="88" y="226" text-anchor="middle" fill="#6e7681" font-size="10">192.168.0.4:5000</text>
+
+  <!-- NAT 테이블 박스 (가운데, 넉넉하게) -->
+  <rect x="180" y="42" width="390" height="220" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="375" y="64" text-anchor="middle" fill="#e3b341" font-size="12" font-weight="700">공유기 NAT 테이블</text>
+
+  <!-- 구분선 -->
+  <line x1="196" y1="74" x2="554" y2="74" stroke="#30363d" stroke-width="1"/>
+
+  <!-- 컬럼 헤더 -->
+  <text x="268" y="90" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="700">사설 IP : 포트</text>
+  <line x1="370" y1="76" x2="370" y2="250" stroke="#30363d" stroke-width="1"/>
+  <text x="462" y="90" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="700">공인 IP : 포트</text>
+
+  <line x1="196" y1="96" x2="554" y2="96" stroke="#30363d" stroke-width="1"/>
+
+  <!-- 행 1 -->
+  <text x="268" y="116" text-anchor="middle" fill="#58a6ff" font-size="10">192.168.0.2:5000</text>
+  <text x="462" y="116" text-anchor="middle" fill="#e3b341" font-size="10">59.10.20.30:40001</text>
+
+  <line x1="196" y1="126" x2="554" y2="126" stroke="#21262d" stroke-width="1"/>
+
+  <!-- 행 2 -->
+  <text x="268" y="146" text-anchor="middle" fill="#58a6ff" font-size="10">192.168.0.3:5000</text>
+  <text x="462" y="146" text-anchor="middle" fill="#e3b341" font-size="10">59.10.20.30:40002</text>
+
+  <line x1="196" y1="156" x2="554" y2="156" stroke="#21262d" stroke-width="1"/>
+
+  <!-- 행 3 -->
+  <text x="268" y="176" text-anchor="middle" fill="#58a6ff" font-size="10">192.168.0.4:5000</text>
+  <text x="462" y="176" text-anchor="middle" fill="#e3b341" font-size="10">59.10.20.30:40003</text>
+
+  <line x1="196" y1="186" x2="554" y2="186" stroke="#30363d" stroke-width="1"/>
+
+  <!-- 요약 텍스트 -->
+  <text x="375" y="210" text-anchor="middle" fill="#6e7681" font-size="10">세 기기 모두 공인 IP는 동일</text>
+  <text x="375" y="228" text-anchor="middle" fill="#e3b341" font-size="11" font-weight="700">59.10.20.30</text>
+  <text x="375" y="248" text-anchor="middle" fill="#6e7681" font-size="10">포트 번호로 기기를 구분한다</text>
+
+  <!-- 인터넷 서버 (오른쪽) -->
+  <rect x="608" y="120" width="168" height="60" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="692" y="143" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">인터넷 서버</text>
+  <text x="692" y="160" text-anchor="middle" fill="#6e7681" font-size="10">응답 목적지:</text>
+  <text x="692" y="174" text-anchor="middle" fill="#6e7681" font-size="10">59.10.20.30:40002</text>
+
+  <!-- 왼쪽 화살표들 -->
+  <line x1="162" y1="76" x2="178" y2="108" stroke="#58a6ff" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="4,2"/>
+  <line x1="162" y1="144" x2="178" y2="140" stroke="#58a6ff" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="4,2"/>
+  <line x1="162" y1="212" x2="178" y2="172" stroke="#58a6ff" stroke-width="1" marker-end="url(#arr)" stroke-dasharray="4,2"/>
+
+  <!-- 오른쪽 요청 화살표 -->
+  <line x1="572" y1="148" x2="606" y2="148" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="589" y="141" text-anchor="middle" fill="#e3b341" font-size="9">요청</text>
+
+  <!-- 오른쪽 응답 화살표 -->
+  <line x1="606" y1="164" x2="572" y2="164" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-rev)"/>
+  <text x="589" y="178" text-anchor="middle" fill="#3fb950" font-size="9">응답</text>
+
+  <!-- 하단 설명 -->
+  <rect x="16" y="282" width="768" height="60" rx="8" fill="#1a1f26" stroke="#30363d" stroke-width="1"/>
+  <text x="400" y="304" text-anchor="middle" fill="#8b949e" font-size="10">응답이 59.10.20.30:40002로 오면 공유기는 NAT 테이블을 역방향 조회한다.</text>
+  <text x="400" y="322" text-anchor="middle" fill="#8b949e" font-size="10">포트 40002 → 192.168.0.3:5000 (스마트폰)으로 전달. 공인 IP 하나로 수십 기기를 연결하는 원리다.</text>
+  <text x="400" y="337" text-anchor="middle" fill="#6e7681" font-size="9">외부 서버 입장에서 요청자는 항상 59.10.20.30 — 내부 사설 IP는 인터넷에 노출되지 않는다.</text>
+</svg>
