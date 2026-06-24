@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Access Token + Refresh Token 흐름</title>
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981;
+    --rd:#ef4444; --am:#f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--tx);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 20px 16px 32px;
+    max-width: 860px; margin: 0 auto;
+  }
+  h1 { font-size: 1.05rem; color: #cbd5e1; margin-bottom: 3px; }
+  .sub { font-size: .75rem; color: var(--mu); margin-bottom: 14px; }
+
+  .progress-bar { height: 3px; background: var(--bd); border-radius: 2px; margin-bottom: 16px; }
+  .progress-fill { height: 100%; background: var(--bl); border-radius: 2px; transition: width .3s; }
+
+  /* 다이어그램 */
+  .diagram {
+    display: flex; align-items: center;
+    height: 130px; margin-bottom: 14px;
+  }
+  .box {
+    background: var(--s1);
+    border: 1.5px solid var(--bd);
+    border-radius: 10px;
+    padding: 10px 8px;
+    width: 140px; min-width: 120px;
+    text-align: center;
+    transition: border-color .25s, background .25s;
+    flex-shrink: 0;
+  }
+  .box-title {
+    font-size: .7rem; font-weight: 700;
+    color: var(--mu); text-transform: uppercase;
+    letter-spacing: .05em; margin-bottom: 7px;
+  }
+  .box-state { font-size: .72rem; line-height: 1.6; color: #94a3b8; }
+
+  .box.c-bl { border-color: var(--bl); }
+  .box.c-gr { border-color: var(--gr); }
+  .box.c-rd { border-color: var(--rd); background: #1a0f0f; }
+  .box.c-am { border-color: var(--am); }
+
+  /* 화살표 영역 */
+  .arrow-zone {
+    flex: 1; position: relative;
+    display: flex; flex-direction: column;
+    justify-content: center; gap: 10px;
+    padding: 0 4px;
+  }
+  .arrow-item {
+    display: flex; align-items: center;
+    position: relative; color: var(--mu);
+  }
+  .arrow-item.c-bl { color: var(--bl); }
+  .arrow-item.c-gr { color: var(--gr); }
+  .arrow-item.c-rd { color: var(--rd); }
+  .arrow-item.c-am { color: var(--am); }
+
+  .arrow-line {
+    height: 2px; flex: 1;
+    background: currentColor; position: relative;
+  }
+  .arrow-lbl {
+    position: absolute; top: -15px; left: 50%;
+    transform: translateX(-50%);
+    font-size: .62rem; font-weight: 700;
+    white-space: nowrap; color: currentColor;
+  }
+  .arr-r {
+    width: 0; height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid currentColor;
+  }
+  .arr-l {
+    width: 0; height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 8px solid currentColor;
+  }
+
+  /* 설명 카드 */
+  .step-card {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 10px; padding: 14px 18px;
+    min-height: 80px; margin-bottom: 12px;
+  }
+  .step-label {
+    font-size: .67rem; font-weight: 700;
+    text-transform: uppercase; color: var(--mu);
+    letter-spacing: .05em; margin-bottom: 6px;
+  }
+  .step-desc { font-size: .86rem; color: #cbd5e1; line-height: 1.65; }
+
+  .btn-row { display: flex; gap: 10px; }
+  button { padding: 9px 18px; border-radius: 7px; font-size: .85rem; font-weight: 700; cursor: pointer; border: none; }
+  .btn-next { background: var(--bl); color: #fff; }
+  .btn-next:disabled { background: var(--bd); color: var(--mu); cursor: default; }
+  .btn-reset { background: var(--s1); color: var(--mu); border: 1px solid var(--bd); }
+</style>
+</head>
+<body>
+<h1>Access Token + Refresh Token 흐름</h1>
+<p class="sub">로그인부터 Refresh Token Rotation까지</p>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<div class="diagram">
+  <div class="box" id="box-c">
+    <div class="box-title" id="c-title">클라이언트</div>
+    <div class="box-state" id="c-state">—</div>
+  </div>
+  <div class="arrow-zone" id="zone-cs"></div>
+  <div class="box" id="box-s">
+    <div class="box-title">서버</div>
+    <div class="box-state" id="s-state">대기 중</div>
+  </div>
+  <div class="arrow-zone" id="zone-sd"></div>
+  <div class="box" id="box-d">
+    <div class="box-title">DB</div>
+    <div class="box-state" id="d-state">—</div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="card-label">시작</div>
+  <div class="step-desc" id="card-desc">다음 단계 → 를 눌러 시작하세요.</div>
+</div>
+
+<div class="btn-row">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btn-next" onclick="next()">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  {
+    label: '① 로그인 요청',
+    desc: '아이디와 비밀번호를 서버로 전송한다.',
+    cs: [{ dir: 'r', color: 'bl', lbl: 'POST /login (id, pw)' }], sd: [],
+    cTitle: '클라이언트', cState: 'AT: —\nRT: —',
+    sState: '인증 확인 중', dState: '—',
+    cCol: 'bl', sCol: 'bl', dCol: null
+  },
+  {
+    label: '② 서버가 두 가지 토큰 발급',
+    desc: '인증 성공. Access Token(15분)과 Refresh Token(2주)을 발급한다.\nRefresh Token은 서버 DB에도 저장한다.',
+    cs: [{ dir: 'l', color: 'gr', lbl: 'AT + RT 전달' }],
+    sd: [{ dir: 'r', color: 'am', lbl: 'RT 저장' }],
+    cTitle: '클라이언트', cState: 'AT: ✓ (15분)\nRT: ✓ (2주)',
+    sState: '발급 완료', dState: 'RT 저장됨',
+    cCol: 'gr', sCol: 'gr', dCol: 'am'
+  },
+  {
+    label: '③ Access Token으로 API 요청',
+    desc: 'API를 호출할 때마다 Authorization 헤더에 Access Token을 첨부한다.\n서버는 서명을 재계산해 검증한다. DB 조회 없음.',
+    cs: [{ dir: 'r', color: 'bl', lbl: 'AT 첨부 → 200 OK' }], sd: [],
+    cTitle: '클라이언트', cState: 'AT: ✓ (유효)\nRT: ✓',
+    sState: '서명 검증 통과\n(DB 조회 없음)', dState: 'RT 저장됨',
+    cCol: 'gr', sCol: 'gr', dCol: null
+  },
+  {
+    label: '④ Access Token 만료',
+    desc: '15분이 지나면 서버가 401을 반환한다.\nAccess Token은 더 이상 사용할 수 없다.',
+    cs: [{ dir: 'l', color: 'rd', lbl: '401 Unauthorized' }], sd: [],
+    cTitle: '클라이언트', cState: 'AT: ✗ 만료\nRT: ✓',
+    sState: 'AT 만료 감지', dState: 'RT 저장됨',
+    cCol: 'rd', sCol: 'rd', dCol: null
+  },
+  {
+    label: '⑤ Refresh Token으로 재발급 요청',
+    desc: 'Refresh Token(HttpOnly 쿠키)을 서버에 전송해 새 Access Token을 요청한다.\n서버는 DB에서 Refresh Token 유효성을 확인한다.',
+    cs: [{ dir: 'r', color: 'am', lbl: 'RT 전송 (재발급 요청)' }],
+    sd: [{ dir: 'r', color: 'am', lbl: 'RT 유효성 확인' }],
+    cTitle: '클라이언트', cState: 'AT: ✗ 만료\nRT: ✓ (전송 중)',
+    sState: 'RT 검증 중', dState: 'RT 조회 중',
+    cCol: 'am', sCol: 'am', dCol: 'am'
+  },
+  {
+    label: '⑥ 새 토큰 발급 + Rotation',
+    desc: '새 Access Token과 새 Refresh Token을 함께 발급한다.\n이전 Refresh Token은 DB에서 즉시 삭제된다.',
+    cs: [{ dir: 'l', color: 'gr', lbl: '새 AT + 새 RT 전달' }],
+    sd: [{ dir: 'l', color: 'am', lbl: '이전 RT 삭제 + 새 RT 저장' }],
+    cTitle: '클라이언트', cState: 'AT: ✓ (새, 15분)\nRT: ✓ (새, 2주)',
+    sState: '재발급 완료', dState: '새 RT로 교체',
+    cCol: 'gr', sCol: 'gr', dCol: 'am'
+  },
+  {
+    label: '⑦ Refresh Token 탈취 감지',
+    desc: '공격자가 이미 무효화된 이전 Refresh Token으로 재발급을 시도한다.\n서버가 탈취로 판단 — 해당 사용자의 모든 토큰을 즉시 폐기한다.',
+    cs: [{ dir: 'r', color: 'rd', lbl: '이전 RT (이미 무효화됨)' }],
+    sd: [{ dir: 'r', color: 'rd', lbl: '없는 RT → 전체 폐기' }],
+    cTitle: '공격자', cState: '훔친 RT\n사용 시도',
+    sState: '탈취 감지\n→ 전체 세션 폐기', dState: '모든 RT 삭제',
+    cCol: 'rd', sCol: 'rd', dCol: 'rd'
+  }
+];
+
+let cur = -1;
+
+function buildZone(id, arrows) {
+  const el = document.getElementById(id);
+  el.innerHTML = '';
+  arrows.forEach(a => {
+    const item = document.createElement('div');
+    item.className = 'arrow-item c-' + a.color;
+    if (a.dir === 'r') {
+      item.innerHTML = `<div class="arrow-line"><span class="arrow-lbl">${a.lbl}</span></div><div class="arr-r"></div>`;
+    } else {
+      item.innerHTML = `<div class="arr-l"></div><div class="arrow-line"><span class="arrow-lbl">${a.lbl}</span></div>`;
+    }
+    el.appendChild(item);
+  });
+}
+
+function setBox(id, col) {
+  document.getElementById(id).className = 'box' + (col ? ' c-' + col : '');
+}
+
+function render() {
+  const pct = cur < 0 ? 0 : Math.round((cur + 1) / steps.length * 100);
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('btn-next').disabled = cur >= steps.length - 1;
+
+  if (cur < 0) {
+    buildZone('zone-cs', []); buildZone('zone-sd', []);
+    document.getElementById('c-title').textContent = '클라이언트';
+    document.getElementById('c-state').textContent = '—';
+    document.getElementById('s-state').textContent = '대기 중';
+    document.getElementById('d-state').textContent = '—';
+    ['box-c','box-s','box-d'].forEach(id => document.getElementById(id).className = 'box');
+    document.getElementById('card-label').textContent = '시작';
+    document.getElementById('card-desc').textContent = '다음 단계 → 를 눌러 시작하세요.';
+    return;
+  }
+
+  const s = steps[cur];
+  buildZone('zone-cs', s.cs);
+  buildZone('zone-sd', s.sd);
+  document.getElementById('c-title').textContent = s.cTitle;
+  document.getElementById('c-state').innerHTML = s.cState.replace(/\n/g, '<br>');
+  document.getElementById('s-state').innerHTML = s.sState.replace(/\n/g, '<br>');
+  document.getElementById('d-state').innerHTML = s.dState.replace(/\n/g, '<br>');
+  setBox('box-c', s.cCol); setBox('box-s', s.sCol); setBox('box-d', s.dCol);
+  document.getElementById('card-label').textContent = s.label;
+  document.getElementById('card-desc').innerHTML = s.desc.replace(/\n/g, '<br>');
+}
+
+function next() { if (cur < steps.length - 1) { cur++; render(); } }
+function reset() { cur = -1; render(); }
+render();
+</script>
+</body>
+</html>

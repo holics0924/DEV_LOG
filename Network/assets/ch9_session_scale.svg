@@ -1,0 +1,68 @@
+<svg width="720" height="380" viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+      text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }
+    </style>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="720" height="380" rx="12" fill="#0d1117"/>
+
+  <!-- 제목 -->
+  <text x="360" y="32" text-anchor="middle" font-size="12" font-weight="700" fill="#6e7681">세션 스케일아웃 문제</text>
+
+  <!-- 클라이언트 -->
+  <rect x="20" y="60" width="120" height="50" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="81" text-anchor="middle" font-size="12" font-weight="700" fill="#58a6ff">클라이언트</text>
+  <text x="80" y="98" text-anchor="middle" font-size="10" fill="#6e7681">sessionId=x7k2m9</text>
+
+  <!-- 로드밸런서 -->
+  <rect x="280" y="60" width="160" height="50" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="360" y="81" text-anchor="middle" font-size="12" font-weight="700" fill="#8b949e">로드밸런서</text>
+  <text x="360" y="98" text-anchor="middle" font-size="10" fill="#6e7681">요청을 임의로 분산</text>
+
+  <!-- 화살표: 클라이언트 → 로드밸런서 -->
+  <line x1="140" y1="85" x2="278" y2="85" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+
+  <!-- 서버 A -->
+  <rect x="530" y="30" width="160" height="80" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="610" y="52" text-anchor="middle" font-size="12" font-weight="700" fill="#3fb950">서버 A</text>
+  <text x="610" y="70" text-anchor="middle" font-size="10" fill="#6e7681">메모리:</text>
+  <text x="610" y="84" text-anchor="middle" font-size="10" fill="#3fb950">x7k2m9 → alice ✓</text>
+  <text x="610" y="98" text-anchor="middle" font-size="10" fill="#6e7681">(로그인한 서버)</text>
+
+  <!-- 서버 B -->
+  <rect x="530" y="150" width="160" height="80" rx="8" fill="#2a1f1f" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="610" y="172" text-anchor="middle" font-size="12" font-weight="700" fill="#ef4444">서버 B</text>
+  <text x="610" y="190" text-anchor="middle" font-size="10" fill="#6e7681">메모리:</text>
+  <text x="610" y="204" text-anchor="middle" font-size="10" fill="#ef4444">x7k2m9 → ??? ✗</text>
+  <text x="610" y="218" text-anchor="middle" font-size="10" fill="#6e7681">(세션 정보 없음)</text>
+
+  <!-- 로드밸런서 → 서버 A -->
+  <line x1="440" y1="75" x2="528" y2="65" stroke="#3fb950" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-green)"/>
+  <text x="480" y="62" text-anchor="middle" font-size="10" fill="#3fb950">첫 번째 요청</text>
+
+  <!-- 로드밸런서 → 서버 B -->
+  <line x1="440" y1="95" x2="528" y2="175" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-red)"/>
+  <text x="490" y="160" text-anchor="middle" font-size="10" fill="#ef4444">두 번째 요청</text>
+
+  <!-- 결과 박스 -->
+  <rect x="20" y="290" width="680" height="68" rx="8" fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+  <text x="360" y="314" text-anchor="middle" font-size="11" font-weight="700" fill="#e3b341">결과: 서버 B는 sessionId=x7k2m9를 모름 → 로그인 풀림</text>
+  <text x="360" y="334" text-anchor="middle" font-size="10" fill="#6e7681">해결책 ① Sticky Session — 같은 클라이언트를 항상 같은 서버로 (서버 다운 시 세션 소실)</text>
+  <text x="360" y="350" text-anchor="middle" font-size="10" fill="#6e7681">해결책 ② 공유 세션 저장소(Redis) — 모든 서버가 같은 저장소를 바라봄</text>
+
+  <!-- 화살표 마커 -->
+  <defs>
+    <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arr-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ef4444"/>
+    </marker>
+  </defs>
+</svg>
