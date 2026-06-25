@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preflight 요청 흐름</title>
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --s2:#162032; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981;
+    --rd:#ef4444; --am:#f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--tx);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 24px 16px 48px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 4px; }
+  .sub { font-size: .78rem; color: var(--mu); margin-bottom: 16px; }
+
+  /* ── 시퀀스 다이어그램 ── */
+  .seq-wrap {
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 20px 16px 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  svg#seq { display: block; width: 100%; }
+
+  .seq-actor { font-size: 11px; font-weight: 700; }
+  .seq-label { font-size: 10px; }
+  .seq-note  { font-size: 9.5px; }
+  .lifeline  { stroke-dasharray: 4 3; }
+
+  /* arrows / notes start hidden */
+  .seq-item { opacity: 0; transition: opacity .35s; }
+  .seq-item.show { opacity: 1; }
+
+  /* ── 상세 카드 ── */
+  .detail-card {
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 14px 18px;
+    min-height: 88px;
+    margin-bottom: 14px;
+    transition: border-color .3s;
+  }
+  .detail-label {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase;
+    color: var(--mu); margin-bottom: 6px; letter-spacing: .04em;
+  }
+  .detail-body {
+    font-size: .85rem; color: #cbd5e1; line-height: 1.7;
+    font-family: 'Consolas', 'Courier New', monospace;
+    white-space: pre-wrap;
+  }
+  .detail-body .hi-blue  { color: var(--bl); }
+  .detail-body .hi-green { color: var(--gr); }
+  .detail-body .hi-amber { color: var(--am); }
+  .detail-body .hi-gray  { color: var(--mu); }
+  .detail-body .hi-red   { color: var(--rd); }
+
+  /* ── 컨트롤 ── */
+  .controls { display: flex; gap: 10px; align-items: center; }
+  .btn-next {
+    background: var(--bl); color: #fff; border: none;
+    padding: 9px 20px; border-radius: 7px;
+    font-size: .85rem; font-weight: 700; cursor: pointer;
+  }
+  .btn-next:disabled { opacity: .35; cursor: default; }
+  .btn-reset {
+    background: var(--s1); color: var(--mu);
+    border: 1px solid var(--bd); padding: 9px 16px;
+    border-radius: 7px; font-size: .85rem; font-weight: 700; cursor: pointer;
+  }
+  .progress { font-size: .8rem; color: var(--mu); }
+</style>
+</head>
+<body>
+<h1>Preflight 요청 흐름</h1>
+<p class="sub">PATCH + application/json → 브라우저가 서버에 먼저 묻고 실제 요청을 보내는 과정</p>
+
+<!-- 시퀀스 다이어그램 -->
+<div class="seq-wrap">
+<svg id="seq" viewBox="0 0 760 310" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="m-blue" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5 Z" fill="#3b82f6"/>
+    </marker>
+    <marker id="m-green" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5 Z" fill="#10b981"/>
+    </marker>
+    <marker id="m-gray" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5 Z" fill="#64748b"/>
+    </marker>
+    <marker id="m-amber" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L7,2.5 L0,5 Z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+
+  <!-- 액터 박스 -->
+  <!-- JS -->
+  <rect x="10" y="10" width="100" height="36" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.2"/>
+  <text x="60" y="33" text-anchor="middle" fill="#94a3b8" class="seq-actor">JS 코드</text>
+  <!-- Browser -->
+  <rect x="290" y="10" width="120" height="36" rx="6" fill="#162032" stroke="#3b82f6" stroke-width="1.2"/>
+  <text x="350" y="33" text-anchor="middle" fill="#3b82f6" class="seq-actor">브라우저</text>
+  <!-- Server -->
+  <rect x="610" y="10" width="120" height="36" rx="6" fill="#0f2a1a" stroke="#10b981" stroke-width="1.2"/>
+  <text x="670" y="33" text-anchor="middle" fill="#10b981" class="seq-actor">서버</text>
+
+  <!-- 라이프라인 -->
+  <line x1="60"  y1="46" x2="60"  y2="300" stroke="#334155" stroke-width="1" class="lifeline"/>
+  <line x1="350" y1="46" x2="350" y2="300" stroke="#3b82f6" stroke-width="1" class="lifeline" stroke-opacity=".4"/>
+  <line x1="670" y1="46" x2="670" y2="300" stroke="#10b981" stroke-width="1" class="lifeline" stroke-opacity=".4"/>
+
+  <!-- ── Step 1: JS → Browser (fetch 호출) ── -->
+  <g id="s1" class="seq-item">
+    <line x1="62" y1="78" x2="340" y2="78" stroke="#f59e0b" stroke-width="1.4" marker-end="url(#m-amber)"/>
+    <text x="198" y="70" text-anchor="middle" fill="#f59e0b" class="seq-label">fetch("api.myapp.com", { method: "PATCH", ... })</text>
+  </g>
+
+  <!-- ── Step 2: 브라우저 분석 (자기 자신 노트) ── -->
+  <g id="s2" class="seq-item">
+    <rect x="190" y="96" width="320" height="38" rx="5" fill="#1e293b" stroke="#f59e0b" stroke-width="1.2"/>
+    <text x="350" y="112" text-anchor="middle" fill="#f59e0b" class="seq-label">PATCH + application/json</text>
+    <text x="350" y="127" text-anchor="middle" fill="#64748b" class="seq-note">→ 단순 요청 조건 불충족 → 프리플라이트 필요</text>
+  </g>
+
+  <!-- ── Step 3: Browser → Server OPTIONS ── -->
+  <g id="s3" class="seq-item">
+    <line x1="352" y1="158" x2="660" y2="158" stroke="#64748b" stroke-width="1.4" marker-end="url(#m-gray)"/>
+    <text x="506" y="150" text-anchor="middle" fill="#64748b" class="seq-label">OPTIONS /data   (사전 확인)</text>
+    <text x="506" y="170" text-anchor="middle" fill="#475569" class="seq-note">Access-Control-Request-Method: PATCH</text>
+  </g>
+
+  <!-- ── Step 4: Server → Browser 허락 ── -->
+  <g id="s4" class="seq-item">
+    <line x1="660" y1="198" x2="362" y2="198" stroke="#10b981" stroke-width="1.4" marker-end="url(#m-green)"/>
+    <text x="506" y="190" text-anchor="middle" fill="#10b981" class="seq-label">200 OK  —  허락</text>
+    <text x="506" y="210" text-anchor="middle" fill="#475569" class="seq-note">Access-Control-Allow-Origin / Allow-Methods</text>
+  </g>
+
+  <!-- ── Step 5: Browser → Server 실제 PATCH ── -->
+  <g id="s5" class="seq-item">
+    <line x1="352" y1="240" x2="660" y2="240" stroke="#3b82f6" stroke-width="1.4" marker-end="url(#m-blue)"/>
+    <text x="506" y="232" text-anchor="middle" fill="#3b82f6" class="seq-label">PATCH /data   (실제 요청)</text>
+    <text x="506" y="252" text-anchor="middle" fill="#475569" class="seq-note">{ "name": "alice" }</text>
+  </g>
+
+  <!-- ── Step 6: Server → Browser 응답 ── -->
+  <g id="s6" class="seq-item">
+    <line x1="660" y1="280" x2="362" y2="280" stroke="#10b981" stroke-width="1.4" marker-end="url(#m-green)"/>
+    <text x="506" y="272" text-anchor="middle" fill="#10b981" class="seq-label">200 OK + 데이터</text>
+  </g>
+
+  <!-- ── Step 7: Browser → JS 전달 ── -->
+  <g id="s7" class="seq-item">
+    <line x1="340" y1="295" x2="70" y2="295" stroke="#10b981" stroke-width="1.4" marker-end="url(#m-green)"/>
+    <text x="198" y="287" text-anchor="middle" fill="#10b981" class="seq-label">JS에 응답 전달 ✓</text>
+  </g>
+</svg>
+</div>
+
+<!-- 상세 카드 -->
+<div class="detail-card" id="detail">
+  <div class="detail-label" id="dlabel">—</div>
+  <div class="detail-body" id="dbody">다음 단계 → 버튼을 눌러 시작하세요.</div>
+</div>
+
+<!-- 컨트롤 -->
+<div class="controls">
+  <button class="btn-next" id="btnNext" onclick="next()">다음 단계 →</button>
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <span class="progress" id="prog">0 / 7</span>
+</div>
+
+<script>
+const steps = [
+  {
+    label: "Step 1 — fetch 호출",
+    body: `<span class="hi-amber">fetch</span>(<span class="hi-green">"https://api.myapp.com/data"</span>, {
+  method: <span class="hi-green">"PATCH"</span>,
+  headers: { <span class="hi-green">"Content-Type"</span>: <span class="hi-green">"application/json"</span> },
+  body: JSON.stringify({ name: <span class="hi-green">"alice"</span> })
+})
+
+JavaScript가 크로스 오리진 요청을 시도합니다.`,
+    border: "#f59e0b"
+  },
+  {
+    label: "Step 2 — 브라우저 분석: 프리플라이트 필요",
+    body: `메서드:       <span class="hi-amber">PATCH</span>  →  단순 요청 허용 목록(GET/HEAD/POST) 아님
+Content-Type: <span class="hi-amber">application/json</span>  →  허용 목록 아님
+
+<span class="hi-red">→ 두 조건 모두 불충족. 실제 요청 전에 서버 허락을 먼저 확인합니다.</span>`,
+    border: "#f59e0b"
+  },
+  {
+    label: "Step 3 — OPTIONS 요청 (사전 확인)",
+    body: `<span class="hi-gray">OPTIONS /data HTTP/1.1
+Host: api.myapp.com
+Origin: https://myapp.com
+Access-Control-Request-Method: PATCH
+Access-Control-Request-Headers: Content-Type</span>
+
+브라우저가 서버에 묻습니다:
+<span class="hi-amber">"myapp.com에서 PATCH를 써도 되나요?"</span>`,
+    border: "#64748b"
+  },
+  {
+    label: "Step 4 — 서버 허락 응답",
+    body: `<span class="hi-green">HTTP/1.1 200 OK
+Access-Control-Allow-Origin: https://myapp.com
+Access-Control-Allow-Methods: GET, POST, PATCH, DELETE
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Max-Age: 86400</span>
+
+<span class="hi-gray">Max-Age: 이 응답을 86400초(1일) 캐시합니다.
+같은 요청이 반복될 때 OPTIONS를 다시 보내지 않아도 됩니다.</span>`,
+    border: "#10b981"
+  },
+  {
+    label: "Step 5 — 실제 PATCH 요청 전송",
+    body: `<span class="hi-blue">PATCH /data HTTP/1.1
+Host: api.myapp.com
+Origin: https://myapp.com
+Content-Type: application/json
+
+{ "name": "alice" }</span>
+
+브라우저가 허락을 확인했습니다. 이제 실제 요청을 보냅니다.`,
+    border: "#3b82f6"
+  },
+  {
+    label: "Step 6 — 서버 응답",
+    body: `<span class="hi-green">HTTP/1.1 200 OK
+Access-Control-Allow-Origin: https://myapp.com
+Content-Type: application/json
+
+{ "id": 1, "name": "alice" }</span>`,
+    border: "#10b981"
+  },
+  {
+    label: "Step 7 — JS에 응답 전달 완료",
+    body: `브라우저가 응답 헤더를 확인합니다.
+<span class="hi-green">Allow-Origin: myapp.com  ✓</span>
+
+JavaScript에 응답이 전달됩니다. <span class="hi-green">완료.</span>
+
+<span class="hi-gray">전체 왕복 횟수: OPTIONS 1번 + PATCH 1번 = 총 2 RTT
+(Max-Age 캐시 이후에는 PATCH 1 RTT만 소요)</span>`,
+    border: "#10b981"
+  }
+];
+
+let cur = 0;
+
+function render() {
+  for (let i = 1; i <= 7; i++) {
+    const el = document.getElementById('s' + i);
+    if (i <= cur) el.classList.add('show');
+    else el.classList.remove('show');
+  }
+  if (cur > 0) {
+    const s = steps[cur - 1];
+    document.getElementById('dlabel').textContent = s.label;
+    document.getElementById('dbody').innerHTML = s.body;
+    document.querySelector('.detail-card').style.borderColor = s.border;
+  } else {
+    document.getElementById('dlabel').textContent = '—';
+    document.getElementById('dbody').innerHTML = '다음 단계 → 버튼을 눌러 시작하세요.';
+    document.querySelector('.detail-card').style.borderColor = 'var(--bd)';
+  }
+  document.getElementById('prog').textContent = cur + ' / 7';
+  document.getElementById('btnNext').disabled = cur >= 7;
+}
+
+function next() { if (cur < 7) { cur++; render(); } }
+function reset() { cur = 0; render(); }
+
+render();
+</script>
+</body>
+</html>

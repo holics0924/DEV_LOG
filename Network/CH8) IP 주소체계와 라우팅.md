@@ -1,3 +1,8 @@
+---
+layout: default
+title: "CH8) IP 주소체계와 라우팅"
+permalink: /Network/ch8-ip-routing/
+---
 # IP 주소체계와 라우팅
 
 인터넷에서 메시지를 보내려면 두 가지가 필요하다. 상대방이 어디 있는지 알아야 하고, 거기까지 어떻게 가는지 알아야 한다. IP 주소체계는 전자를, 라우팅은 후자를 담당한다.
@@ -278,7 +283,7 @@ ARP Request는 브로드캐스트이기 때문에 같은 네트워크 밖으로 
 
 IP 목적지와 MAC 목적지가 다른 것은 이 때문이다.
 
-<iframe src="./assets/demo_arp.html" width="100%" height="420px" style="border:none;border-radius:12px;display:block"></iframe>
+<iframe src="/DEV_LOG/Network/assets/demo_arp.html" width="100%" height="420px" style="border:none;border-radius:12px;display:block"></iframe>
 
 <br><br>
 
@@ -317,7 +322,7 @@ NAT가 편리하지만 근본적인 제약이 하나 있다. 외부에서 먼저
 
 NAT 덕분에 IPv4가 지금까지 버틸 수 있었지만, NAT가 초래하는 복잡성이 IPv6 전환을 오히려 늦추는 역설적인 상황이 됐다.
 
-<iframe src="./assets/demo_nat.html" width="100%" height="480px" style="border:none;border-radius:12px;display:block"></iframe>
+<iframe src="/DEV_LOG/Network/assets/demo_nat.html" width="100%" height="480px" style="border:none;border-radius:12px;display:block"></iframe>
 
 <br><br>
 

@@ -64,7 +64,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#0d2a1a;color:#3fb950">NET</span>
         Network
       </span>
-      <span class="subject-count">8 chapters</span>
+      <span class="subject-count">10 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/Network/ch1-osi-tcpip/" class="chapter-link">
@@ -90,6 +90,12 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/Network/ch8-ip-routing/" class="chapter-link">
         <span class="ch-num">CH8</span>IP 주소체계와 라우팅
+      </a>
+      <a href="/DEV_LOG/Network/ch9-cookie-session-jwt/" class="chapter-link">
+        <span class="ch-num">CH9</span>쿠키, 세션, JWT
+      </a>
+      <a href="/DEV_LOG/Network/ch10-cors/" class="chapter-link">
+        <span class="ch-num">CH10</span>CORS와 동일 출처 정책
       </a>
     </div>
   </div>

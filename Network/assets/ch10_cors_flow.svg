@@ -1,0 +1,101 @@
+<svg width="720" height="390" viewBox="0 0 720 390" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+      text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }
+    </style>
+    <marker id="arr-r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arr-l" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#3fb950"/>
+    </marker>
+    <marker id="arr-opt" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="390" rx="12" fill="#0d1117"/>
+
+  <!-- Divider -->
+  <line x1="360" y1="36" x2="360" y2="370" stroke="#21262d" stroke-width="1.5"/>
+
+  <!-- ── LEFT: 단순 요청 ── -->
+  <text x="178" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">단순 요청 (Simple Request)</text>
+
+  <!-- Client box (left) -->
+  <rect x="20" y="40" width="106" height="36" rx="8" fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+  <text x="73" y="62" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">클라이언트</text>
+
+  <!-- Server box (left col) -->
+  <rect x="214" y="40" width="106" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="267" y="62" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700">서버</text>
+
+  <!-- Vertical lines -->
+  <line x1="73" y1="76" x2="73" y2="310" stroke="#30363d" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="267" y1="76" x2="267" y2="310" stroke="#30363d" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Arrow 1 → GET /data -->
+  <line x1="75" y1="118" x2="264" y2="118" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr-r)"/>
+  <text x="169" y="110" text-anchor="middle" fill="#58a6ff" font-size="10">GET /data</text>
+  <text x="169" y="132" text-anchor="middle" fill="#6e7681" font-size="9">Origin: myapp.com</text>
+
+  <!-- Arrow 2 ← 200 OK -->
+  <line x1="264" y1="188" x2="75" y2="188" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-l)"/>
+  <text x="169" y="180" text-anchor="middle" fill="#3fb950" font-size="10">200 OK</text>
+  <text x="169" y="198" text-anchor="middle" fill="#6e7681" font-size="9">Access-Control-Allow-Origin: myapp.com</text>
+
+  <!-- Result box (left) -->
+  <rect x="26" y="230" width="308" height="44" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="180" y="248" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">브라우저: 허락됨</text>
+  <text x="180" y="264" text-anchor="middle" fill="#6e7681" font-size="10">JS에 응답 전달 ✓</text>
+
+  <!-- Condition note -->
+  <rect x="26" y="290" width="308" height="60" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="180" y="308" text-anchor="middle" fill="#6e7681" font-size="10" font-weight="700">단순 요청 조건</text>
+  <text x="180" y="325" text-anchor="middle" fill="#6e7681" font-size="10">메서드: GET, HEAD, POST</text>
+  <text x="180" y="341" text-anchor="middle" fill="#6e7681" font-size="10">Content-Type: text/plain, form-data, urlencoded</text>
+
+  <!-- ── RIGHT: 프리플라이트 ── -->
+  <text x="542" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">프리플라이트 (Preflight)</text>
+
+  <!-- Client box (right) -->
+  <rect x="380" y="40" width="106" height="36" rx="8" fill="#21262d" stroke="#30363d" stroke-width="1.5"/>
+  <text x="433" y="62" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">클라이언트</text>
+
+  <!-- Server box (right col) -->
+  <rect x="574" y="40" width="126" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="637" y="62" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700">서버</text>
+
+  <!-- Vertical lines -->
+  <line x1="433" y1="76" x2="433" y2="310" stroke="#30363d" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="637" y1="76" x2="637" y2="310" stroke="#30363d" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Arrow 1 → OPTIONS (gray, preflight) -->
+  <line x1="435" y1="104" x2="634" y2="104" stroke="#8b949e" stroke-width="1.5" marker-end="url(#arr-opt)"/>
+  <text x="534" y="96" text-anchor="middle" fill="#8b949e" font-size="10">OPTIONS /data</text>
+  <text x="534" y="116" text-anchor="middle" fill="#6e7681" font-size="9">사전 확인</text>
+
+  <!-- Arrow 2 ← 허락 응답 (green) -->
+  <line x1="634" y1="152" x2="435" y2="152" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-l)"/>
+  <text x="534" y="144" text-anchor="middle" fill="#3fb950" font-size="10">200 OK</text>
+  <text x="534" y="164" text-anchor="middle" fill="#6e7681" font-size="9">Allow-Origin / Allow-Methods</text>
+
+  <!-- Arrow 3 → PATCH (blue, actual) -->
+  <line x1="435" y1="200" x2="634" y2="200" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr-r)"/>
+  <text x="534" y="192" text-anchor="middle" fill="#58a6ff" font-size="10">PATCH /data</text>
+  <text x="534" y="212" text-anchor="middle" fill="#6e7681" font-size="9">실제 요청</text>
+
+  <!-- Arrow 4 ← 데이터 응답 (green) -->
+  <line x1="634" y1="248" x2="435" y2="248" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-l)"/>
+  <text x="534" y="240" text-anchor="middle" fill="#3fb950" font-size="10">200 OK + 데이터</text>
+  <text x="534" y="260" text-anchor="middle" fill="#6e7681" font-size="9">응답 전달</text>
+
+  <!-- Result box (right) -->
+  <rect x="386" y="280" width="308" height="44" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="540" y="298" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700">왕복 2번 — JS에 응답 전달 ✓</text>
+  <text x="540" y="314" text-anchor="middle" fill="#6e7681" font-size="10">PATCH, DELETE, PUT, application/json 등</text>
+
+  <!-- Bottom note -->
+  <text x="360" y="376" text-anchor="middle" fill="#6e7681" font-size="10">프리플라이트는 서버 상태를 바꾸는 요청을 보내기 전에 허락을 먼저 확인한다</text>
+</svg>
