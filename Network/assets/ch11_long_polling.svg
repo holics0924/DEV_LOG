@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="360" viewBox="0 0 560 360">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+    <marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#6e7681"/>
+    </marker>
+    <marker id="ar-b" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#58a6ff"/>
+    </marker>
+  </defs>
+
+  <rect width="560" height="360" fill="#0d1117" rx="12"/>
+
+  <!-- Client -->
+  <rect x="40" y="20" width="100" height="30" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="8"/>
+  <text x="90" y="40" text-anchor="middle" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">클라이언트</text>
+
+  <!-- Server -->
+  <rect x="420" y="20" width="100" height="30" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="8"/>
+  <text x="470" y="40" text-anchor="middle" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#3fb950">서버</text>
+
+  <!-- Timeline -->
+  <line x1="90" y1="50" x2="90" y2="315" stroke="#21262d" stroke-width="1.5" stroke-dasharray="5,4"/>
+  <line x1="470" y1="50" x2="470" y2="315" stroke="#21262d" stroke-width="1.5" stroke-dasharray="5,4"/>
+
+  <!-- Request -->
+  <line x1="90" y1="80" x2="462" y2="80" stroke="#58a6ff" stroke-width="2" marker-end="url(#ar-b)"/>
+  <text x="280" y="76" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="#58a6ff">GET /api/messages  (요청 전송)</text>
+
+  <!-- Server holding block -->
+  <rect x="452" y="90" width="36" height="140" fill="#1a3a27" stroke="#3fb950" stroke-width="1" rx="4"/>
+  <text x="470" y="115" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">대</text>
+  <text x="470" y="130" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">기</text>
+  <text x="470" y="148" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">중</text>
+  <text x="470" y="168" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">⋯</text>
+  <text x="470" y="188" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">⋯</text>
+  <text x="470" y="208" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">⋯</text>
+
+  <!-- Waiting label -->
+  <text x="310" y="165" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#30363d">서버가 데이터를 보유하고 응답 대기</text>
+  <text x="310" y="180" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#30363d">(연결은 살아있음)</text>
+
+  <!-- Event marker -->
+  <rect x="452" y="222" width="36" height="16" fill="#2a2210" stroke="#e3b341" stroke-width="1" rx="3"/>
+  <text x="470" y="234" text-anchor="middle" font-family="Nunito,sans-serif" font-size="8" fill="#e3b341">이벤트!</text>
+
+  <!-- Response with data -->
+  <line x1="470" y1="248" x2="98" y2="248" stroke="#58a6ff" stroke-width="2" marker-end="url(#ar-b)"/>
+  <text x="280" y="244" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="#58a6ff">200 OK  { data: [...] }  — 즉시 응답</text>
+
+  <!-- Immediate reconnect -->
+  <line x1="90" y1="272" x2="462" y2="272" stroke="#6e7681" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="280" y="268" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" fill="#6e7681">즉시 재연결 →</text>
+
+  <!-- Bottom note -->
+  <rect x="60" y="302" width="440" height="22" fill="#1c1c1c" rx="4"/>
+  <text x="280" y="317" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">이벤트 즉시 전달  ·  연결 유지로 서버 자원 점유  ·  프록시 타임아웃 위험</text>
+</svg>

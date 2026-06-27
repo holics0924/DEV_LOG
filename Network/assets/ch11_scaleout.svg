@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="430" viewBox="0 0 720 430">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+    <marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#6e7681"/>
+    </marker>
+    <marker id="ar-b" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="ar-g" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="ar-r" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#f85149"/>
+    </marker>
+    <marker id="ar-y" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#e3b341"/>
+    </marker>
+  </defs>
+
+  <rect width="720" height="430" fill="#0d1117" rx="12"/>
+
+  <!-- ===== LEFT PANEL: PROBLEM ===== -->
+  <rect x="15" y="15" width="335" height="400" fill="#161b22" rx="8" stroke="#f85149" stroke-width="1"/>
+  <text x="182" y="42" text-anchor="middle" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#f85149">문제 — 연결이 서버에 묶임</text>
+
+  <!-- Load Balancer -->
+  <rect x="117" y="58" width="130" height="28" fill="#21262d" stroke="#8b949e" stroke-width="1.5" rx="6"/>
+  <text x="182" y="77" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#8b949e">로드밸런서</text>
+
+  <!-- LB → Server arrows -->
+  <line x1="152" y1="86" x2="112" y2="118" stroke="#6e7681" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="212" y1="86" x2="252" y2="118" stroke="#6e7681" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- Server 1 -->
+  <rect x="55" y="118" width="110" height="28" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="6"/>
+  <text x="110" y="137" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#58a6ff">서버 1</text>
+
+  <!-- Server 2 -->
+  <rect x="199" y="118" width="110" height="28" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="6"/>
+  <text x="254" y="137" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#58a6ff">서버 2</text>
+
+  <!-- Client A connected to Server 1 -->
+  <line x1="110" y1="146" x2="80" y2="190" stroke="#3fb950" stroke-width="2" stroke-dasharray="none"/>
+  <rect x="40" y="190" width="80" height="26" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="80" y="207" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="#3fb950">클라이언트 A</text>
+  <text x="60" y="178" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">WebSocket ✓</text>
+
+  <!-- Client B connected to Server 2 -->
+  <line x1="254" y1="146" x2="284" y2="190" stroke="#3fb950" stroke-width="2"/>
+  <rect x="244" y="190" width="80" height="26" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="284" y="207" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="#3fb950">클라이언트 B</text>
+  <text x="264" y="178" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">WebSocket ✓</text>
+
+  <!-- Problem: message from event goes to Server 2 but Client A is on Server 1 -->
+  <rect x="40" y="248" width="280" height="22" fill="#2a1010" stroke="#f85149" stroke-width="1" rx="4"/>
+  <text x="180" y="263" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#f85149">"클라이언트 A에게 알림 전송" 이벤트 발생</text>
+
+  <!-- Arrow going to wrong server -->
+  <line x1="180" y1="270" x2="254" y2="290" stroke="#f85149" stroke-width="1.5" marker-end="url(#ar-r)"/>
+  <text x="240" y="285" font-family="Nunito,sans-serif" font-size="9" fill="#f85149">서버 2로 라우팅</text>
+
+  <rect x="172" y="298" width="160" height="36" fill="#1a0a0a" stroke="#f85149" stroke-width="1" rx="6"/>
+  <text x="252" y="314" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#f85149">서버 2에 클라이언트 A 소켓 없음</text>
+  <text x="252" y="328" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="#f85149">전달 불가 ✗</text>
+
+  <!-- Bottom note -->
+  <text x="182" y="378" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">WebSocket 연결은 특정 서버의 소켓에 묶여 있음</text>
+  <text x="182" y="394" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">로드밸런서가 다른 서버로 보내면 소켓을 찾을 수 없음</text>
+
+
+  <!-- ===== RIGHT PANEL: SOLUTION ===== -->
+  <rect x="370" y="15" width="335" height="400" fill="#161b22" rx="8" stroke="#3fb950" stroke-width="1"/>
+  <text x="537" y="42" text-anchor="middle" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#3fb950">해결 — Redis Pub/Sub</text>
+
+  <!-- Load Balancer -->
+  <rect x="472" y="58" width="130" height="28" fill="#21262d" stroke="#8b949e" stroke-width="1.5" rx="6"/>
+  <text x="537" y="77" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#8b949e">로드밸런서</text>
+
+  <!-- LB → Servers -->
+  <line x1="507" y1="86" x2="467" y2="118" stroke="#6e7681" stroke-width="1.5" marker-end="url(#ar)"/>
+  <line x1="567" y1="86" x2="607" y2="118" stroke="#6e7681" stroke-width="1.5" marker-end="url(#ar)"/>
+
+  <!-- Server 1 -->
+  <rect x="410" y="118" width="110" height="28" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="6"/>
+  <text x="465" y="137" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#58a6ff">서버 1</text>
+
+  <!-- Server 2 -->
+  <rect x="554" y="118" width="110" height="28" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="6"/>
+  <text x="609" y="137" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#58a6ff">서버 2</text>
+
+  <!-- Redis -->
+  <rect x="487" y="215" width="100" height="30" fill="#2a1f0a" stroke="#e3b341" stroke-width="1.5" rx="6"/>
+  <text x="537" y="234" text-anchor="middle" font-family="Nunito,sans-serif" font-size="11" font-weight="700" fill="#e3b341">Redis</text>
+
+  <!-- Server 1 → Redis (publish) -->
+  <line x1="465" y1="146" x2="510" y2="215" stroke="#e3b341" stroke-width="1.5" marker-end="url(#ar-y)"/>
+  <text x="468" y="192" font-family="Nunito,sans-serif" font-size="8" fill="#e3b341">발행</text>
+
+  <!-- Redis → Server 1 (subscribe delivery) -->
+  <line x1="500" y1="215" x2="458" y2="150" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar-g)"/>
+
+  <!-- Redis → Server 2 (subscribe delivery) -->
+  <line x1="574" y1="215" x2="616" y2="150" stroke="#3fb950" stroke-width="1.5" marker-end="url(#ar-g)"/>
+  <text x="608" y="192" font-family="Nunito,sans-serif" font-size="8" fill="#3fb950">구독 전달</text>
+
+  <!-- Client A -->
+  <line x1="465" y1="146" x2="435" y2="190" stroke="#3fb950" stroke-width="1.5"/>
+  <rect x="395" y="190" width="80" height="26" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="435" y="207" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="#3fb950">클라이언트 A</text>
+
+  <!-- Client B -->
+  <line x1="609" y1="146" x2="639" y2="190" stroke="#3fb950" stroke-width="1.5"/>
+  <rect x="599" y="190" width="80" height="26" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="639" y="207" text-anchor="middle" font-family="Nunito,sans-serif" font-size="10" font-weight="700" fill="#3fb950">클라이언트 B</text>
+
+  <!-- Flow description -->
+  <rect x="385" y="262" width="310" height="90" fill="#0d1f0f" stroke="#3fb950" stroke-width="1" rx="6"/>
+  <text x="540" y="280" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" font-weight="700" fill="#3fb950">메시지 흐름</text>
+  <text x="540" y="296" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">① 이벤트 → 서버 1 수신</text>
+  <text x="540" y="311" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">② 서버 1 → Redis "room-42" 채널 발행</text>
+  <text x="540" y="326" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">③ Redis → 구독 중인 서버 1, 2 모두 전달</text>
+  <text x="540" y="341" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">④ 각 서버가 자신에게 연결된 클라이언트에 전송</text>
+
+  <!-- Bottom note -->
+  <text x="537" y="378" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#3fb950">서버들이 서로 직접 통신하지 않고 Redis가 중계</text>
+  <text x="537" y="394" text-anchor="middle" font-family="Nunito,sans-serif" font-size="9" fill="#6e7681">서버 수가 늘어도 Redis 하나만 바라보면 됨</text>
+</svg>

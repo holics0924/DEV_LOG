@@ -64,7 +64,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#0d2a1a;color:#3fb950">NET</span>
         Network
       </span>
-      <span class="subject-count">10 chapters</span>
+      <span class="subject-count">11 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/Network/ch1-osi-tcpip/" class="chapter-link">
@@ -96,6 +96,9 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/Network/ch10-cors/" class="chapter-link">
         <span class="ch-num">CH10</span>CORS와 동일 출처 정책
+      </a>
+      <a href="/DEV_LOG/Network/ch11-websocket/" class="chapter-link">
+        <span class="ch-num">CH11</span>웹소켓과 실시간 통신
       </a>
     </div>
   </div>
