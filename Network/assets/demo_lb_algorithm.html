@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로드밸런서 알고리즘</title>
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --s2:#162032; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981;
+    --rd:#ef4444; --am:#f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--tx);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    max-width: 860px; margin: 0 auto; padding: 24px 16px 48px;
+  }
+  h1 { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 4px; }
+  .sub { font-size: .78rem; color: var(--mu); margin-bottom: 20px; }
+
+  /* Algo selector */
+  .algo-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .algo-btn {
+    padding: 7px 14px; border-radius: 7px;
+    border: 1px solid var(--bd); background: var(--s1);
+    color: var(--mu); font-size: .82rem; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+  }
+  .algo-btn.active { background: var(--bl); color: #fff; border-color: var(--bl); }
+  .algo-btn:hover:not(.active) { border-color: #58a6ff; color: #cbd5e1; }
+
+  /* Algo description */
+  .algo-desc {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+    font-size: .8rem; color: #94a3b8; line-height: 1.6;
+  }
+
+  /* IP Hash presets */
+  .ip-section {
+    display: none; background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;
+  }
+  .ip-section.show { display: block; }
+  .ip-lbl { font-size: .72rem; color: var(--mu); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+  .ip-presets { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .ip-preset-btn {
+    padding: 6px 12px; border-radius: 6px;
+    border: 1px solid var(--bd); background: var(--s1);
+    color: #94a3b8; font-size: .78rem; font-family: monospace;
+    cursor: pointer; transition: all .15s; text-align: left;
+  }
+  .ip-preset-btn:hover { border-color: var(--am); color: var(--am); }
+  .ip-preset-btn .hint { font-size: .65rem; color: var(--mu); display: block; }
+  .ip-custom-row { display: flex; align-items: center; gap: 8px; }
+  .ip-custom-lbl { font-size: .75rem; color: var(--mu); white-space: nowrap; }
+  .ip-input {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 6px; padding: 5px 9px; outline: none;
+    color: var(--am); font-size: .82rem; font-family: monospace; width: 150px;
+  }
+  .ip-input:focus { border-color: var(--am); }
+  .ip-preview { font-size: .75rem; color: var(--mu); }
+  .ip-preview span { color: var(--gr); font-weight: 700; }
+
+  /* Controls row */
+  .ctrl-row { display: flex; gap: 8px; margin-bottom: 18px; align-items: center; }
+  .send-btn {
+    padding: 9px 20px; border-radius: 7px;
+    background: var(--bl); color: #fff; border: none;
+    font-size: .85rem; font-weight: 700; cursor: pointer;
+  }
+  .send-btn:active { opacity: .8; }
+  .reset-btn {
+    padding: 9px 14px; border-radius: 7px;
+    background: var(--s1); color: var(--mu);
+    border: 1px solid var(--bd); font-size: .85rem;
+    font-weight: 700; cursor: pointer;
+  }
+  .conn-note { font-size: .72rem; color: var(--mu); margin-left: 4px; }
+
+  /* Viz */
+  .viz {
+    background: var(--s2); border: 1px solid var(--bd);
+    border-radius: 12px; padding: 22px 18px 18px;
+    margin-bottom: 14px;
+  }
+  .lb-wrap { display: flex; justify-content: center; margin-bottom: 22px; }
+  .lb-box {
+    background: #2a2210; border: 1.5px solid #e3b341;
+    border-radius: 8px; padding: 10px 28px; text-align: center;
+    min-width: 200px;
+  }
+  .lb-name { font-size: .82rem; color: #e3b341; font-weight: 700; }
+  .lb-sub { font-size: .7rem; color: var(--mu); margin-top: 2px; }
+
+  .servers { display: flex; gap: 10px; justify-content: center; }
+  .server-box {
+    background: var(--s1); border: 1.5px solid var(--bd);
+    border-radius: 8px; padding: 14px 10px; text-align: center;
+    flex: 1; max-width: 200px; transition: border-color .25s, background .25s;
+  }
+  .server-box.hit { border-color: var(--gr); background: #0b1f14; }
+  .server-name { font-size: .82rem; color: #cbd5e1; font-weight: 700; }
+  .server-conn {
+    font-size: 1.7rem; font-weight: 700; color: var(--tx);
+    line-height: 1; margin: 10px 0 3px;
+  }
+  .server-conn-lbl { font-size: .65rem; color: var(--mu); }
+  .bar-wrap {
+    height: 4px; background: var(--bd); border-radius: 2px;
+    margin: 10px 0 4px; overflow: hidden;
+  }
+  .bar { height: 100%; background: var(--gr); border-radius: 2px; transition: width .35s; width: 0%; }
+  .server-total { font-size: .7rem; color: var(--mu); }
+
+  /* Log */
+  .log-wrap {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 13px 15px;
+  }
+  .log-lbl { font-size: .68rem; font-weight: 700; text-transform: uppercase; color: var(--mu); margin-bottom: 9px; }
+  .log-list { font-family: monospace; font-size: .79rem; max-height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+  .log-entry { color: #cbd5e1; }
+  .log-ts { color: var(--mu); }
+  .tag { font-size: .67rem; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+  .tag-rr { background: #1c3a5e; color: #58a6ff; }
+  .tag-lc { background: #1a3a27; color: #3fb950; }
+  .tag-ip { background: #2a1f1f; color: #f0883e; }
+  .log-ip { color: var(--am); }
+  .log-target { color: var(--gr); font-weight: 700; }
+  .log-empty { color: var(--mu); }
+</style>
+</head>
+<body>
+
+<h1>로드밸런서 알고리즘 시뮬레이터</h1>
+<p class="sub">알고리즘을 선택하고 요청을 보내 어느 서버로 가는지 확인한다. 활성 연결은 10초 후 자동 해제된다.</p>
+
+<div class="algo-row">
+  <button class="algo-btn active" onclick="setAlgo('rr',this)">Round Robin</button>
+  <button class="algo-btn" onclick="setAlgo('lc',this)">Least Connection</button>
+  <button class="algo-btn" onclick="setAlgo('ip',this)">IP Hash</button>
+</div>
+
+<div class="algo-desc" id="algo-desc">
+  Round Robin: 서버를 순서대로 돌아가며 배분한다. 서버 A → B → C → A → B → C. 서버의 현재 부하를 고려하지 않는다.
+</div>
+
+<!-- IP Hash only -->
+<div class="ip-section" id="ip-section">
+  <div class="ip-lbl">클라이언트 IP</div>
+  <div class="ip-presets">
+    <button class="ip-preset-btn" onclick="setIp('10.0.0.5')">
+      10.0.0.5
+      <span class="hint">→ 서버 A</span>
+    </button>
+    <button class="ip-preset-btn" onclick="setIp('172.16.0.101')">
+      172.16.0.101
+      <span class="hint">→ 서버 B</span>
+    </button>
+    <button class="ip-preset-btn" onclick="setIp('192.168.1.1')">
+      192.168.1.1
+      <span class="hint">→ 서버 C</span>
+    </button>
+  </div>
+  <div class="ip-custom-row">
+    <span class="ip-custom-lbl">직접 입력</span>
+    <input class="ip-input" id="ip-input" value="10.0.0.5" oninput="updateIpPreview()">
+    <span class="ip-preview" id="ip-preview">→ <span>서버 A</span></span>
+  </div>
+</div>
+
+<div class="ctrl-row">
+  <button class="send-btn" onclick="sendRequest()">요청 보내기 →</button>
+  <button class="reset-btn" onclick="resetAll()">↺ 초기화</button>
+  <span class="conn-note">활성 연결은 10초 후 자동 해제</span>
+</div>
+
+<div class="viz">
+  <div class="lb-wrap">
+    <div class="lb-box">
+      <div class="lb-name">로드밸런서</div>
+      <div class="lb-sub" id="lb-sub">Round Robin</div>
+    </div>
+  </div>
+  <div class="servers">
+    <div class="server-box" id="s0">
+      <div class="server-name">서버 A</div>
+      <div class="server-conn" id="conn0">0</div>
+      <div class="server-conn-lbl">활성 연결</div>
+      <div class="bar-wrap"><div class="bar" id="bar0"></div></div>
+      <div class="server-total" id="total0">총 0 요청</div>
+    </div>
+    <div class="server-box" id="s1">
+      <div class="server-name">서버 B</div>
+      <div class="server-conn" id="conn1">0</div>
+      <div class="server-conn-lbl">활성 연결</div>
+      <div class="bar-wrap"><div class="bar" id="bar1"></div></div>
+      <div class="server-total" id="total1">총 0 요청</div>
+    </div>
+    <div class="server-box" id="s2">
+      <div class="server-name">서버 C</div>
+      <div class="server-conn" id="conn2">0</div>
+      <div class="server-conn-lbl">활성 연결</div>
+      <div class="bar-wrap"><div class="bar" id="bar2"></div></div>
+      <div class="server-total" id="total2">총 0 요청</div>
+    </div>
+  </div>
+</div>
+
+<div class="log-wrap">
+  <div class="log-lbl">요청 로그</div>
+  <div class="log-list" id="log-list">
+    <div class="log-empty">— 아직 요청 없음 —</div>
+  </div>
+</div>
+
+<script>
+  const NAMES = ['서버 A', '서버 B', '서버 C'];
+  const RELEASE_MS = 10000;
+
+  const DESCS = {
+    rr: 'Round Robin: 서버를 순서대로 돌아가며 배분한다. 서버 A → B → C → A → B → C. 서버의 현재 부하를 고려하지 않는다.',
+    lc: 'Least Connection: 현재 활성 연결이 가장 적은 서버로 보낸다. 여러 번 빠르게 클릭하면 연결이 쌓이면서 서버 간에 균등하게 분산되는 것을 볼 수 있다.',
+    ip: 'IP Hash: 클라이언트 IP를 해시해 항상 동일한 서버로 보낸다. 같은 IP는 세션이 끊겨도 항상 같은 서버로 간다. 아래 IP를 바꿔 보면 서버가 달라지는 것을 확인할 수 있다.'
+  };
+
+  let algo = 'rr';
+  let rrIdx = 0;
+  let conns = [0, 0, 0];
+  let totals = [0, 0, 0];
+  let logCount = 0;
+
+  function hashIp(ip) {
+    const parts = ip.trim().split('.').map(p => parseInt(p) || 0);
+    const sum = parts.reduce((a, b) => a + b, 0);
+    return Math.abs(sum) % 3;
+  }
+
+  function setAlgo(a, btn) {
+    algo = a;
+    document.querySelectorAll('.algo-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('algo-desc').textContent = DESCS[a];
+    document.getElementById('lb-sub').textContent = a === 'rr' ? 'Round Robin' : a === 'lc' ? 'Least Connection' : 'IP Hash';
+    document.getElementById('ip-section').className = 'ip-section' + (a === 'ip' ? ' show' : '');
+  }
+
+  function setIp(ip) {
+    document.getElementById('ip-input').value = ip;
+    updateIpPreview();
+  }
+
+  function updateIpPreview() {
+    const ip = document.getElementById('ip-input').value;
+    const s = hashIp(ip);
+    document.getElementById('ip-preview').innerHTML = '→ <span>' + NAMES[s] + '</span>';
+  }
+
+  function chooseServer() {
+    if (algo === 'rr') { const s = rrIdx % 3; rrIdx++; return s; }
+    if (algo === 'lc') {
+      let min = conns[0], idx = 0;
+      for (let i = 1; i < 3; i++) if (conns[i] < min) { min = conns[i]; idx = i; }
+      return idx;
+    }
+    return hashIp(document.getElementById('ip-input').value);
+  }
+
+  function sendRequest() {
+    const t = chooseServer();
+    conns[t]++;
+    totals[t]++;
+    updateUI(t);
+    addLog(t);
+    setTimeout(() => {
+      conns[t] = Math.max(0, conns[t] - 1);
+      updateUI(-1);
+    }, RELEASE_MS);
+  }
+
+  function updateUI(highlighted) {
+    const maxTotal = Math.max(...totals, 1);
+    for (let i = 0; i < 3; i++) {
+      document.getElementById('conn' + i).textContent = conns[i];
+      document.getElementById('total' + i).textContent = '총 ' + totals[i] + ' 요청';
+      document.getElementById('bar' + i).style.width = (totals[i] / maxTotal * 100) + '%';
+      if (i === highlighted) {
+        const box = document.getElementById('s' + i);
+        box.classList.add('hit');
+        setTimeout(() => box.classList.remove('hit'), 700);
+      }
+    }
+  }
+
+  function addLog(t) {
+    const list = document.getElementById('log-list');
+    if (logCount === 0) list.innerHTML = '';
+    logCount++;
+    const ip = document.getElementById('ip-input').value.trim();
+    const tagClass = { rr: 'tag-rr', lc: 'tag-lc', ip: 'tag-ip' }[algo];
+    const tagLabel = { rr: 'RR', lc: 'LC', ip: 'IP' }[algo];
+    const ipPart = algo === 'ip' ? `<span class="log-ip">${ip}</span> ` : '';
+    const e = document.createElement('div');
+    e.className = 'log-entry';
+    e.innerHTML = `<span class="log-ts">#${String(logCount).padStart(2,'0')}</span> <span class="tag ${tagClass}">${tagLabel}</span> ${ipPart}→ <span class="log-target">${NAMES[t]}</span>`;
+    list.insertBefore(e, list.firstChild);
+    if (list.children.length > 20) list.removeChild(list.lastChild);
+  }
+
+  function resetAll() {
+    rrIdx = 0; conns = [0,0,0]; totals = [0,0,0]; logCount = 0;
+    for (let i = 0; i < 3; i++) {
+      document.getElementById('conn' + i).textContent = '0';
+      document.getElementById('total' + i).textContent = '총 0 요청';
+      document.getElementById('bar' + i).style.width = '0%';
+      document.getElementById('s' + i).classList.remove('hit');
+    }
+    document.getElementById('log-list').innerHTML = '<div class="log-empty">— 아직 요청 없음 —</div>';
+  }
+
+  updateIpPreview();
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="390" viewBox="0 0 760 390">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="760" height="390" rx="12" fill="#0d1117"/>
+
+  <!-- Section label: Forward Proxy -->
+  <text x="380" y="28" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700">FORWARD PROXY — 클라이언트 대리인</text>
+
+  <!-- Forward Proxy flow (y=45 ~ 115) -->
+  <!-- 클라이언트 -->
+  <rect x="20" y="45" width="120" height="50" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="66" text-anchor="middle" fill="#58a6ff" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">클라이언트</text>
+  <text x="80" y="83" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">실제 IP: 1.2.3.4</text>
+
+  <!-- Arrow 1 -->
+  <line x1="140" y1="70" x2="185" y2="70" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Forward Proxy box -->
+  <rect x="188" y="45" width="145" height="50" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="260" y="66" text-anchor="middle" fill="#e3b341" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">Forward Proxy</text>
+  <text x="260" y="83" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">IP 교체: 1.2.3.4 → 9.9.9.9</text>
+
+  <!-- Arrow 2 -->
+  <line x1="333" y1="70" x2="378" y2="70" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 인터넷 -->
+  <rect x="381" y="50" width="90" height="40" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="426" y="75" text-anchor="middle" fill="#8b949e" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">인터넷</text>
+
+  <!-- Arrow 3 -->
+  <line x1="471" y1="70" x2="516" y2="70" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 서버 -->
+  <rect x="519" y="45" width="130" height="50" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="584" y="66" text-anchor="middle" fill="#3fb950" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">서버</text>
+  <text x="584" y="83" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">보이는 IP: 9.9.9.9</text>
+
+  <!-- Note under Forward Proxy flow -->
+  <text x="380" y="115" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">서버는 클라이언트 실제 IP를 알 수 없음 · 캐싱 · 접근 제어</text>
+
+  <!-- Divider -->
+  <line x1="30" y1="135" x2="730" y2="135" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Section label: Reverse Proxy -->
+  <text x="380" y="158" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700">REVERSE PROXY — 서버 대리인</text>
+
+  <!-- Reverse Proxy flow (y=170 ~ 360) -->
+  <!-- 클라이언트 -->
+  <rect x="20" y="173" width="120" height="50" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="80" y="194" text-anchor="middle" fill="#58a6ff" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">클라이언트</text>
+  <text x="80" y="211" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">목적지: 9.9.9.9만 앎</text>
+
+  <!-- Arrow -->
+  <line x1="140" y1="198" x2="185" y2="198" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 인터넷 -->
+  <rect x="188" y="178" width="90" height="40" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="233" y="203" text-anchor="middle" fill="#8b949e" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">인터넷</text>
+
+  <!-- Arrow -->
+  <line x1="278" y1="198" x2="323" y2="198" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Reverse Proxy box -->
+  <rect x="326" y="165" width="155" height="65" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="403" y="190" text-anchor="middle" fill="#e3b341" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">Reverse Proxy</text>
+  <text x="403" y="207" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">SSL Termination</text>
+  <text x="403" y="221" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">로드밸런싱 · 캐싱</text>
+
+  <!-- Branch arrows to server A and B -->
+  <!-- Top branch: Proxy right-center (481, 182) → Server A left-center (560, 210) -->
+  <line x1="481" y1="185" x2="558" y2="210" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Bottom branch: Proxy right-center (481, 212) → Server B left-center (560, 268) -->
+  <line x1="481" y1="215" x2="558" y2="268" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- 서버 A -->
+  <rect x="561" y="190" width="140" height="45" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="631" y="208" text-anchor="middle" fill="#3fb950" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">서버 A</text>
+  <text x="631" y="224" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">IP 비공개</text>
+
+  <!-- 서버 B -->
+  <rect x="561" y="248" width="140" height="45" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="631" y="266" text-anchor="middle" fill="#3fb950" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700">서버 B</text>
+  <text x="631" y="282" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">IP 비공개</text>
+
+  <!-- Note under Reverse Proxy flow -->
+  <text x="380" y="318" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">클라이언트는 실제 서버 수와 IP를 알 수 없음 · 보안 · 부하 분산</text>
+
+  <!-- HTTP label on branch arrows (midpoint area) -->
+  <text x="518" y="225" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9">HTTP</text>
+
+  <!-- HTTPS label -->
+  <text x="165" y="193" text-anchor="middle" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="9">HTTPS</text>
+
+  <!-- Legend -->
+  <rect x="20" y="340" width="14" height="14" rx="3" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1"/>
+  <text x="40" y="352" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">클라이언트</text>
+  <rect x="130" y="340" width="14" height="14" rx="3" fill="#2a2210" stroke="#e3b341" stroke-width="1"/>
+  <text x="150" y="352" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">프록시</text>
+  <rect x="220" y="340" width="14" height="14" rx="3" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+  <text x="240" y="352" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">서버</text>
+  <rect x="310" y="340" width="14" height="14" rx="3" fill="#21262d" stroke="#8b949e" stroke-width="1"/>
+  <text x="330" y="352" fill="#6e7681" font-family="Nunito,'Trebuchet MS',Arial,sans-serif" font-size="10">인터넷</text>
+</svg>
