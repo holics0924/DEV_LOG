@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="420" viewBox="0 0 740 420">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    </style>
+  </defs>
+  <!-- 배경 -->
+  <rect width="740" height="420" fill="#0d1117" rx="12"/>
+
+  <!-- 제목 -->
+  <text x="370" y="36" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#6e7681">Cache-Control 지시어</text>
+
+  <!-- 컬럼 헤더 -->
+  <text x="100" y="68" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700" fill="#6e7681">지시어</text>
+  <text x="310" y="68" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700" fill="#6e7681">캐시 저장</text>
+  <text x="460" y="68" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700" fill="#6e7681">서버 검증</text>
+  <text x="610" y="68" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700" fill="#6e7681">CDN 저장</text>
+
+  <!-- 구분선 -->
+  <line x1="30" y1="76" x2="710" y2="76" stroke="#21262d" stroke-width="1"/>
+
+  <!-- max-age -->
+  <rect x="30" y="88" width="200" height="52" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="130" y="108" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">max-age=N</text>
+  <text x="130" y="126" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">N초 동안 신선함 유지</text>
+  <!-- 저장 O -->
+  <circle cx="310" cy="114" r="14" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="310" y="119" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#3fb950">O</text>
+  <!-- 검증: 만료 후만 -->
+  <rect x="390" y="100" width="140" height="28" rx="6" fill="#21262d" stroke="#8b949e" stroke-width="1"/>
+  <text x="460" y="119" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#8b949e">만료 후에만</text>
+  <!-- CDN O -->
+  <circle cx="610" cy="114" r="14" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="610" y="119" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#3fb950">O</text>
+
+  <!-- no-cache -->
+  <rect x="30" y="158" width="200" height="52" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="130" y="178" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">no-cache</text>
+  <text x="130" y="196" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">저장은 하되 매번 검증</text>
+  <!-- 저장 O -->
+  <circle cx="310" cy="184" r="14" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="310" y="189" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#3fb950">O</text>
+  <!-- 검증: 매번 -->
+  <rect x="390" y="170" width="140" height="28" rx="6" fill="#2a1f10" stroke="#e3b341" stroke-width="1"/>
+  <text x="460" y="189" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#e3b341">매번 (사용 전)</text>
+  <!-- CDN O -->
+  <circle cx="610" cy="184" r="14" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="610" y="189" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#3fb950">O</text>
+
+  <!-- no-store -->
+  <rect x="30" y="228" width="200" height="52" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="130" y="248" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">no-store</text>
+  <text x="130" y="266" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">저장 자체 금지 (민감 데이터)</text>
+  <!-- 저장 X -->
+  <circle cx="310" cy="254" r="14" fill="#2a1515" stroke="#f85149" stroke-width="1.5"/>
+  <text x="310" y="259" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#f85149">X</text>
+  <!-- 검증: 해당없음 -->
+  <rect x="390" y="240" width="140" height="28" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="460" y="259" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">해당 없음</text>
+  <!-- CDN X -->
+  <circle cx="610" cy="254" r="14" fill="#2a1515" stroke="#f85149" stroke-width="1.5"/>
+  <text x="610" y="259" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#f85149">X</text>
+
+  <!-- public -->
+  <rect x="30" y="298" width="200" height="52" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="130" y="318" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">public</text>
+  <text x="130" y="336" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">CDN / 프록시도 캐시 허용</text>
+  <!-- 저장 O -->
+  <circle cx="310" cy="324" r="14" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="310" y="329" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#3fb950">O</text>
+  <!-- 검증: max-age 따름 -->
+  <rect x="390" y="310" width="140" height="28" rx="6" fill="#21262d" stroke="#8b949e" stroke-width="1"/>
+  <text x="460" y="329" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#8b949e">max-age 따름</text>
+  <!-- CDN O -->
+  <circle cx="610" cy="324" r="14" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="610" y="329" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#3fb950">O</text>
+
+  <!-- private -->
+  <rect x="30" y="358" width="200" height="52" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="130" y="378" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">private</text>
+  <text x="130" y="396" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">브라우저만 캐시 허용</text>
+  <!-- 저장 O -->
+  <circle cx="310" cy="384" r="14" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="310" y="389" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#3fb950">O</text>
+  <!-- 검증: max-age 따름 -->
+  <rect x="390" y="370" width="140" height="28" rx="6" fill="#21262d" stroke="#8b949e" stroke-width="1"/>
+  <text x="460" y="389" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#8b949e">max-age 따름</text>
+  <!-- CDN X -->
+  <circle cx="610" cy="384" r="14" fill="#2a1515" stroke="#f85149" stroke-width="1.5"/>
+  <text x="610" y="389" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#f85149">X</text>
+</svg>

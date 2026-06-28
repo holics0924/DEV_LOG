@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="590" viewBox="0 0 740 590">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    </style>
+    <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arr-yellow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#e3b341"/>
+    </marker>
+    <marker id="arr-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#f85149"/>
+    </marker>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="740" height="590" fill="#0d1117" rx="12"/>
+
+  <!-- 제목 -->
+  <text x="370" y="34" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#6e7681">조건부 요청 흐름 (ETag)</text>
+
+  <!-- 액터: 브라우저 -->
+  <rect x="30" y="50" width="130" height="34" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="95" y="72" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">브라우저</text>
+
+  <!-- 액터: 서버 -->
+  <rect x="580" y="50" width="130" height="34" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="645" y="72" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#3fb950">서버</text>
+
+  <!-- 생명선 -->
+  <line x1="95" y1="84" x2="95" y2="540" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="645" y1="84" x2="645" y2="540" stroke="#21262d" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- ① 첫 요청 -->
+  <text x="370" y="108" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">① 첫 요청</text>
+  <text x="370" y="122" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#58a6ff">GET /logo.png</text>
+  <line x1="103" y1="130" x2="637" y2="130" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+
+  <text x="370" y="152" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#3fb950">200 OK  |  ETag: "abc123"  |  Cache-Control: max-age=3600</text>
+  <line x1="637" y1="160" x2="103" y2="160" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <!-- 캐시 저장 박스 -->
+  <rect x="28" y="172" width="134" height="34" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="95" y="187" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">캐시 저장</text>
+  <text x="95" y="199" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="9" fill="#6e7681">ETag: "abc123" 기록</text>
+
+  <!-- ② max-age 이내 재요청 -->
+  <text x="370" y="218" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">② max-age 이내 재요청 — 서버 미접촉</text>
+  <line x1="103" y1="246" x2="218" y2="246" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <rect x="220" y="234" width="136" height="24" rx="6" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="288" y="250" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#3fb950">캐시에서 즉시 반환</text>
+
+  <!-- ③ max-age 만료 후 조건부 요청 -->
+  <text x="370" y="290" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">③ max-age 만료 → 조건부 요청</text>
+  <text x="370" y="304" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#e3b341">GET /logo.png  |  If-None-Match: "abc123"</text>
+  <line x1="103" y1="312" x2="637" y2="312" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
+
+  <!-- 분기: 파일 동일 → 304 -->
+  <rect x="648" y="332" width="82" height="22" rx="5" fill="#1a3a27" stroke="#3fb950" stroke-width="1"/>
+  <text x="689" y="347" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="9" font-weight="700" fill="#3fb950">파일 동일</text>
+
+  <text x="370" y="368" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#3fb950">304 Not Modified  (바디 없음 — 기존 캐시 계속 사용)</text>
+  <line x1="637" y1="376" x2="103" y2="376" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)"/>
+
+  <!-- 분기: 파일 변경 → 200 -->
+  <rect x="648" y="404" width="82" height="22" rx="5" fill="#2a1515" stroke="#f85149" stroke-width="1"/>
+  <text x="689" y="419" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="9" font-weight="700" fill="#f85149">파일 변경</text>
+
+  <text x="370" y="440" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#f85149">200 OK  |  새 바디  |  ETag: "xyz789"  (ETag 갱신)</text>
+  <line x1="637" y1="448" x2="103" y2="448" stroke="#f85149" stroke-width="1.5" marker-end="url(#arr-red)"/>
+
+  <!-- 설명 박스 -->
+  <rect x="28" y="470" width="684" height="58" rx="8" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="370" y="491" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">304 응답은 바디가 없다 — 변경 여부 확인 비용(RTT 1회)만 지불하고 기존 캐시를 그대로 쓴다.</text>
+  <text x="370" y="508" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">Last-Modified / If-Modified-Since도 동일한 구조. 단, 비교 기준이 시각이라 ETag보다 정밀도가 낮다.</text>
+  <text x="370" y="522" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">브라우저는 ETag를 우선 사용하고 ETag가 없을 때 Last-Modified를 폴백으로 사용한다.</text>
+</svg>

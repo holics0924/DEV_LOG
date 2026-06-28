@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="360" viewBox="0 0 740 360">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+    </style>
+    <marker id="arrowB" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrowG" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arrowY" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#e3b341"/>
+    </marker>
+  </defs>
+  <rect width="740" height="360" fill="#0d1117" rx="12"/>
+
+  <!-- 제목 -->
+  <text x="370" y="34" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="13" font-weight="700" fill="#6e7681">브라우저 캐시 vs CDN 캐시</text>
+
+  <!-- 브라우저 -->
+  <rect x="30" y="56" width="150" height="80" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="105" y="80" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#58a6ff">브라우저</text>
+  <text x="105" y="98" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">캐시 위치:</text>
+  <text x="105" y="112" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">사용자 기기 로컬</text>
+  <text x="105" y="126" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">(디스크/메모리)</text>
+
+  <!-- 화살표: 브라우저→CDN -->
+  <line x1="180" y1="96" x2="270" y2="96" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arrowB)" stroke-dasharray="5,3"/>
+  <text x="225" y="88" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="9" fill="#6e7681">캐시 MISS</text>
+
+  <!-- CDN PoP -->
+  <rect x="272" y="56" width="196" height="80" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="370" y="80" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#e3b341">CDN (PoP)</text>
+  <text x="370" y="98" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">캐시 위치:</text>
+  <text x="370" y="112" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">지리적으로 분산된</text>
+  <text x="370" y="126" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">엣지 서버</text>
+
+  <!-- 화살표: CDN→Origin -->
+  <line x1="468" y1="96" x2="558" y2="96" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arrowY)" stroke-dasharray="5,3"/>
+  <text x="513" y="88" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="9" fill="#6e7681">Origin Pull</text>
+
+  <!-- Origin 서버 -->
+  <rect x="560" y="56" width="150" height="80" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="635" y="80" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="12" font-weight="700" fill="#3fb950">Origin 서버</text>
+  <text x="635" y="98" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">실제 콘텐츠</text>
+  <text x="635" y="112" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">원본 보관</text>
+
+  <!-- 응답 화살표 (아래 경로) -->
+  <line x1="558" y1="152" x2="468" y2="152" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrowG)"/>
+  <line x1="272" y1="152" x2="180" y2="152" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arrowG)"/>
+  <text x="513" y="146" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="9" fill="#3fb950">응답 + CDN 캐시 저장</text>
+  <text x="225" y="146" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="9" fill="#3fb950">응답 + 브라우저 캐시 저장</text>
+
+  <!-- 구분선 -->
+  <line x1="30" y1="180" x2="710" y2="180" stroke="#21262d" stroke-width="1"/>
+
+  <!-- 비교 테이블 -->
+  <text x="370" y="206" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="11" font-weight="700" fill="#6e7681">캐시 위치별 특성 비교</text>
+
+  <!-- 헤더 -->
+  <text x="140" y="228" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#6e7681">항목</text>
+  <text x="370" y="228" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#58a6ff">브라우저 캐시</text>
+  <text x="580" y="228" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" font-weight="700" fill="#e3b341">CDN 캐시</text>
+  <line x1="30" y1="234" x2="710" y2="234" stroke="#21262d" stroke-width="1"/>
+
+  <!-- 행 1: 위치 -->
+  <text x="140" y="254" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">저장 위치</text>
+  <text x="370" y="254" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#8b949e">사용자 기기</text>
+  <text x="580" y="254" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#8b949e">엣지 서버 (전 세계 분산)</text>
+
+  <!-- 행 2: 제어 주체 -->
+  <text x="140" y="278" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">제어 주체</text>
+  <text x="370" y="278" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#8b949e">브라우저 (사용자)</text>
+  <text x="580" y="278" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#8b949e">CDN 사업자 + 서버 헤더</text>
+
+  <!-- 행 3: 공유 여부 -->
+  <text x="140" y="302" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">공유 여부</text>
+  <text x="370" y="302" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#3fb950">개인 전용</text>
+  <text x="580" y="302" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#e3b341">여러 사용자 공유</text>
+
+  <!-- 행 4: 강제 무효화 -->
+  <text x="140" y="326" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">강제 무효화</text>
+  <text x="370" y="326" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#f85149">불가 (URL 변경으로 우회)</text>
+  <text x="580" y="326" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#3fb950">CDN purge API로 가능</text>
+
+  <!-- 행 5: private 헤더 -->
+  <text x="140" y="350" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#6e7681">private 데이터</text>
+  <text x="370" y="350" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#3fb950">저장 가능</text>
+  <text x="580" y="350" text-anchor="middle" font-family="'Nunito','Trebuchet MS',Arial,sans-serif" font-size="10" fill="#f85149">저장 금지 (private 지시어)</text>
+</svg>

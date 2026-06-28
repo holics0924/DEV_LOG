@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP 캐시 시뮬레이터</title>
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --s2:#162032; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981;
+    --rd:#ef4444; --am:#f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--tx);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    max-width: 860px; margin: 0 auto; padding: 24px 16px 48px;
+  }
+  h1 { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 4px; }
+  .sub { font-size: .78rem; color: var(--mu); margin-bottom: 24px; }
+
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .actor {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 10px; padding: 14px 18px;
+  }
+  .actor-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; color: var(--mu); margin-bottom: 8px; }
+  .actor-title { font-size: .95rem; font-weight: 700; margin-bottom: 10px; }
+  .cache-box {
+    background: var(--bg); border: 1px solid var(--bd);
+    border-radius: 8px; padding: 10px 12px; font-size: .78rem;
+    min-height: 64px;
+  }
+  .cache-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .cache-key { color: var(--mu); }
+  .cache-val { color: var(--am); font-weight: 600; }
+  .cache-empty { color: var(--mu); font-style: italic; }
+
+  .step-card {
+    background: var(--s1); border: 1px solid var(--bd);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 12px;
+  }
+  .step-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; color: var(--mu); margin-bottom: 6px; }
+  .step-desc { font-size: .88rem; color: #cbd5e1; line-height: 1.65; }
+
+  .packet {
+    display: flex; gap: 8px; align-items: flex-start;
+    background: var(--bg); border-radius: 8px;
+    padding: 10px 12px; margin-top: 10px; font-size: .78rem;
+  }
+  .packet-dir { font-weight: 700; min-width: 80px; }
+  .dir-req { color: var(--bl); }
+  .dir-res { color: var(--gr); }
+  .dir-cache { color: var(--am); }
+  .dir-miss { color: var(--rd); }
+  .packet-body { color: #94a3b8; line-height: 1.6; }
+  .badge {
+    display: inline-block; padding: 1px 7px; border-radius: 4px;
+    font-size: .72rem; font-weight: 700; margin-left: 6px;
+  }
+  .badge-304 { background: #052e16; color: var(--gr); }
+  .badge-200 { background: #1d4ed8; color: #fff; }
+  .badge-hit { background: #451a03; color: var(--am); }
+  .badge-miss { background: #450a0a; color: var(--rd); }
+
+  .controls { display: flex; gap: 10px; margin-top: 16px; }
+  button {
+    padding: 9px 18px; border-radius: 7px; font-size: .85rem;
+    font-weight: 700; cursor: pointer; border: none;
+  }
+  .btn-next { background: var(--bl); color: #fff; }
+  .btn-next:disabled { background: var(--s1); color: var(--mu); border: 1px solid var(--bd); cursor: default; }
+  .btn-reset { background: var(--s1); color: var(--mu); border: 1px solid var(--bd); }
+
+  .progress-bar {
+    height: 3px; background: var(--bd); border-radius: 2px; margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%; background: var(--bl); border-radius: 2px;
+    transition: width .3s ease;
+  }
+
+  .highlight { color: var(--am); font-weight: 600; }
+  .green { color: var(--gr); }
+  .red { color: var(--rd); }
+  .blue { color: var(--bl); }
+</style>
+</head>
+<body>
+
+<h1>HTTP 캐시 시뮬레이터</h1>
+<p class="sub">브라우저가 같은 리소스를 반복 요청할 때 캐시가 어떻게 동작하는지 단계별로 확인한다.</p>
+
+<div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+
+<div class="layout">
+  <div class="actor">
+    <div class="actor-label">브라우저</div>
+    <div class="actor-title blue" id="browser-state">대기 중</div>
+    <div class="cache-box" id="browser-cache">
+      <div class="cache-empty">캐시 없음</div>
+    </div>
+  </div>
+  <div class="actor">
+    <div class="actor-label">서버</div>
+    <div class="actor-title green" id="server-state">대기 중</div>
+    <div class="cache-box">
+      <div class="cache-row"><span class="cache-key">파일</span><span class="cache-val">logo.png</span></div>
+      <div class="cache-row"><span class="cache-key">ETag</span><span class="cache-val" id="server-etag">"abc123"</span></div>
+      <div class="cache-row"><span class="cache-key">변경 여부</span><span class="cache-val" id="server-changed">변경 없음</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="step-label">단계 0 / 5</div>
+  <div class="step-desc" id="step-desc">
+    브라우저가 <span class="highlight">logo.png</span>를 요청한다. 아직 캐시가 없는 첫 요청이다.<br>
+    다음 단계 버튼을 눌러 흐름을 시작해보자.
+  </div>
+  <div id="packet-area"></div>
+</div>
+
+<div class="controls">
+  <button class="btn-reset" onclick="reset()">↺</button>
+  <button class="btn-next" id="btn-next" onclick="nextStep()">다음 단계 →</button>
+</div>
+
+<script>
+const TOTAL = 5;
+let step = 0;
+let fileChanged = false;
+
+const steps = [
+  // 0: 첫 요청
+  {
+    label: '단계 1 / 5 — 첫 요청 (캐시 없음)',
+    desc: '브라우저에 캐시가 없다. <span class="red">캐시 MISS</span> → 서버에 일반 GET 요청을 보낸다.',
+    browserState: 'GET 요청 전송',
+    serverState: '요청 수신',
+    packet: {
+      dir: '→ 요청', cls: 'dir-req',
+      body: 'GET /logo.png HTTP/1.1\nHost: example.com'
+    },
+    badge: 'miss',
+    cacheUpdate: null,
+  },
+  // 1: 200 응답 + 캐시 저장
+  {
+    label: '단계 2 / 5 — 200 OK + 캐시 저장',
+    desc: '서버가 파일 본문과 함께 <span class="green">200 OK</span>를 반환한다. 응답 헤더에 <span class="highlight">ETag</span>와 <span class="highlight">Cache-Control</span>이 포함된다. 브라우저는 이 응답을 캐시에 저장한다.',
+    browserState: '캐시 저장 완료',
+    serverState: '200 OK 응답',
+    packet: {
+      dir: '← 응답', cls: 'dir-res',
+      body: 'HTTP/1.1 200 OK\nETag: "abc123"\nCache-Control: max-age=3600\n\n[logo.png 본문]'
+    },
+    badge: '200',
+    cacheUpdate: { etag: '"abc123"', maxAge: '3600초', status: '유효' },
+  },
+  // 2: max-age 이내 재요청
+  {
+    label: '단계 3 / 5 — max-age 이내 재요청',
+    desc: '1시간(max-age=3600)이 지나기 전에 같은 리소스를 다시 요청했다. 캐시가 <span class="green">아직 유효</span>하므로 서버에 요청조차 보내지 않고 캐시에서 즉시 반환한다.',
+    browserState: '캐시 HIT — 즉시 반환',
+    serverState: '요청 없음',
+    packet: {
+      dir: '⚡ 캐시', cls: 'dir-cache',
+      body: '서버 미접촉. 브라우저 캐시에서 logo.png 즉시 반환.\n(네트워크 0 RTT)'
+    },
+    badge: 'hit',
+    cacheUpdate: null,
+  },
+  // 3: max-age 만료 후 조건부 요청
+  {
+    label: '단계 4 / 5 — max-age 만료 → 조건부 요청',
+    desc: 'max-age가 만료됐다. 캐시가 있지만 유효성을 모른다. 브라우저는 캐시된 ETag를 <span class="highlight">If-None-Match</span> 헤더에 담아 서버에 검증을 요청한다.',
+    browserState: '조건부 GET 전송',
+    serverState: 'ETag 비교 중',
+    packet: {
+      dir: '→ 요청', cls: 'dir-req',
+      body: 'GET /logo.png HTTP/1.1\nIf-None-Match: "abc123"'
+    },
+    badge: null,
+    cacheUpdate: null,
+  },
+  // 4: 304 응답
+  {
+    label: '단계 5 / 5 — 304 Not Modified',
+    desc: '서버의 ETag가 <span class="highlight">"abc123"</span>으로 동일하다. 파일이 바뀌지 않았으므로 서버는 <span class="green">304 Not Modified</span>를 반환한다. <strong>바디가 없다</strong> — 변경 여부 확인 비용(RTT 1회)만 지불하고 기존 캐시를 계속 사용한다.',
+    browserState: '기존 캐시 계속 사용',
+    serverState: '304 응답 (바디 없음)',
+    packet: {
+      dir: '← 응답', cls: 'dir-res',
+      body: 'HTTP/1.1 304 Not Modified\nCache-Control: max-age=3600\n\n(바디 없음 — 캐시 그대로 사용)'
+    },
+    badge: '304',
+    cacheUpdate: { etag: '"abc123"', maxAge: '3600초 (갱신)', status: '유효' },
+  },
+];
+
+function render() {
+  if (step === 0) {
+    document.getElementById('step-label').textContent = '시작';
+    document.getElementById('step-desc').innerHTML = '브라우저가 <span class="highlight">logo.png</span>를 처음 요청하는 시나리오다. 5단계로 캐시 동작 전체를 확인할 수 있다.';
+    document.getElementById('packet-area').innerHTML = '';
+    document.getElementById('browser-state').textContent = '대기 중';
+    document.getElementById('server-state').textContent = '대기 중';
+    document.getElementById('browser-cache').innerHTML = '<div class="cache-empty">캐시 없음</div>';
+    document.getElementById('progress').style.width = '0%';
+    document.getElementById('btn-next').disabled = false;
+    return;
+  }
+
+  const s = steps[step - 1];
+  document.getElementById('step-label').textContent = s.label;
+  document.getElementById('step-desc').innerHTML = s.desc;
+  document.getElementById('browser-state').textContent = s.browserState;
+  document.getElementById('server-state').textContent = s.serverState;
+  document.getElementById('progress').style.width = (step / TOTAL * 100) + '%';
+
+  // 패킷
+  let badgeHTML = '';
+  if (s.badge === '200') badgeHTML = '<span class="badge badge-200">200 OK</span>';
+  else if (s.badge === '304') badgeHTML = '<span class="badge badge-304">304 Not Modified</span>';
+  else if (s.badge === 'hit') badgeHTML = '<span class="badge badge-hit">CACHE HIT</span>';
+  else if (s.badge === 'miss') badgeHTML = '<span class="badge badge-miss">CACHE MISS</span>';
+
+  document.getElementById('packet-area').innerHTML = `
+    <div class="packet">
+      <span class="packet-dir ${s.packet.cls}">${s.packet.dir}${badgeHTML}</span>
+      <span class="packet-body">${s.packet.body.replace(/\n/g, '<br>')}</span>
+    </div>`;
+
+  // 캐시 업데이트
+  if (s.cacheUpdate) {
+    document.getElementById('browser-cache').innerHTML = `
+      <div class="cache-row"><span class="cache-key">파일</span><span class="cache-val">logo.png</span></div>
+      <div class="cache-row"><span class="cache-key">ETag</span><span class="cache-val">${s.cacheUpdate.etag}</span></div>
+      <div class="cache-row"><span class="cache-key">max-age</span><span class="cache-val">${s.cacheUpdate.maxAge}</span></div>
+      <div class="cache-row"><span class="cache-key">상태</span><span class="cache-val green">${s.cacheUpdate.status}</span></div>`;
+  } else if (step === 4) {
+    // 만료 상태
+    document.getElementById('browser-cache').innerHTML = `
+      <div class="cache-row"><span class="cache-key">파일</span><span class="cache-val">logo.png</span></div>
+      <div class="cache-row"><span class="cache-key">ETag</span><span class="cache-val">"abc123"</span></div>
+      <div class="cache-row"><span class="cache-key">상태</span><span class="cache-val red">만료됨</span></div>`;
+  }
+
+  if (step >= TOTAL) {
+    document.getElementById('btn-next').disabled = true;
+  }
+}
+
+function nextStep() {
+  if (step < TOTAL) { step++; render(); }
+}
+
+function reset() {
+  step = 0; render();
+}
+
+render();
+</script>
+</body>
+</html>
