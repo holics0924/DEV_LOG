@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TLS Handshake — 인증서 검증 포함</title>
+<style>
+  :root {
+    --bg:#0f172a; --s1:#1e293b; --s2:#162032; --bd:#334155;
+    --tx:#e2e8f0; --mu:#64748b; --bl:#3b82f6; --gr:#10b981;
+    --rd:#ef4444; --am:#f59e0b; --yw:#e3b341;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--tx);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+  h1 { font-size: 1.1rem; color: #cbd5e1; margin-bottom: 4px; }
+  .sub { font-size: .78rem; color: var(--mu); margin-bottom: 20px; }
+
+  .diagram {
+    display: grid;
+    grid-template-columns: 120px 1fr 120px;
+    margin-bottom: 20px;
+  }
+  .actor {
+    background: var(--s1);
+    border: 1.5px solid var(--bd);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    font-size: .8rem;
+    font-weight: 700;
+  }
+  .actor.client { border-color: var(--bl); color: var(--bl); }
+  .actor.server { border-color: var(--gr); color: var(--gr); }
+  .actor-sub { font-size: .68rem; color: var(--mu); font-weight: 400; margin-top: 2px; }
+
+  .channel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 4px;
+    position: relative;
+  }
+  .channel::before {
+    content: '';
+    position: absolute;
+    left: 60px; top: 0; bottom: 0;
+    width: 1px;
+    background: #3b82f622;
+  }
+  .channel::after {
+    content: '';
+    position: absolute;
+    right: 60px; top: 0; bottom: 0;
+    width: 1px;
+    background: #10b98122;
+  }
+
+  .msg {
+    display: flex;
+    min-height: 40px;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity .3s, transform .3s;
+  }
+  .msg.visible { opacity: 1; transform: translateY(0); }
+  .msg.c2s { justify-content: flex-start; padding-left: 64px; }
+  .msg.s2c { justify-content: flex-end;  padding-right: 64px; }
+  .msg.local-c { justify-content: flex-start; padding-left: 64px; }
+  .msg.local-s { justify-content: flex-end;  padding-right: 64px; }
+  .msg.both   { justify-content: center; }
+
+  .bubble {
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 8px;
+    padding: 7px 11px;
+    max-width: 280px;
+    font-size: .8rem;
+  }
+  .bubble .lbl { font-size: .65rem; color: var(--mu); font-weight: 700; margin-bottom: 2px; }
+  .bubble .ttl { font-weight: 700; }
+
+  .bubble.c2s    { border-left:  3px solid var(--bl); }
+  .bubble.s2c    { border-right: 3px solid var(--gr); }
+  .bubble.local-c { border-left: 3px solid var(--am); background: #1c1600; }
+  .bubble.local-s { border-right:3px solid var(--am); background: #1c1600; }
+  .bubble.both   { border: 2px solid var(--gr); background: #0a1a12; }
+
+  .step-card {
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    min-height: 80px;
+  }
+  .step-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; color: var(--mu); margin-bottom: 4px; }
+  .step-desc  { font-size: .88rem; color: #cbd5e1; line-height: 1.65; }
+
+  .btns { display: flex; gap: 10px; }
+  button { padding: 9px 18px; border-radius: 7px; font-size: .85rem; font-weight: 700; cursor: pointer; border: none; }
+  .btn-next { background: var(--bl); color: #fff; }
+  .btn-next:disabled { opacity: .4; cursor: default; }
+  .btn-reset { background: var(--s1); color: var(--mu); border: 1px solid var(--bd); }
+
+  .progress { font-size: .75rem; color: var(--mu); margin-bottom: 12px; }
+  .progress span { color: var(--bl); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1>TLS Handshake — 인증서 검증 포함</h1>
+<p class="sub">PKI 인증서 검증부터 세션 키 교환까지, 보안 연결이 수립되는 전 과정.</p>
+
+<div class="progress">단계 <span id="cur">0</span> / <span id="tot">8</span></div>
+
+<div class="diagram">
+  <div class="actor client">클라이언트<div class="actor-sub">브라우저</div></div>
+  <div class="channel" id="channel"></div>
+  <div class="actor server">서버<div class="actor-sub">naver.com</div></div>
+</div>
+
+<div class="step-card">
+  <div class="step-label" id="lbl">시작 전</div>
+  <div class="step-desc" id="desc">다음 단계 버튼을 눌러 TLS Handshake를 시작한다.</div>
+</div>
+
+<div class="btns">
+  <button class="btn-next" id="btn-next" onclick="next()">다음 단계 →</button>
+  <button class="btn-reset" onclick="reset()">↺</button>
+</div>
+
+<script>
+const steps = [
+  {
+    dir: 'c2s',
+    short: '① Client Hello',
+    label: '클라이언트 → 서버',
+    desc: '클라이언트가 지원하는 TLS 버전과 암호화 알고리즘(Cipher Suite) 목록, 클라이언트 랜덤값을 서버에 전송한다.'
+  },
+  {
+    dir: 's2c',
+    short: '② Server Hello + 인증서',
+    label: '서버 → 클라이언트',
+    desc: '서버가 사용할 TLS 버전과 암호화 알고리즘을 선택하고 서버 랜덤값을 보낸다. 인증서(도메인 + 서버 공개키 + CA 서명)를 함께 전송한다.'
+  },
+  {
+    dir: 'local-c',
+    short: '③ 인증서 서명 검증',
+    label: '클라이언트 로컬 처리',
+    desc: '브라우저에 내장된 Root CA 공개키로 인증서 서명을 검증한다. CA 서버에 연결하지 않고 로컬에서 처리한다. 서명이 유효하면 인증서에 포함된 서버 공개키를 신뢰한다.'
+  },
+  {
+    dir: 'local-c',
+    short: '④ 신뢰 체인 확인',
+    label: '클라이언트 로컬 처리',
+    desc: '서버 인증서 → Intermediate CA 인증서 → Root CA 순서로 체인을 따라 올라가며 각 단계의 서명을 검증한다. Root CA가 브라우저 내장 목록에 있으면 신뢰 체인이 완성된다.'
+  },
+  {
+    dir: 'local-c',
+    short: '⑤ 세션 키 생성 + 암호화',
+    label: '클라이언트 로컬 처리',
+    desc: '클라이언트가 임의의 세션 키(대칭키)를 생성한다. 서버 공개키로 이 세션 키를 암호화한다. 서버의 개인키 없이는 복호화할 수 없다.'
+  },
+  {
+    dir: 'c2s',
+    short: '⑥ 암호화된 세션 키 전송',
+    label: '클라이언트 → 서버',
+    desc: '공개키로 암호화한 세션 키를 서버에 전송한다. 중간에 가로채도 서버 개인키 없이는 열 수 없다. MITM 공격자가 자기 공개키로 바꿔치기했다면 이 단계에서 검증이 실패했을 것이다.'
+  },
+  {
+    dir: 'local-s',
+    short: '⑦ 개인키로 복호화',
+    label: '서버 로컬 처리',
+    desc: '서버가 자신의 개인키로 암호화된 세션 키를 복호화한다. 이제 클라이언트와 서버 모두 동일한 세션 키를 보유하게 된다.'
+  },
+  {
+    dir: 'both',
+    short: '⑧ 보안 연결 수립',
+    label: '연결 완료',
+    desc: '양쪽이 Finished 메시지를 주고받아 Handshake를 마무리한다. 이후 HTTP 데이터는 모두 세션 키(대칭키)로 암호화된다. 비대칭키는 세션 키 교환에만 쓰이고, 빠른 대칭키가 실제 통신을 담당한다.'
+  }
+];
+
+let cur = 0;
+document.getElementById('tot').textContent = steps.length;
+
+const channel = document.getElementById('channel');
+steps.forEach((s, i) => {
+  const outer = document.createElement('div');
+  outer.className = 'msg ' + s.dir;
+  outer.id = 'msg-' + i;
+
+  const b = document.createElement('div');
+  b.className = 'bubble ' + s.dir;
+  b.innerHTML = `<div class="lbl">${s.label}</div><div class="ttl">${s.short}</div>`;
+  outer.appendChild(b);
+  channel.appendChild(outer);
+});
+
+function next() {
+  if (cur >= steps.length) return;
+  document.getElementById('msg-' + cur).classList.add('visible');
+  document.getElementById('lbl').textContent = steps[cur].label;
+  document.getElementById('desc').textContent = steps[cur].desc;
+  document.getElementById('cur').textContent = cur + 1;
+  cur++;
+  if (cur >= steps.length) document.getElementById('btn-next').disabled = true;
+}
+
+function reset() {
+  cur = 0;
+  document.querySelectorAll('.msg').forEach(m => m.classList.remove('visible'));
+  document.getElementById('lbl').textContent = '시작 전';
+  document.getElementById('desc').textContent = '다음 단계 버튼을 눌러 TLS Handshake를 시작한다.';
+  document.getElementById('cur').textContent = '0';
+  document.getElementById('btn-next').disabled = false;
+}
+</script>
+</body>
+</html>

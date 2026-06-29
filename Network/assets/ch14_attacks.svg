@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="340" viewBox="0 0 720 340">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+      text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }
+    </style>
+    <marker id="arr-red" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#ef4444"/>
+    </marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#f0883e"/>
+    </marker>
+    <marker id="arr-yellow" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#e3b341"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#3fb950"/>
+    </marker>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="720" height="340" fill="#0d1117" rx="12"/>
+  <text x="360" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#6e7681">주요 공격 유형 비교</text>
+
+  <!-- ═══════ 패널 1: XSS ═══════ -->
+  <rect x="14" y="38" width="224" height="284" fill="#161b22" stroke="#ef4444" stroke-width="1.5" rx="8"/>
+  <text x="126" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#ef4444">XSS</text>
+  <text x="126" y="75" text-anchor="middle" font-size="9" fill="#6e7681">Cross-Site Scripting</text>
+
+  <!-- 흐름 -->
+  <rect x="28" y="86" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="126" y="99" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">공격자</text>
+  <text x="126" y="113" text-anchor="middle" font-size="9" fill="#ef4444">댓글란에 &lt;script&gt; 삽입</text>
+
+  <line x1="126" y1="120" x2="126" y2="138" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <text x="140" y="132" font-size="8" fill="#6e7681">저장</text>
+
+  <rect x="28" y="140" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="126" y="153" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">서버 DB</text>
+  <text x="126" y="167" text-anchor="middle" font-size="9" fill="#6e7681">악성 스크립트 그대로 저장</text>
+
+  <line x1="126" y1="174" x2="126" y2="192" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr-red)"/>
+  <text x="140" y="186" font-size="8" fill="#6e7681">페이지 응답</text>
+
+  <rect x="28" y="194" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="126" y="207" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">피해자 브라우저</text>
+  <text x="126" y="221" text-anchor="middle" font-size="9" fill="#ef4444">HTML 파싱 중 스크립트 실행</text>
+
+  <line x1="126" y1="228" x2="126" y2="246" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr-red)"/>
+
+  <rect x="28" y="248" width="196" height="22" fill="#2d1515" stroke="#ef4444" stroke-width="1" rx="4"/>
+  <text x="126" y="263" text-anchor="middle" font-size="9" font-weight="700" fill="#ef4444">쿠키 탈취 / 세션 도용</text>
+
+  <!-- 방어 -->
+  <rect x="28" y="278" width="196" height="34" fill="#1a3a27" stroke="#3fb950" stroke-width="1" rx="6"/>
+  <text x="126" y="292" text-anchor="middle" font-size="8" font-weight="700" fill="#3fb950">방어</text>
+  <text x="126" y="305" text-anchor="middle" font-size="8" fill="#6e7681">이스케이핑 · HttpOnly 쿠키</text>
+
+  <!-- ═══════ 패널 2: CSRF ═══════ -->
+  <rect x="248" y="38" width="224" height="284" fill="#161b22" stroke="#f0883e" stroke-width="1.5" rx="8"/>
+  <text x="360" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#f0883e">CSRF</text>
+  <text x="360" y="75" text-anchor="middle" font-size="9" fill="#6e7681">Cross-Site Request Forgery</text>
+
+  <!-- 흐름 -->
+  <rect x="262" y="86" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="360" y="99" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">피해자</text>
+  <text x="360" y="113" text-anchor="middle" font-size="9" fill="#6e7681">은행 사이트에 로그인 상태</text>
+
+  <line x1="360" y1="120" x2="360" y2="138" stroke="#f0883e" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <text x="374" y="132" font-size="8" fill="#6e7681">악성 링크 클릭</text>
+
+  <rect x="262" y="140" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="360" y="153" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">공격자 사이트</text>
+  <text x="360" y="167" text-anchor="middle" font-size="9" fill="#f0883e">은행 송금 요청 코드 숨김</text>
+
+  <line x1="360" y1="174" x2="360" y2="192" stroke="#f0883e" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+  <text x="374" y="186" font-size="8" fill="#6e7681">쿠키 자동 첨부</text>
+
+  <rect x="262" y="194" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="360" y="207" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">은행 서버</text>
+  <text x="360" y="221" text-anchor="middle" font-size="9" fill="#6e7681">쿠키 보고 정상 요청으로 처리</text>
+
+  <line x1="360" y1="228" x2="360" y2="246" stroke="#f0883e" stroke-width="1.5" marker-end="url(#arr-orange)"/>
+
+  <rect x="262" y="248" width="196" height="22" fill="#2a1f1f" stroke="#f0883e" stroke-width="1" rx="4"/>
+  <text x="360" y="263" text-anchor="middle" font-size="9" font-weight="700" fill="#f0883e">의도치 않은 송금 실행</text>
+
+  <!-- 방어 -->
+  <rect x="262" y="278" width="196" height="34" fill="#1a3a27" stroke="#3fb950" stroke-width="1" rx="6"/>
+  <text x="360" y="292" text-anchor="middle" font-size="8" font-weight="700" fill="#3fb950">방어</text>
+  <text x="360" y="305" text-anchor="middle" font-size="8" fill="#6e7681">SameSite 쿠키 · CSRF 토큰</text>
+
+  <!-- ═══════ 패널 3: SQL Injection ═══════ -->
+  <rect x="482" y="38" width="224" height="284" fill="#161b22" stroke="#e3b341" stroke-width="1.5" rx="8"/>
+  <text x="594" y="60" text-anchor="middle" font-size="12" font-weight="700" fill="#e3b341">SQL Injection</text>
+  <text x="594" y="75" text-anchor="middle" font-size="9" fill="#6e7681">쿼리 구조 조작</text>
+
+  <!-- 흐름 -->
+  <rect x="496" y="86" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="594" y="99" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">공격자</text>
+  <text x="594" y="113" text-anchor="middle" font-size="9" fill="#e3b341">로그인 폼에 admin' -- 입력</text>
+
+  <line x1="594" y1="120" x2="594" y2="138" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
+  <text x="608" y="132" font-size="8" fill="#6e7681">쿼리 조합</text>
+
+  <rect x="496" y="140" width="196" height="46" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="506" y="155" font-size="8" font-weight="700" fill="#6e7681">서버 쿼리 (조작됨)</text>
+  <text x="506" y="169" font-size="8" fill="#e3b341">WHERE id='admin' --</text>
+  <text x="506" y="181" font-size="8" fill="#6e7681">AND pw='...'  ← 주석 처리</text>
+
+  <line x1="594" y1="186" x2="594" y2="204" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
+  <text x="608" y="198" font-size="8" fill="#6e7681">실행</text>
+
+  <rect x="496" y="206" width="196" height="34" fill="#21262d" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="594" y="219" text-anchor="middle" font-size="9" font-weight="700" fill="#6e7681">데이터베이스</text>
+  <text x="594" y="233" text-anchor="middle" font-size="9" fill="#6e7681">비밀번호 검사 없이 조회</text>
+
+  <line x1="594" y1="240" x2="594" y2="258" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
+
+  <rect x="496" y="260" width="196" height="22" fill="#2a2210" stroke="#e3b341" stroke-width="1" rx="4"/>
+  <text x="594" y="275" text-anchor="middle" font-size="9" font-weight="700" fill="#e3b341">비밀번호 없이 로그인 성공</text>
+
+  <!-- 방어 -->
+  <rect x="496" y="290" width="196" height="22" fill="#1a3a27" stroke="#3fb950" stroke-width="1" rx="6"/>
+  <text x="594" y="305" text-anchor="middle" font-size="8" fill="#6e7681">방어: Prepared Statement</text>
+
+</svg>

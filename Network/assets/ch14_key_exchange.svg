@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="510" viewBox="0 0 720 510">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+      text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }
+    </style>
+    <marker id="arr-blue" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arr-green" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arr-green-l" markerWidth="8" markerHeight="7" refX="2" refY="3.5" orient="auto-start-reverse">
+      <path d="M8,0 L8,7 L0,3.5 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arr-yellow" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+      <path d="M0,0 L0,7 L8,3.5 z" fill="#e3b341"/>
+    </marker>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="720" height="510" fill="#0d1117" rx="12"/>
+
+  <!-- ─────── 상단: 대칭키 vs 비대칭키 ─────── -->
+  <text x="360" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#6e7681">암호화 방식 비교</text>
+
+  <!-- 대칭키 박스 -->
+  <rect x="20" y="38" width="330" height="175" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="8"/>
+  <text x="185" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="#3fb950">대칭키 (AES)</text>
+
+  <rect x="36" y="72" width="88" height="44" fill="#0d1117" stroke="#3fb950" stroke-width="1" rx="6"/>
+  <text x="80" y="91" text-anchor="middle" font-size="11" font-weight="700" fill="#3fb950">Alice</text>
+  <text x="80" y="108" text-anchor="middle" font-size="10" fill="#6e7681">키-A</text>
+
+  <rect x="226" y="72" width="88" height="44" fill="#0d1117" stroke="#3fb950" stroke-width="1" rx="6"/>
+  <text x="270" y="91" text-anchor="middle" font-size="11" font-weight="700" fill="#3fb950">Bob</text>
+  <text x="270" y="108" text-anchor="middle" font-size="10" fill="#6e7681">키-A (동일)</text>
+
+  <line x1="128" y1="94" x2="222" y2="94" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)" marker-start="url(#arr-green-l)"/>
+  <text x="175" y="89" text-anchor="middle" font-size="9" fill="#3fb950">암호화 통신</text>
+
+  <text x="185" y="138" text-anchor="middle" font-size="10" fill="#6e7681">빠름 · 키 1개 · 같은 키로 잠금/열기</text>
+
+  <rect x="36" y="149" width="278" height="50" fill="#2a2210" stroke="#e3b341" stroke-width="1" rx="6"/>
+  <text x="175" y="167" text-anchor="middle" font-size="10" font-weight="700" fill="#e3b341">키 전달 문제 (Key Distribution Problem)</text>
+  <text x="175" y="184" text-anchor="middle" font-size="9" fill="#6e7681">처음 만날 때 키를 어떻게 공유하나?</text>
+  <text x="175" y="197" text-anchor="middle" font-size="9" fill="#6e7681">인터넷으로 보내면 이미 노출됨</text>
+
+  <!-- 비대칭키 박스 -->
+  <rect x="370" y="38" width="330" height="175" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="8"/>
+  <text x="535" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="#58a6ff">비대칭키 (RSA)</text>
+
+  <rect x="386" y="72" width="136" height="32" fill="#0d1117" stroke="#58a6ff" stroke-width="1" rx="6"/>
+  <text x="454" y="93" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">공개키 (Public Key)</text>
+
+  <rect x="548" y="72" width="136" height="32" fill="#0d1117" stroke="#e3b341" stroke-width="1" rx="6"/>
+  <text x="616" y="93" text-anchor="middle" font-size="10" font-weight="700" fill="#e3b341">개인키 (Private Key)</text>
+
+  <line x1="522" y1="88" x2="544" y2="88" stroke="#6e7681" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <!-- 용도 1: 기밀 전송 -->
+  <rect x="386" y="116" width="298" height="38" fill="#0d1117" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="396" y="130" font-size="9" font-weight="700" fill="#6e7681">기밀 전송</text>
+  <text x="396" y="146" font-size="9" fill="#58a6ff">공개키로 잠금</text>
+  <text x="468" y="146" font-size="9" fill="#6e7681">→</text>
+  <text x="478" y="146" font-size="9" fill="#e3b341">개인키로 열기</text>
+
+  <!-- 용도 2: 서명/인증 -->
+  <rect x="386" y="162" width="298" height="38" fill="#0d1117" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="396" y="176" font-size="9" font-weight="700" fill="#6e7681">서명 / 인증</text>
+  <text x="396" y="192" font-size="9" fill="#e3b341">개인키로 서명</text>
+  <text x="468" y="192" font-size="9" fill="#6e7681">→</text>
+  <text x="478" y="192" font-size="9" fill="#58a6ff">공개키로 검증</text>
+
+  <!-- ─────── 하단: TLS 세션 키 교환 ─────── -->
+  <rect x="20" y="228" width="680" height="262" fill="#161b22" stroke="#30363d" stroke-width="1" rx="8"/>
+  <text x="360" y="250" text-anchor="middle" font-size="12" font-weight="700" fill="#6e7681">TLS 세션 키 교환 흐름</text>
+
+  <!-- 클라이언트 박스 -->
+  <rect x="40" y="262" width="110" height="44" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5" rx="8"/>
+  <text x="95" y="281" text-anchor="middle" font-size="11" font-weight="700" fill="#58a6ff">클라이언트</text>
+  <text x="95" y="298" text-anchor="middle" font-size="9" fill="#6e7681">브라우저</text>
+
+  <!-- 서버 박스 -->
+  <rect x="570" y="262" width="110" height="44" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5" rx="8"/>
+  <text x="625" y="281" text-anchor="middle" font-size="11" font-weight="700" fill="#3fb950">서버</text>
+  <text x="625" y="298" text-anchor="middle" font-size="9" fill="#6e7681">naver.com</text>
+
+  <!-- 생명선 -->
+  <line x1="95" y1="306" x2="95" y2="470" stroke="#58a6ff" stroke-width="1" stroke-dasharray="4,3" opacity="0.35"/>
+  <line x1="625" y1="306" x2="625" y2="470" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,3" opacity="0.35"/>
+
+  <!-- ① 공개키 전송 (서버 → 클라이언트) -->
+  <line x1="615" y1="324" x2="105" y2="324" stroke="#58a6ff" stroke-width="1.5" marker-end="url(#arr-blue)"/>
+  <text x="360" y="318" text-anchor="middle" font-size="10" font-weight="700" fill="#58a6ff">① 공개키 전송 (인증서 포함)</text>
+
+  <!-- ② 클라이언트 액션 박스 -->
+  <rect x="40" y="334" width="210" height="46" fill="#0d1117" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="50" y="350" font-size="9" font-weight="700" fill="#6e7681">② 세션 키 생성 후</text>
+  <text x="50" y="364" font-size="9" fill="#58a6ff">서버 공개키로 세션 키 암호화</text>
+  <text x="50" y="376" font-size="9" fill="#6e7681">(개인키 없이는 복호화 불가)</text>
+
+  <!-- ③ 암호화된 세션 키 전송 (클라이언트 → 서버) -->
+  <line x1="105" y1="398" x2="615" y2="398" stroke="#e3b341" stroke-width="1.5" marker-end="url(#arr-yellow)"/>
+  <text x="360" y="392" text-anchor="middle" font-size="10" font-weight="700" fill="#e3b341">③ 암호화된 세션 키 전송</text>
+
+  <!-- ④ 서버 액션 박스 -->
+  <rect x="470" y="408" width="210" height="34" fill="#0d1117" stroke="#30363d" stroke-width="1" rx="6"/>
+  <text x="480" y="424" font-size="9" font-weight="700" fill="#6e7681">④ 서버 개인키로 복호화</text>
+  <text x="480" y="438" font-size="9" fill="#3fb950">세션 키 획득</text>
+
+  <!-- ⑤ 세션 키로 빠른 통신 -->
+  <line x1="105" y1="462" x2="615" y2="462" stroke="#3fb950" stroke-width="1.5" marker-end="url(#arr-green)" marker-start="url(#arr-green-l)"/>
+  <text x="360" y="456" text-anchor="middle" font-size="10" font-weight="700" fill="#3fb950">⑤ 세션 키(대칭키)로 빠른 암호화 통신</text>
+
+</svg>
