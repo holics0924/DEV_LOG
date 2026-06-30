@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="265" viewBox="0 0 640 265">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+  </defs>
+  <rect width="640" height="265" fill="#0d1117" rx="12"/>
+  <text x="320" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">브라우저 렌더링 파이프라인</text>
+
+  <!-- Row 1: HTML → DOM -->
+  <rect x="20" y="45" width="75" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="57" y="68" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">HTML</text>
+
+  <!-- Arrow HTML → DOM -->
+  <line x1="95" y1="63" x2="108" y2="63" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="104,59 104,67 112,63" fill="#6e7681"/>
+
+  <rect x="112" y="45" width="90" height="36" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="157" y="64" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">DOM 빌드</text>
+  <text x="157" y="77" text-anchor="middle" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">HTML 파싱</text>
+
+  <!-- Row 2: CSS → CSSOM -->
+  <rect x="20" y="130" width="75" height="36" rx="8" fill="#2a1f1f" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="57" y="153" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">CSS</text>
+
+  <!-- Arrow CSS → CSSOM -->
+  <line x1="95" y1="148" x2="108" y2="148" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="104,144 104,152 112,148" fill="#6e7681"/>
+
+  <rect x="112" y="130" width="90" height="36" rx="8" fill="#2a1f1f" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="157" y="149" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">CSSOM</text>
+  <text x="157" y="162" text-anchor="middle" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">CSS 파싱</text>
+
+  <!-- Merge lines: DOM → junction, CSSOM → junction -->
+  <circle cx="230" cy="106" r="5" fill="#e3b341"/>
+  <line x1="202" y1="63" x2="230" y2="103" stroke="#6e7681" stroke-width="1.5"/>
+  <line x1="202" y1="148" x2="230" y2="109" stroke="#6e7681" stroke-width="1.5"/>
+
+  <!-- Junction → Render Tree -->
+  <line x1="235" y1="106" x2="253" y2="106" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="249,102 249,110 257,106" fill="#6e7681"/>
+
+  <!-- Render Tree -->
+  <rect x="257" y="83" width="110" height="46" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="312" y="104" text-anchor="middle" fill="#e3b341" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">Render Tree</text>
+  <text x="312" y="119" text-anchor="middle" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">display:none 제외</text>
+
+  <!-- Arrow → Layout -->
+  <line x1="367" y1="106" x2="383" y2="106" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="379,102 379,110 387,106" fill="#6e7681"/>
+
+  <!-- Layout -->
+  <rect x="387" y="83" width="80" height="46" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="427" y="104" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">Layout</text>
+  <text x="427" y="119" text-anchor="middle" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">위치·크기 계산</text>
+
+  <!-- Arrow → Paint -->
+  <line x1="467" y1="106" x2="483" y2="106" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="479,102 479,110 487,106" fill="#6e7681"/>
+
+  <!-- Paint -->
+  <rect x="487" y="83" width="75" height="46" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="524" y="104" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">Paint</text>
+  <text x="524" y="119" text-anchor="middle" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">픽셀 출력</text>
+
+  <!-- Arrow → 화면 -->
+  <line x1="562" y1="106" x2="574" y2="106" stroke="#6e7681" stroke-width="1.5"/>
+  <polygon points="570,102 570,110 578,106" fill="#6e7681"/>
+
+  <!-- 화면 -->
+  <rect x="578" y="83" width="48" height="46" rx="8" fill="#0f2a0f" stroke="#56d364" stroke-width="2"/>
+  <text x="602" y="110" text-anchor="middle" fill="#56d364" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">화면</text>
+
+  <!-- JS Blocking note -->
+  <rect x="20" y="192" width="600" height="54" rx="8" fill="#1f1217" stroke="#f85149" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="40" y="213" fill="#f85149" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">JS 블로킹</text>
+  <text x="40" y="230" fill="#8b949e" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">&lt;script&gt; 태그를 만나면 HTML 파싱이 중단됩니다 — JS 다운로드 + 실행 완료 후 재개</text>
+  <text x="40" y="244" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">defer 속성 사용 시: HTML 파싱과 JS 다운로드를 병렬 진행, 파싱 완료 후 실행</text>
+</svg>

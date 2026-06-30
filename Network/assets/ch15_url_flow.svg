@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="565" viewBox="0 0 560 565">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+  </defs>
+  <rect width="560" height="565" fill="#0d1117" rx="12"/>
+  <text x="280" y="30" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">브라우저 URL 입력 — 전체 흐름</text>
+
+  <!-- Step 1: 캐시 확인 (gray) -->
+  <rect x="60" y="50" width="440" height="55" rx="8" fill="#21262d" stroke="#8b949e" stroke-width="1.5"/>
+  <text x="280" y="71" text-anchor="middle" fill="#8b949e" font-size="13" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">1. 캐시 확인</text>
+  <text x="280" y="89" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">브라우저 DNS 캐시 → OS 캐시 → hosts 파일</text>
+  <!-- Arrow 1→2 -->
+  <line x1="280" y1="107" x2="280" y2="117" stroke="#6e7681" stroke-width="2"/>
+  <polygon points="272,117 288,117 280,124" fill="#6e7681"/>
+
+  <!-- Step 2: DNS (blue) -->
+  <rect x="60" y="125" width="440" height="55" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="280" y="146" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">2. DNS 조회</text>
+  <text x="280" y="164" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">리졸버 → 루트 → TLD → 권한 DNS → IP 반환</text>
+  <!-- Arrow 2→3 -->
+  <line x1="280" y1="182" x2="280" y2="192" stroke="#6e7681" stroke-width="2"/>
+  <polygon points="272,192 288,192 280,199" fill="#6e7681"/>
+
+  <!-- Step 3: TCP (green) -->
+  <rect x="60" y="200" width="440" height="55" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="280" y="221" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">3. TCP 3-way Handshake</text>
+  <text x="280" y="239" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">SYN → SYN-ACK → ACK   (1 RTT)</text>
+  <!-- Arrow 3→4 -->
+  <line x1="280" y1="257" x2="280" y2="267" stroke="#6e7681" stroke-width="2"/>
+  <polygon points="272,267 288,267 280,274" fill="#6e7681"/>
+
+  <!-- Step 4: TLS (yellow) -->
+  <rect x="60" y="275" width="440" height="55" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="280" y="296" text-anchor="middle" fill="#e3b341" font-size="13" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">4. TLS Handshake</text>
+  <text x="280" y="314" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">ClientHello → 인증서 검증 → 세션 키 합의   (+1 RTT)</text>
+  <!-- Arrow 4→5 -->
+  <line x1="280" y1="332" x2="280" y2="342" stroke="#6e7681" stroke-width="2"/>
+  <polygon points="272,342 288,342 280,349" fill="#6e7681"/>
+
+  <!-- Step 5: HTTP (blue) -->
+  <rect x="60" y="350" width="440" height="55" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="280" y="371" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">5. HTTP 요청 / 응답</text>
+  <text x="280" y="389" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">GET / HTTP/1.1 → 200 OK + HTML 수신</text>
+  <!-- Arrow 5→6 -->
+  <line x1="280" y1="407" x2="280" y2="417" stroke="#6e7681" stroke-width="2"/>
+  <polygon points="272,417 288,417 280,424" fill="#6e7681"/>
+
+  <!-- Step 6: 렌더링 (blue) -->
+  <rect x="60" y="425" width="440" height="55" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="280" y="446" text-anchor="middle" fill="#58a6ff" font-size="13" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">6. 브라우저 렌더링</text>
+  <text x="280" y="464" text-anchor="middle" fill="#6e7681" font-size="10" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">DOM + CSSOM → Render Tree → Layout → Paint</text>
+  <!-- Arrow 6→7 -->
+  <line x1="280" y1="482" x2="280" y2="492" stroke="#6e7681" stroke-width="2"/>
+  <polygon points="272,492 288,492 280,499" fill="#6e7681"/>
+
+  <!-- Step 7: 화면 출력 (bright green) -->
+  <rect x="60" y="500" width="440" height="48" rx="8" fill="#0f2a0f" stroke="#56d364" stroke-width="2"/>
+  <text x="280" y="530" text-anchor="middle" fill="#56d364" font-size="14" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">화면 출력</text>
+</svg>

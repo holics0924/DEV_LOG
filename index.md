@@ -64,7 +64,7 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#0d2a1a;color:#3fb950">NET</span>
         Network
       </span>
-      <span class="subject-count">14 chapters</span>
+      <span class="subject-count">15 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/Network/ch1-osi-tcpip/" class="chapter-link">
@@ -108,6 +108,9 @@ title: DEV_LOG
       </a>
       <a href="/DEV_LOG/Network/ch14-security/" class="chapter-link">
         <span class="ch-num">CH14</span>보안
+      </a>
+      <a href="/DEV_LOG/Network/ch15-url-flow/" class="chapter-link">
+        <span class="ch-num">CH15</span>브라우저 URL 입력 흐름
       </a>
     </div>
   </div>

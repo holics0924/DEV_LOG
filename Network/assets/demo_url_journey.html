@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>URL 입력 흐름 시뮬레이터</title>
+<style>
+  :root{
+    --bg:#0f172a;--s1:#1e293b;--s2:#162032;--bd:#334155;
+    --tx:#e2e8f0;--mu:#64748b;--bl:#3b82f6;--gr:#10b981;
+    --rd:#ef4444;--am:#f59e0b;--yw:#d97706;--pu:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--tx);font-family:'Segoe UI',system-ui,sans-serif;padding:24px 16px 48px;max-width:860px;margin:0 auto}
+  h1{font-size:1.05rem;color:#cbd5e1;margin-bottom:4px}
+  p.sub{font-size:.78rem;color:var(--mu);margin-bottom:20px}
+
+  .progress-bar{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+  .progress-dot{width:28px;height:6px;border-radius:3px;background:var(--bd);transition:background .3s}
+  .progress-dot.done{background:var(--gr)}
+  .progress-dot.active{background:var(--bl)}
+
+  .step-card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:18px 20px;margin-bottom:16px;min-height:160px}
+  .step-num{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--mu);margin-bottom:6px;letter-spacing:.06em}
+  .step-title{font-size:1.1rem;font-weight:700;color:#f1f5f9;margin-bottom:10px}
+  .step-desc{font-size:.88rem;color:#cbd5e1;line-height:1.7;margin-bottom:12px}
+  .step-detail{background:var(--s2);border:1px solid var(--bd);border-radius:7px;padding:10px 14px;font-size:.82rem;color:var(--mu);line-height:1.6;font-family:'Consolas','Courier New',monospace;white-space:pre-wrap}
+  .highlight{color:var(--am);font-weight:700}
+  .hl-green{color:var(--gr)}
+  .hl-blue{color:#60a5fa}
+  .hl-red{color:var(--rd)}
+
+  .controls{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
+  button{padding:9px 18px;border-radius:7px;font-size:.85rem;font-weight:700;cursor:pointer;border:none;transition:opacity .15s}
+  button:hover{opacity:.85}
+  #btn-reset{background:var(--s1);color:var(--mu);border:1px solid var(--bd)}
+  #btn-next{background:var(--bl);color:#fff}
+  #btn-next:disabled{background:var(--bd);color:var(--mu);cursor:default}
+
+  .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.7rem;font-weight:700;margin-right:6px;vertical-align:middle}
+  .tag-gray{background:#1e293b;color:#8b949e;border:1px solid #334155}
+  .tag-blue{background:#172554;color:#60a5fa;border:1px solid #1d4ed8}
+  .tag-green{background:#052e16;color:#4ade80;border:1px solid #166534}
+  .tag-yellow{background:#2d1f02;color:#fbbf24;border:1px solid #92400e}
+</style>
+</head>
+<body>
+<h1>google.com을 치면 무슨 일이 일어나는가</h1>
+<p class="sub">단계별로 살펴보는 URL 입력 흐름 — 다음 단계 버튼을 눌러 진행하세요</p>
+
+<div class="progress-bar" id="progress"></div>
+<div class="step-card" id="card"></div>
+<div class="controls">
+  <button id="btn-reset">↺</button>
+  <button id="btn-next">다음 단계 →</button>
+</div>
+
+<script>
+const steps = [
+  {
+    num: "Step 1 / 7",
+    tag: "tag-gray",
+    tagText: "캐시",
+    title: "브라우저/OS 캐시 확인",
+    desc: "엔터를 누르는 순간 브라우저는 DNS 서버에 묻기 전에 이미 알고 있는 IP가 있는지 확인합니다.\n먼저 브라우저 자체 DNS 캐시를 확인하고, 없으면 OS 캐시, 그 다음 hosts 파일을 순서대로 봅니다.",
+    detail: "브라우저 DNS 캐시 → OS DNS 캐시 → hosts 파일\n\n캐시에 IP가 있고 TTL이 유효하면 → DNS 조회 건너뜀\n캐시 없음 → Step 2로"
+  },
+  {
+    num: "Step 2 / 7",
+    tag: "tag-blue",
+    tagText: "DNS",
+    title: "DNS 조회 — IP 주소 획득",
+    desc: "캐시에서 IP를 찾지 못했습니다. 브라우저는 OS에게 \"google.com의 IP를 알아와\"라고 요청하고, OS는 설정된 DNS 리졸버(예: 8.8.8.8)에 질의합니다.\n리졸버는 루트 → TLD → 권한 DNS를 순회해 최종 IP를 반환합니다.",
+    detail: "브라우저\n  └→ 리졸버 (8.8.8.8)\n       ├→ 루트 NS   : \".com 담당 서버로 가봐\"\n       ├→ TLD NS    : \"google.com 담당 서버는 이거\"\n       └→ 권한 NS   : \"google.com = 142.250.196.100\"\n            결과 반환 + TTL 동안 캐싱"
+  },
+  {
+    num: "Step 3 / 7",
+    tag: "tag-green",
+    tagText: "TCP",
+    title: "TCP 3-way Handshake (1 RTT)",
+    desc: "IP를 알았으니 서버와 연결을 맺습니다. HTTPS이므로 포트 443번으로 연결합니다.\n양방향 통신이 가능한지 확인하는 3단계 절차이며, 클라이언트가 SYN-ACK를 수신한 시점에 1 RTT가 소요됩니다.",
+    detail: "클라이언트 → SYN                 → 서버\n클라이언트 ← SYN-ACK              ← 서버  ← 1 RTT 완료\n클라이언트 → ACK + ClientHello    → 서버  ← TLS 시작"
+  },
+  {
+    num: "Step 4 / 7",
+    tag: "tag-yellow",
+    tagText: "TLS",
+    title: "TLS Handshake (+1 RTT)",
+    desc: "TCP 위에 암호화 채널을 추가합니다. 목적은 두 가지입니다: 서버 신원 확인(인증서)과 세션 키 합의.\n클라이언트는 서버의 인증서를 CA 공개키로 검증하고, 이후 HTTP 데이터를 암호화할 대칭 세션 키를 합의합니다.",
+    detail: "클라이언트 → ACK + ClientHello\n서버        ← ServerHello + 인증서 + Finished  ← 1 RTT 추가\n클라이언트 → Finished + HTTP GET\n\n총 2 RTT 소요 후 암호화 채널 수립"
+  },
+  {
+    num: "Step 5 / 7",
+    tag: "tag-blue",
+    tagText: "HTTP",
+    title: "HTTP 요청 / 응답",
+    desc: "암호화 채널이 열렸습니다. 클라이언트가 GET 요청을 보내고, 서버가 HTML 문서로 응답합니다.\n이 시점에 받은 것은 HTML 텍스트 하나뿐입니다. 이미지, CSS, JS는 브라우저가 HTML을 파싱하면서 추가로 요청합니다.",
+    detail: "→ GET / HTTP/1.1\n   Host: google.com\n   ...\n\n← HTTP/1.1 200 OK\n   Content-Type: text/html; charset=UTF-8\n\n   <!DOCTYPE html><html>..."
+  },
+  {
+    num: "Step 6 / 7",
+    tag: "tag-blue",
+    tagText: "렌더링",
+    title: "브라우저 렌더링 파이프라인",
+    desc: "HTML을 받자마자 바로 화면에 뿌리지 않습니다. 브라우저는 DOM 빌드 → CSSOM 빌드 → Render Tree → Layout → Paint 순서로 파이프라인을 실행합니다.\nJS는 DOM을 조작할 수 있어 파싱을 블로킹합니다. defer 속성으로 이 문제를 해결합니다.",
+    detail: "HTML → DOM 빌드\nCSS  → CSSOM 빌드\n         ↘\n            Render Tree → Layout → Paint\n         ↗\n\n⚠ <script> 만나면 파싱 중단 → JS 실행 후 재개\n   defer: 병렬 다운로드 + 파싱 완료 후 실행"
+  },
+  {
+    num: "Step 7 / 7",
+    tag: "tag-green",
+    tagText: "완료",
+    title: "화면 출력",
+    desc: "Paint 단계가 완료되면 사용자가 처음으로 콘텐츠를 봅니다.\n이 전체 과정이 빠른 네트워크에서 100~300ms 안에 일어납니다.",
+    detail: "DNS 조회 (~수십ms)\n+ TCP Handshake (1 RTT)\n+ TLS Handshake (1 RTT)\n+ HTTP 요청/응답 (1 RTT)\n+ 렌더링 (~수십ms)\n─────────────────────\n총 수백ms 이내 → 화면 표시"
+  }
+];
+
+let current = 0;
+const progress = document.getElementById('progress');
+const card = document.getElementById('card');
+const btnNext = document.getElementById('btn-next');
+
+function render() {
+  // progress dots
+  progress.innerHTML = steps.map((_,i) => {
+    let cls = i < current ? 'done' : i === current ? 'active' : '';
+    return `<div class="progress-dot ${cls}"></div>`;
+  }).join('');
+
+  const s = steps[current];
+  card.innerHTML = `
+    <div class="step-num">${s.num} <span class="tag ${s.tag}">${s.tagText}</span></div>
+    <div class="step-title">${s.title}</div>
+    <div class="step-desc">${s.desc.replace(/\n/g,'<br>')}</div>
+    <div class="step-detail">${s.detail}</div>
+  `;
+  btnNext.disabled = current === steps.length - 1;
+  btnNext.textContent = current === steps.length - 1 ? '완료' : '다음 단계 →';
+}
+
+btnNext.addEventListener('click', () => {
+  if (current < steps.length - 1) { current++; render(); }
+});
+document.getElementById('btn-reset').addEventListener('click', () => {
+  current = 0; render();
+});
+
+render();
+</script>
+</body>
+</html>

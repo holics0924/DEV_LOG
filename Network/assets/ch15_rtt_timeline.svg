@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="490" viewBox="0 0 560 490">
+  <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');</style>
+  </defs>
+  <rect width="560" height="490" fill="#0d1117" rx="12"/>
+  <text x="280" y="28" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">TCP + TLS RTT 타임라인 (TLS 1.3)</text>
+
+  <!-- Client header -->
+  <rect x="30" y="42" width="120" height="34" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="90" y="63" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">클라이언트</text>
+
+  <!-- Server header -->
+  <rect x="410" y="42" width="120" height="34" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="470" y="63" text-anchor="middle" fill="#3fb950" font-size="12" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">서버</text>
+
+  <!-- Timeline lines -->
+  <line x1="90" y1="76" x2="90" y2="460" stroke="#30363d" stroke-width="2" stroke-dasharray="4,4"/>
+  <line x1="470" y1="76" x2="470" y2="460" stroke="#30363d" stroke-width="2" stroke-dasharray="4,4"/>
+
+  <!-- Event dots on client timeline -->
+  <circle cx="90" cy="100" r="4" fill="#3fb950"/>
+  <circle cx="90" cy="200" r="5" fill="#3fb950"/>
+  <circle cx="90" cy="300" r="5" fill="#e3b341"/>
+  <circle cx="90" cy="380" r="4" fill="#58a6ff"/>
+
+  <!-- Event dots on server timeline -->
+  <circle cx="470" cy="150" r="4" fill="#3fb950"/>
+  <circle cx="470" cy="250" r="4" fill="#e3b341"/>
+  <circle cx="470" cy="340" r="4" fill="#58a6ff"/>
+
+  <!-- Message 1: SYN (green) -->
+  <line x1="90" y1="100" x2="470" y2="150" stroke="#3fb950" stroke-width="1.5"/>
+  <polygon points="462,146 462,154 470,150" fill="#3fb950"/>
+  <text x="280" y="117" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">SYN</text>
+
+  <!-- Message 2: SYN-ACK (green) -->
+  <line x1="470" y1="150" x2="90" y2="200" stroke="#3fb950" stroke-width="1.5"/>
+  <polygon points="98,196 98,204 90,200" fill="#3fb950"/>
+  <text x="280" y="163" text-anchor="middle" fill="#3fb950" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">SYN-ACK</text>
+
+  <!-- Message 3: ACK + ClientHello (yellow) -->
+  <line x1="90" y1="200" x2="470" y2="250" stroke="#e3b341" stroke-width="1.5"/>
+  <polygon points="462,246 462,254 470,250" fill="#e3b341"/>
+  <text x="280" y="213" text-anchor="middle" fill="#e3b341" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">ACK + ClientHello</text>
+
+  <!-- Message 4: ServerHello + cert + Finished (yellow) -->
+  <line x1="470" y1="250" x2="90" y2="300" stroke="#e3b341" stroke-width="1.5"/>
+  <polygon points="98,296 98,304 90,300" fill="#e3b341"/>
+  <text x="280" y="264" text-anchor="middle" fill="#e3b341" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">ServerHello + 인증서 + Finished</text>
+
+  <!-- Message 5: HTTP GET (blue, lighter) -->
+  <line x1="90" y1="300" x2="470" y2="340" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <polygon points="462,336 462,344 470,340" fill="#58a6ff"/>
+  <text x="280" y="314" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">Finished + HTTP GET</text>
+
+  <!-- Message 6: HTTP Response (blue, lighter) -->
+  <line x1="470" y1="340" x2="90" y2="380" stroke="#58a6ff" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <polygon points="98,376 98,384 90,380" fill="#58a6ff"/>
+  <text x="280" y="354" text-anchor="middle" fill="#58a6ff" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">HTTP 응답 (HTML)</text>
+
+  <!-- TCP RTT bracket (right side) -->
+  <line x1="508" y1="100" x2="508" y2="200" stroke="#3fb950" stroke-width="1.5"/>
+  <line x1="504" y1="100" x2="512" y2="100" stroke="#3fb950" stroke-width="1.5"/>
+  <line x1="504" y1="200" x2="512" y2="200" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="518" y="146" fill="#3fb950" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">1 RTT</text>
+  <text x="518" y="159" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">TCP 완료</text>
+
+  <!-- TLS RTT bracket (right side) -->
+  <line x1="508" y1="200" x2="508" y2="300" stroke="#e3b341" stroke-width="1.5"/>
+  <line x1="504" y1="200" x2="512" y2="200" stroke="#e3b341" stroke-width="1.5"/>
+  <line x1="504" y1="300" x2="512" y2="300" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="518" y="246" fill="#e3b341" font-size="10" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">1 RTT</text>
+  <text x="518" y="259" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">TLS 완료</text>
+
+  <!-- Summary label -->
+  <rect x="30" y="420" width="500" height="36" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="280" y="443" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">총 2 RTT — 이후 HTTP 데이터 교환 시작</text>
+
+  <!-- t=0, t=1, t=2 time labels -->
+  <text x="16" y="104" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">t=0</text>
+  <text x="16" y="204" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">t=1</text>
+  <text x="16" y="304" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">t=2</text>
+  <text x="16" y="384" fill="#6e7681" font-size="9" font-family="'Nunito','Trebuchet MS',Arial,sans-serif">t=3</text>
+</svg>
