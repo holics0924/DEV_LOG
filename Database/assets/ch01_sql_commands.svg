@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="760" height="300">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+      text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }
+    </style>
+  </defs>
+
+  <rect width="760" height="300" rx="12" fill="#0d1117"/>
+  <text x="380" y="26" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">SQL 명령어 분류</text>
+
+  <!-- DDL -->
+  <rect x="20" y="40" width="174" height="246" rx="8" fill="#2a2210" stroke="#e3b341" stroke-width="1.5"/>
+  <text x="107" y="63" text-anchor="middle" fill="#e3b341" font-size="14" font-weight="700">DDL</text>
+  <text x="107" y="78" text-anchor="middle" fill="#6e7681" font-size="10">Data Definition Language</text>
+  <line x1="32" y1="89" x2="182" y2="89" stroke="#30363d" stroke-width="1"/>
+  <text x="34" y="107" fill="#e3b341" font-size="12" font-weight="600">CREATE</text>
+  <text x="34" y="125" fill="#e3b341" font-size="12" font-weight="600">ALTER</text>
+  <text x="34" y="143" fill="#e3b341" font-size="12" font-weight="600">DROP</text>
+  <text x="34" y="161" fill="#e3b341" font-size="12" font-weight="600">TRUNCATE</text>
+  <line x1="32" y1="174" x2="182" y2="174" stroke="#30363d" stroke-width="1"/>
+  <text x="34" y="192" fill="#6e7681" font-size="10">구조(스키마) 변경</text>
+  <text x="34" y="210" fill="#6e7681" font-size="10">Auto-Commit</text>
+  <text x="34" y="228" fill="#6e7681" font-size="10">롤백 불가</text>
+  <text x="34" y="246" fill="#6e7681" font-size="10">즉시 반영</text>
+
+  <!-- DML -->
+  <rect x="202" y="40" width="174" height="246" rx="8" fill="#1a3a27" stroke="#3fb950" stroke-width="1.5"/>
+  <text x="289" y="63" text-anchor="middle" fill="#3fb950" font-size="14" font-weight="700">DML</text>
+  <text x="289" y="78" text-anchor="middle" fill="#6e7681" font-size="10">Data Manipulation Language</text>
+  <line x1="214" y1="89" x2="364" y2="89" stroke="#30363d" stroke-width="1"/>
+  <text x="216" y="107" fill="#3fb950" font-size="12" font-weight="600">SELECT</text>
+  <text x="216" y="125" fill="#3fb950" font-size="12" font-weight="600">INSERT</text>
+  <text x="216" y="143" fill="#3fb950" font-size="12" font-weight="600">UPDATE</text>
+  <text x="216" y="161" fill="#3fb950" font-size="12" font-weight="600">DELETE</text>
+  <line x1="214" y1="174" x2="364" y2="174" stroke="#30363d" stroke-width="1"/>
+  <text x="216" y="192" fill="#6e7681" font-size="10">데이터 읽기·쓰기</text>
+  <text x="216" y="210" fill="#6e7681" font-size="10">트랜잭션 안에서 동작</text>
+  <text x="216" y="228" fill="#6e7681" font-size="10">롤백 가능</text>
+  <text x="216" y="246" fill="#6e7681" font-size="10">WHERE 조건 지원</text>
+
+  <!-- DCL -->
+  <rect x="384" y="40" width="174" height="246" rx="8" fill="#1c3a5e" stroke="#58a6ff" stroke-width="1.5"/>
+  <text x="471" y="63" text-anchor="middle" fill="#58a6ff" font-size="14" font-weight="700">DCL</text>
+  <text x="471" y="78" text-anchor="middle" fill="#6e7681" font-size="10">Data Control Language</text>
+  <line x1="396" y1="89" x2="546" y2="89" stroke="#30363d" stroke-width="1"/>
+  <text x="398" y="107" fill="#58a6ff" font-size="12" font-weight="600">GRANT</text>
+  <text x="398" y="125" fill="#58a6ff" font-size="12" font-weight="600">REVOKE</text>
+  <line x1="396" y1="174" x2="546" y2="174" stroke="#30363d" stroke-width="1"/>
+  <text x="398" y="192" fill="#6e7681" font-size="10">접근 권한 제어</text>
+  <text x="398" y="210" fill="#6e7681" font-size="10">보안의 출발점</text>
+  <text x="398" y="228" fill="#6e7681" font-size="10">계정별 최소 권한 원칙</text>
+  <text x="398" y="246" fill="#6e7681" font-size="10">SQL Injection 피해 제한</text>
+
+  <!-- TCL -->
+  <rect x="566" y="40" width="174" height="246" rx="8" fill="#2a1f1f" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="653" y="63" text-anchor="middle" fill="#f0883e" font-size="14" font-weight="700">TCL</text>
+  <text x="653" y="78" text-anchor="middle" fill="#6e7681" font-size="10">Transaction Control Language</text>
+  <line x1="578" y1="89" x2="728" y2="89" stroke="#30363d" stroke-width="1"/>
+  <text x="580" y="107" fill="#f0883e" font-size="12" font-weight="600">BEGIN</text>
+  <text x="580" y="125" fill="#f0883e" font-size="12" font-weight="600">COMMIT</text>
+  <text x="580" y="143" fill="#f0883e" font-size="12" font-weight="600">ROLLBACK</text>
+  <text x="580" y="161" fill="#f0883e" font-size="12" font-weight="600">SAVEPOINT</text>
+  <line x1="578" y1="174" x2="728" y2="174" stroke="#30363d" stroke-width="1"/>
+  <text x="580" y="192" fill="#6e7681" font-size="10">트랜잭션 경계 설정</text>
+  <text x="580" y="210" fill="#6e7681" font-size="10">DML 묶기·취소</text>
+  <text x="580" y="228" fill="#6e7681" font-size="10">중간 저장점 설정</text>
+  <text x="580" y="246" fill="#6e7681" font-size="10">원자성 보장</text>
+</svg>
