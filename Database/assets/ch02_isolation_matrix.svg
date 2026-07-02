@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="360" viewBox="0 0 700 360">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&amp;display=swap');
+      text { font-family: 'Nunito','Trebuchet MS',Arial,sans-serif; }
+    </style>
+  </defs>
+
+  <!-- 배경 -->
+  <rect width="700" height="360" fill="#0d1117" rx="12"/>
+
+  <!-- 제목 -->
+  <text x="350" y="32" text-anchor="middle" fill="#6e7681" font-size="12" font-weight="700">격리 수준별 이상 현상 발생 여부</text>
+
+  <!-- 헤더 행 배경 -->
+  <rect x="20" y="48" width="660" height="52" fill="#161b22" rx="6"/>
+
+  <!-- 헤더 텍스트 -->
+  <text x="130" y="79" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">격리 수준</text>
+  <text x="340" y="72" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">Dirty</text>
+  <text x="340" y="87" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">Read</text>
+  <text x="490" y="72" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">Non-Repeatable</text>
+  <text x="490" y="87" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">Read</text>
+  <text x="630" y="72" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="700">Phantom</text>
+  <text x="630" y="87" text-anchor="middle" fill="#8b949e" font-size="10" font-weight="700">Read</text>
+
+  <!-- 구분선 (세로) -->
+  <line x1="250" y1="48" x2="250" y2="332" stroke="#21262d" stroke-width="1"/>
+  <line x1="410" y1="48" x2="410" y2="332" stroke="#21262d" stroke-width="1"/>
+  <line x1="560" y1="48" x2="560" y2="332" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ── 행 1: Read Uncommitted ── -->
+  <rect x="20" y="100" width="660" height="58" fill="#0d1117" rx="0"/>
+  <text x="130" y="132" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="700">Read Uncommitted</text>
+  <!-- 발생 3개 -->
+  <rect x="268" y="110" width="84" height="30" fill="#2d1117" stroke="#f85149" stroke-width="1.5" rx="6"/>
+  <text x="310" y="130" text-anchor="middle" fill="#f85149" font-size="11" font-weight="700">발생</text>
+  <rect x="428" y="110" width="84" height="30" fill="#2d1117" stroke="#f85149" stroke-width="1.5" rx="6"/>
+  <text x="470" y="130" text-anchor="middle" fill="#f85149" font-size="11" font-weight="700">발생</text>
+  <rect x="578" y="110" width="84" height="30" fill="#2d1117" stroke="#f85149" stroke-width="1.5" rx="6"/>
+  <text x="620" y="130" text-anchor="middle" fill="#f85149" font-size="11" font-weight="700">발생</text>
+
+  <!-- 구분선 (가로) -->
+  <line x1="20" y1="158" x2="680" y2="158" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ── 행 2: Read Committed ── -->
+  <rect x="20" y="158" width="660" height="58" fill="#0d1117" rx="0"/>
+  <text x="130" y="190" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="700">Read Committed</text>
+  <!-- 막음 1, 발생 2 -->
+  <rect x="268" y="168" width="84" height="30" fill="#0d2119" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="310" y="188" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">막음</text>
+  <rect x="428" y="168" width="84" height="30" fill="#2d1117" stroke="#f85149" stroke-width="1.5" rx="6"/>
+  <text x="470" y="188" text-anchor="middle" fill="#f85149" font-size="11" font-weight="700">발생</text>
+  <rect x="578" y="168" width="84" height="30" fill="#2d1117" stroke="#f85149" stroke-width="1.5" rx="6"/>
+  <text x="620" y="188" text-anchor="middle" fill="#f85149" font-size="11" font-weight="700">발생</text>
+
+  <!-- 구분선 (가로) -->
+  <line x1="20" y1="216" x2="680" y2="216" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ── 행 3: Repeatable Read (InnoDB 기본값) — 하이라이트 ── -->
+  <rect x="20" y="216" width="660" height="58" fill="#1c2333" rx="0"/>
+  <!-- InnoDB 기본값 배지 -->
+  <rect x="20" y="216" width="4" height="58" fill="#58a6ff" rx="0"/>
+  <text x="130" y="244" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="700">Repeatable Read</text>
+  <text x="130" y="262" text-anchor="middle" fill="#58a6ff" font-size="9" font-weight="700">MySQL InnoDB 기본값</text>
+  <!-- 막음 2, 이론상발생 1 -->
+  <rect x="268" y="226" width="84" height="30" fill="#0d2119" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="310" y="246" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">막음</text>
+  <rect x="428" y="226" width="84" height="30" fill="#0d2119" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="470" y="246" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">막음</text>
+  <!-- Phantom: 이론상 발생, Gap Lock으로 실제론 막음 -->
+  <rect x="578" y="226" width="84" height="30" fill="#1a1f0d" stroke="#e3b341" stroke-width="1.5" rx="6"/>
+  <text x="620" y="246" text-anchor="middle" fill="#e3b341" font-size="10" font-weight="700">이론상 발생</text>
+
+  <!-- 구분선 (가로) -->
+  <line x1="20" y1="274" x2="680" y2="274" stroke="#21262d" stroke-width="1"/>
+
+  <!-- ── 행 4: Serializable ── -->
+  <rect x="20" y="274" width="660" height="58" fill="#0d1117" rx="0"/>
+  <text x="130" y="306" text-anchor="middle" fill="#e6edf3" font-size="12" font-weight="700">Serializable</text>
+  <!-- 막음 3개 -->
+  <rect x="268" y="284" width="84" height="30" fill="#0d2119" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="310" y="304" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">막음</text>
+  <rect x="428" y="284" width="84" height="30" fill="#0d2119" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="470" y="304" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">막음</text>
+  <rect x="578" y="284" width="84" height="30" fill="#0d2119" stroke="#3fb950" stroke-width="1.5" rx="6"/>
+  <text x="620" y="304" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="700">막음</text>
+
+  <!-- 외곽선 -->
+  <rect x="20" y="48" width="660" height="284" fill="none" stroke="#30363d" stroke-width="1.5" rx="6"/>
+
+  <!-- 하단 주석 -->
+  <text x="350" y="346" text-anchor="middle" fill="#6e7681" font-size="10">* Repeatable Read의 Phantom Read는 Gap Lock으로 실제 대부분 차단됨</text>
+</svg>

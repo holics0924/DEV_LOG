@@ -121,11 +121,14 @@ title: DEV_LOG
         <span class="subject-tag" style="background:#2d1b0a;color:#ffa657">DB</span>
         Database
       </span>
-      <span class="subject-count">1 chapter</span>
+      <span class="subject-count">2 chapters</span>
     </div>
     <div class="chapter-list">
       <a href="/DEV_LOG/Database/ch1-sql-basics/" class="chapter-link">
         <span class="ch-num">CH1</span>SQL 기초와 RDBMS
+      </a>
+      <a href="/DEV_LOG/Database/ch2-transaction-isolation/" class="chapter-link">
+        <span class="ch-num">CH2</span>트랜잭션과 격리 수준
       </a>
     </div>
   </div>
